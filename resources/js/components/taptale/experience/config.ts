@@ -49,7 +49,8 @@ export const EXPERIENCE_THEMES: Record<string, ExperienceTheme> = {
     },
     blush: {
         label: 'Soft blush',
-        background: 'linear-gradient(180deg, #F7E2E6 0%, #FBF3EE 45%, #F5E1E8 100%)',
+        background:
+            'linear-gradient(180deg, #F7E2E6 0%, #FBF3EE 45%, #F5E1E8 100%)',
         surface: 'rgb(255 255 255 / 0.55)',
         ink: '#3A2A30',
         muted: '#7A6870',
@@ -97,7 +98,8 @@ export const EXPERIENCE_THEMES: Record<string, ExperienceTheme> = {
     },
     sunset: {
         label: 'Beach sunset',
-        background: 'linear-gradient(180deg, #2B1B3D 0%, #6E3558 50%, #D9806A 100%)',
+        background:
+            'linear-gradient(180deg, #2B1B3D 0%, #6E3558 50%, #D9806A 100%)',
         surface: 'rgb(255 255 255 / 0.08)',
         ink: '#FFF4EE',
         muted: 'rgb(255 244 238 / 0.75)',
@@ -138,7 +140,9 @@ export function themeStyle(theme: ExperienceTheme): CSSProperties {
         '--x-accent-ink': theme.accentInk,
         '--x-paper': theme.paper,
         '--x-paper-ink': theme.paperInk,
-        background: theme.pattern ? `${theme.pattern}, ${theme.background}` : theme.background,
+        background: theme.pattern
+            ? `${theme.pattern}, ${theme.background}`
+            : theme.background,
         color: theme.ink,
     } as CSSProperties;
 }
@@ -185,15 +189,42 @@ export type ExperiencePreset = {
     }>;
 };
 
-export const EXPERIENCE_PRESETS: Record<ExperienceTemplateKey, ExperiencePreset> = {
+export const EXPERIENCE_PRESETS: Record<
+    ExperienceTemplateKey,
+    ExperiencePreset
+> = {
     monthsary: {
         gate: 'envelope',
-        sections: ['hero_photo', 'letter_card', 'polaroid_wall', 'film_strip', 'letter_paper', 'scrapbook', 'song', 'quote', 'closing'],
+        sections: [
+            'hero_photo',
+            'letter_card',
+            'polaroid_wall',
+            'film_strip',
+            'letter_paper',
+            'scrapbook',
+            'song',
+            'quote',
+            'closing',
+        ],
     },
     birthday: {
         gate: 'tap',
-        sections: ['hero_photo', 'note', 'gallery', 'song', 'video', 'quote', 'closing'],
-        labels: { closing: 'Happy birthday, my love', gate: 'A birthday surprise', note: 'A little note', gallery: 'Moments I love with you', song: 'A birthday song for you' },
+        sections: [
+            'hero_photo',
+            'note',
+            'gallery',
+            'song',
+            'video',
+            'quote',
+            'closing',
+        ],
+        labels: {
+            closing: 'Happy birthday, my love',
+            gate: 'A birthday surprise',
+            note: 'A little note',
+            gallery: 'Moments I love with you',
+            song: 'A birthday song for you',
+        },
     },
     love_story: {
         gate: null,
@@ -206,17 +237,44 @@ export const EXPERIENCE_PRESETS: Record<ExperienceTemplateKey, ExperiencePreset>
     },
     girlfriends_day: {
         gate: 'envelope',
-        sections: ['hero_doily', 'letter_paper', 'scrapbook', 'film_strip', 'song', 'closing'],
-        labels: { gate: 'Hi baby! Got a mail for you', filmStrip: 'My favorite girl' },
+        sections: [
+            'hero_doily',
+            'letter_paper',
+            'scrapbook',
+            'film_strip',
+            'song',
+            'closing',
+        ],
+        labels: {
+            gate: 'Hi baby! Got a mail for you',
+            filmStrip: 'My favorite girl',
+        },
     },
     valentines: {
         gate: 'question',
-        sections: ['hero_script', 'letter_card', 'polaroid_wall', 'song', 'quote', 'closing'],
+        sections: [
+            'hero_script',
+            'letter_card',
+            'polaroid_wall',
+            'song',
+            'quote',
+            'closing',
+        ],
     },
     apology: {
         gate: 'question',
-        sections: ['hero_script', 'letter_paper', 'gallery', 'quote', 'closing'],
-        labels: { closing: 'I love you, always', question: 'Will you forgive me?', gallery: 'The moments worth fixing it for' },
+        sections: [
+            'hero_script',
+            'letter_paper',
+            'gallery',
+            'quote',
+            'closing',
+        ],
+        labels: {
+            closing: 'I love you, always',
+            question: 'Will you forgive me?',
+            gallery: 'The moments worth fixing it for',
+        },
     },
     our_song: {
         gate: 'tap',
@@ -225,49 +283,121 @@ export const EXPERIENCE_PRESETS: Record<ExperienceTemplateKey, ExperiencePreset>
     },
     anniversary: {
         gate: 'envelope',
-        sections: ['hero_photo', 'film_strip', 'timeline', 'letter_paper', 'song', 'closing'],
-        labels: { filmStrip: 'Our year in frames', timeline: 'Every chapter of us' },
+        sections: [
+            'hero_photo',
+            'film_strip',
+            'timeline',
+            'letter_paper',
+            'song',
+            'closing',
+        ],
+        labels: {
+            filmStrip: 'Our year in frames',
+            timeline: 'Every chapter of us',
+        },
     },
     wedding: {
         gate: null,
-        sections: ['hero_photo', 'note', 'countdown', 'timeline', 'gallery', 'video', 'song', 'quote', 'closing'],
-        labels: { closing: 'Thank you for celebrating with us', note: 'With love and gratitude', timeline: 'Our love story', gallery: 'Our wedding album', song: 'Our wedding song', countdown: 'Until forever' },
+        sections: [
+            'hero_photo',
+            'note',
+            'countdown',
+            'timeline',
+            'gallery',
+            'video',
+            'song',
+            'quote',
+            'closing',
+        ],
+        labels: {
+            closing: 'Thank you for celebrating with us',
+            note: 'With love and gratitude',
+            timeline: 'Our love story',
+            gallery: 'Our wedding album',
+            song: 'Our wedding song',
+            countdown: 'Until forever',
+        },
     },
     save_the_date: {
         gate: 'envelope',
         sections: ['hero_script', 'countdown', 'details', 'gallery', 'closing'],
-        labels: { closing: 'See you there!', gate: "You're invited!", gateHint: 'Tap the seal to open your invitation', countdown: 'Counting down', gallery: 'Us' },
+        labels: {
+            closing: 'See you there!',
+            gate: "You're invited!",
+            gateHint: 'Tap the seal to open your invitation',
+            countdown: 'Counting down',
+            gallery: 'Us',
+        },
     },
     bestie: {
         gate: 'tap',
-        sections: ['hero_script', 'scrapbook', 'film_strip', 'polaroid_wall', 'letter_card', 'song', 'closing'],
-        labels: { closing: 'Love you, bestie!', gate: 'For my favorite person', filmCaption: 'Best friends forever!' },
+        sections: [
+            'hero_script',
+            'scrapbook',
+            'film_strip',
+            'polaroid_wall',
+            'letter_card',
+            'song',
+            'closing',
+        ],
+        labels: {
+            closing: 'Love you, bestie!',
+            gate: 'For my favorite person',
+            filmCaption: 'Best friends forever!',
+        },
     },
     family: {
         gate: null,
         sections: ['hero_photo', 'note', 'gallery', 'quote', 'closing'],
-        labels: { closing: 'With love and gratitude', note: 'A blessing to our family', gallery: 'Our little moments' },
+        labels: {
+            closing: 'With love and gratitude',
+            note: 'A blessing to our family',
+            gallery: 'Our little moments',
+        },
     },
     graduation: {
         gate: null,
-        sections: ['hero_photo', 'note', 'polaroid_wall', 'gallery', 'quote', 'closing'],
-        labels: { closing: 'The best is yet to come', note: 'We are so proud of you', gallery: 'The journey' },
+        sections: [
+            'hero_photo',
+            'note',
+            'polaroid_wall',
+            'gallery',
+            'quote',
+            'closing',
+        ],
+        labels: {
+            closing: 'The best is yet to come',
+            note: 'We are so proud of you',
+            gallery: 'The journey',
+        },
     },
     classic: {
         gate: null,
-        sections: ['hero_script', 'gallery', 'note', 'video', 'song', 'closing'],
+        sections: [
+            'hero_script',
+            'gallery',
+            'note',
+            'video',
+            'song',
+            'closing',
+        ],
         labels: { closing: 'Every tap tells our story' },
     },
 };
 
 export function presetFor(key: string): ExperiencePreset {
-    return EXPERIENCE_PRESETS[key as ExperienceTemplateKey] ?? EXPERIENCE_PRESETS.classic;
+    return (
+        EXPERIENCE_PRESETS[key as ExperienceTemplateKey] ??
+        EXPERIENCE_PRESETS.classic
+    );
 }
 
 /**
  * Convert a YouTube, Vimeo or Spotify share link into an embeddable URL.
  */
-export function embedFor(url: string | null | undefined): { src: string; kind: 'video' | 'spotify' } | null {
+export function embedFor(
+    url: string | null | undefined,
+): { src: string; kind: 'video' | 'spotify' } | null {
     if (!url) {
         return null;
     }
@@ -277,25 +407,44 @@ export function embedFor(url: string | null | undefined): { src: string; kind: '
         const host = parsed.hostname.replace(/^www\.|^m\./, '');
 
         if (host === 'youtube.com' || host === 'music.youtube.com') {
-            const id = parsed.searchParams.get('v') ?? parsed.pathname.match(/\/(shorts|embed)\/([\w-]+)/)?.[2];
+            const id =
+                parsed.searchParams.get('v') ??
+                parsed.pathname.match(/\/(shorts|embed)\/([\w-]+)/)?.[2];
 
-            return id ? { src: `https://www.youtube-nocookie.com/embed/${id}`, kind: 'video' } : null;
+            return id
+                ? {
+                      src: `https://www.youtube-nocookie.com/embed/${id}`,
+                      kind: 'video',
+                  }
+                : null;
         }
 
         if (host === 'youtu.be') {
-            return { src: `https://www.youtube-nocookie.com/embed${parsed.pathname}`, kind: 'video' };
+            return {
+                src: `https://www.youtube-nocookie.com/embed${parsed.pathname}`,
+                kind: 'video',
+            };
         }
 
         if (host === 'vimeo.com') {
             const id = parsed.pathname.split('/').filter(Boolean).pop();
 
-            return id ? { src: `https://player.vimeo.com/video/${id}`, kind: 'video' } : null;
+            return id
+                ? { src: `https://player.vimeo.com/video/${id}`, kind: 'video' }
+                : null;
         }
 
         if (host === 'open.spotify.com') {
-            const match = parsed.pathname.match(/\/(track|album|playlist|episode)\/([\w]+)/);
+            const match = parsed.pathname.match(
+                /\/(track|album|playlist|episode)\/([\w]+)/,
+            );
 
-            return match ? { src: `https://open.spotify.com/embed/${match[1]}/${match[2]}`, kind: 'spotify' } : null;
+            return match
+                ? {
+                      src: `https://open.spotify.com/embed/${match[1]}/${match[2]}`,
+                      kind: 'spotify',
+                  }
+                : null;
         }
     } catch {
         return null;

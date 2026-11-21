@@ -1,7 +1,25 @@
-import { ChevronDown, Flower2, Heart, Mail, Music, Pause, Play, Repeat, Shuffle, SkipBack, SkipForward, Sparkles, Star, X } from 'lucide-react';
+import {
+    ChevronDown,
+    Flower2,
+    Heart,
+    Mail,
+    Music,
+    Pause,
+    Play,
+    Repeat,
+    Shuffle,
+    SkipBack,
+    SkipForward,
+    Sparkles,
+    Star,
+    X,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { embedFor, parseEventDate } from '@/components/taptale/experience/config';
+import {
+    embedFor,
+    parseEventDate,
+} from '@/components/taptale/experience/config';
 import type { SectionKey } from '@/components/taptale/experience/config';
 import {
     Eyebrow,
@@ -19,7 +37,10 @@ import { cn } from '@/lib/utils';
 const ROTATIONS = [-6, 4, -3, 7, -5, 3, -7, 5, -2, 6, -4, 2];
 
 function paragraphs(text: string | null | undefined): string[] {
-    return (text ?? '').split(/\n{2,}|\r\n\r\n/).map((part) => part.trim()).filter(Boolean);
+    return (text ?? '')
+        .split(/\n{2,}|\r\n\r\n/)
+        .map((part) => part.trim())
+        .filter(Boolean);
 }
 
 export function ExperienceSection({ section }: { section: SectionKey }) {
@@ -79,13 +100,32 @@ function HeroPhoto() {
 
     return (
         <section className="relative flex min-h-[100svh] items-center justify-center overflow-hidden px-6 text-center text-white">
-            <PhotoFill src={photoAt(0)} className="absolute inset-0 size-full scale-105" />
-            <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgb(0 0 0 / 0.15), color-mix(in oklab, var(--x-bg) 55%, transparent) 75%, var(--x-bg))' }} />
+            <PhotoFill
+                src={photoAt(0)}
+                className="absolute inset-0 size-full scale-105"
+            />
+            <div
+                className="absolute inset-0"
+                style={{
+                    background:
+                        'linear-gradient(180deg, rgb(0 0 0 / 0.15), color-mix(in oklab, var(--x-bg) 55%, transparent) 75%, var(--x-bg))',
+                }}
+            />
             <FloatingHearts count={8} />
             <Reveal className="relative">
-                <h1 className="font-script text-6xl leading-[1.05] drop-shadow-[0_4px_20px_rgb(0_0_0/0.45)] sm:text-8xl">{experience.title}</h1>
-                {experience.subtitle && <p className="mt-3 font-script text-3xl drop-shadow sm:text-5xl">{experience.subtitle}</p>}
-                {experience.recipient_name && <p className="mt-6 text-sm tracking-[0.3em] uppercase opacity-90">For {experience.recipient_name}</p>}
+                <h1 className="font-script text-6xl leading-[1.05] drop-shadow-[0_4px_20px_rgb(0_0_0/0.45)] sm:text-8xl">
+                    {experience.title}
+                </h1>
+                {experience.subtitle && (
+                    <p className="mt-3 font-script text-3xl drop-shadow sm:text-5xl">
+                        {experience.subtitle}
+                    </p>
+                )}
+                {experience.recipient_name && (
+                    <p className="mt-6 text-sm tracking-[0.3em] uppercase opacity-90">
+                        For {experience.recipient_name}
+                    </p>
+                )}
             </Reveal>
             <ScrollHint />
         </section>
@@ -99,10 +139,23 @@ function HeroScript() {
         <section className="relative flex min-h-[85svh] items-center justify-center overflow-hidden px-6 text-center">
             <FloatingHearts count={12} />
             <Reveal className="relative">
-                <Heart className="mx-auto mb-4 size-10 animate-wiggle text-[var(--x-accent)]" fill="currentColor" />
-                <h1 className="font-script text-6xl leading-[1.05] sm:text-8xl">{experience.title}</h1>
-                {experience.subtitle && <p className="mt-4 font-display text-xl text-[var(--x-muted)] italic sm:text-2xl">{experience.subtitle}</p>}
-                {experience.event_date && <p className="mt-6 text-sm tracking-[0.3em] text-[var(--x-accent)] uppercase">{experience.event_date}</p>}
+                <Heart
+                    className="mx-auto mb-4 size-10 animate-wiggle text-[var(--x-accent)]"
+                    fill="currentColor"
+                />
+                <h1 className="font-script text-6xl leading-[1.05] sm:text-8xl">
+                    {experience.title}
+                </h1>
+                {experience.subtitle && (
+                    <p className="mt-4 font-display text-xl text-[var(--x-muted)] italic sm:text-2xl">
+                        {experience.subtitle}
+                    </p>
+                )}
+                {experience.event_date && (
+                    <p className="mt-6 text-sm tracking-[0.3em] text-[var(--x-accent)] uppercase">
+                        {experience.event_date}
+                    </p>
+                )}
             </Reveal>
             <ScrollHint />
         </section>
@@ -125,12 +178,24 @@ function HeroDoily() {
             <Reveal className="relative">
                 <div className="relative flex aspect-square w-[min(84vw,30rem)] items-center justify-center rounded-full border-[14px] border-dotted border-white bg-[#FFFBF5] p-6 text-center text-[#B23A62] shadow-[0_30px_60px_-20px_rgb(120_30_60/0.45)]">
                     <div className="flex size-full items-center justify-center rounded-full border-2 border-dashed border-[#F2A5BC] p-6">
-                        <h1 className="font-display text-4xl leading-tight font-medium tracking-wide uppercase sm:text-5xl">{experience.title}</h1>
-                        {experience.subtitle && <p className="mt-3 font-script text-3xl">{experience.subtitle}</p>}
+                        <h1 className="font-display text-4xl leading-tight font-medium tracking-wide uppercase sm:text-5xl">
+                            {experience.title}
+                        </h1>
+                        {experience.subtitle && (
+                            <p className="mt-3 font-script text-3xl">
+                                {experience.subtitle}
+                            </p>
+                        )}
                     </div>
                 </div>
-                <Flower2 className="absolute -top-4 -right-2 size-16 text-[#F28AA8]" fill="#FFD1DC" />
-                <Flower2 className="absolute -bottom-2 -left-4 size-20 rotate-45 text-[#F28AA8]" fill="#FFD1DC" />
+                <Flower2
+                    className="absolute -top-4 -right-2 size-16 text-[#F28AA8]"
+                    fill="#FFD1DC"
+                />
+                <Flower2
+                    className="absolute -bottom-2 -left-4 size-20 rotate-45 text-[#F28AA8]"
+                    fill="#FFD1DC"
+                />
             </Reveal>
         </section>
     );
@@ -148,14 +213,24 @@ function Note() {
         <SectionShell>
             <div className="grid items-center gap-10 md:grid-cols-[0.9fr_1.1fr]">
                 <Reveal>
-                    <Polaroid src={photoAt(0)} rotate={-4} className="mx-auto w-64 sm:w-72" />
+                    <Polaroid
+                        src={photoAt(0)}
+                        rotate={-4}
+                        className="mx-auto w-64 sm:w-72"
+                    />
                 </Reveal>
                 <Reveal delay={150}>
                     <Eyebrow>{preset.labels?.note ?? 'A little note'}</Eyebrow>
-                    {experience.recipient_name && <h2 className="mt-3 font-display text-4xl">To {experience.recipient_name},</h2>}
+                    {experience.recipient_name && (
+                        <h2 className="mt-3 font-display text-4xl">
+                            To {experience.recipient_name},
+                        </h2>
+                    )}
                     <div className="mt-4 space-y-3 leading-relaxed text-[var(--x-muted)]">
                         {parts.map((part, index) => (
-                            <p key={index} className="whitespace-pre-line">{part}</p>
+                            <p key={index} className="whitespace-pre-line">
+                                {part}
+                            </p>
                         ))}
                     </div>
                 </Reveal>
@@ -176,24 +251,43 @@ function LetterCard() {
         <SectionShell surface>
             <div className="grid items-center gap-6 md:grid-cols-[1fr_1.3fr_1fr]">
                 <Reveal className="hidden md:block">
-                    <PhotoFill src={photoAt(1)} className="aspect-[3/4] w-full -rotate-3 rounded-2xl shadow-xl" />
+                    <PhotoFill
+                        src={photoAt(1)}
+                        className="aspect-[3/4] w-full -rotate-3 rounded-2xl shadow-xl"
+                    />
                 </Reveal>
                 <Reveal delay={120}>
                     <div className="rounded-[1.5rem] border-2 border-[var(--x-ink)]/80 p-1.5">
                         <div className="rounded-[1.2rem] border border-[var(--x-ink)]/50 px-6 py-8 text-center">
-                            <Heart className="mx-auto size-6 text-[var(--x-accent)]" fill="currentColor" />
-                            <h2 className="mt-3 font-display text-2xl font-semibold uppercase">{experience.title}</h2>
+                            <Heart
+                                className="mx-auto size-6 text-[var(--x-accent)]"
+                                fill="currentColor"
+                            />
+                            <h2 className="mt-3 font-display text-2xl font-semibold uppercase">
+                                {experience.title}
+                            </h2>
                             <div className="mt-4 space-y-3 font-display leading-relaxed">
                                 {parts.slice(0, 2).map((part, index) => (
-                                    <p key={index} className="whitespace-pre-line">{part}</p>
+                                    <p
+                                        key={index}
+                                        className="whitespace-pre-line"
+                                    >
+                                        {part}
+                                    </p>
                                 ))}
                             </div>
                         </div>
                     </div>
                 </Reveal>
                 <Reveal delay={240} className="grid grid-cols-2 gap-4 md:block">
-                    <PhotoFill src={photoAt(1)} className="aspect-[3/4] w-full rotate-2 rounded-2xl shadow-xl md:hidden" />
-                    <PhotoFill src={photoAt(2)} className="aspect-[3/4] w-full rotate-3 rounded-2xl shadow-xl" />
+                    <PhotoFill
+                        src={photoAt(1)}
+                        className="aspect-[3/4] w-full rotate-2 rounded-2xl shadow-xl md:hidden"
+                    />
+                    <PhotoFill
+                        src={photoAt(2)}
+                        className="aspect-[3/4] w-full rotate-3 rounded-2xl shadow-xl"
+                    />
                 </Reveal>
             </div>
         </SectionShell>
@@ -212,11 +306,26 @@ function LetterPaper() {
         <SectionShell>
             <div className="grid items-start gap-6 md:grid-cols-[0.8fr_1.2fr]">
                 <Reveal>
-                    <div className="relative mx-auto max-w-xs -rotate-2 bg-[var(--x-paper)] p-6 shadow-[0_20px_40px_-18px_rgb(0_0_0/0.5)]" style={{ backgroundImage: 'repeating-linear-gradient(transparent 0 27px, rgb(0 0 0 / 0.06) 27px 28px)' }}>
-                        <Polaroid src={photoAt(3)} rotate={2} tape className="mx-auto w-48" />
+                    <div
+                        className="relative mx-auto max-w-xs -rotate-2 bg-[var(--x-paper)] p-6 shadow-[0_20px_40px_-18px_rgb(0_0_0/0.5)]"
+                        style={{
+                            backgroundImage:
+                                'repeating-linear-gradient(transparent 0 27px, rgb(0 0 0 / 0.06) 27px 28px)',
+                        }}
+                    >
+                        <Polaroid
+                            src={photoAt(3)}
+                            rotate={2}
+                            tape
+                            className="mx-auto w-48"
+                        />
                         <div className="mt-6 flex justify-center gap-1 text-[#D04A6B]">
                             {[0, 1, 2].map((index) => (
-                                <Heart key={index} className="size-4" fill="currentColor" />
+                                <Heart
+                                    key={index}
+                                    className="size-4"
+                                    fill="currentColor"
+                                />
                             ))}
                         </div>
                     </div>
@@ -224,14 +333,31 @@ function LetterPaper() {
                 <Reveal delay={150}>
                     <div
                         className="relative rotate-1 bg-[var(--x-paper)] px-7 py-8 text-[var(--x-paper-ink)] shadow-[0_20px_40px_-18px_rgb(0_0_0/0.5)] [clip-path:polygon(0_0,calc(100%-36px)_0,100%_36px,100%_100%,0_100%)]"
-                        style={{ backgroundImage: 'repeating-linear-gradient(transparent 0 31px, rgb(60 90 160 / 0.14) 31px 32px)', lineHeight: '32px' }}
+                        style={{
+                            backgroundImage:
+                                'repeating-linear-gradient(transparent 0 31px, rgb(60 90 160 / 0.14) 31px 32px)',
+                            lineHeight: '32px',
+                        }}
                     >
                         <span className="absolute top-0 right-0 size-9 bg-[linear-gradient(225deg,transparent_50%,rgb(0_0_0/0.12)_50%)]" />
-                        {experience.recipient_name && <p className="font-display text-lg italic">Dear {experience.recipient_name},</p>}
+                        {experience.recipient_name && (
+                            <p className="font-display text-lg italic">
+                                Dear {experience.recipient_name},
+                            </p>
+                        )}
                         {parts.map((part, index) => (
-                            <p key={index} className="mb-[32px] font-display whitespace-pre-line italic last:mb-0">{part}</p>
+                            <p
+                                key={index}
+                                className="mb-[32px] font-display whitespace-pre-line italic last:mb-0"
+                            >
+                                {part}
+                            </p>
                         ))}
-                        {experience.sender_name && <p className="mt-2 text-right font-script text-3xl">— {experience.sender_name}</p>}
+                        {experience.sender_name && (
+                            <p className="mt-2 text-right font-script text-3xl">
+                                — {experience.sender_name}
+                            </p>
+                        )}
                     </div>
                 </Reveal>
             </div>
@@ -241,9 +367,13 @@ function LetterPaper() {
 
 function PolaroidWall() {
     const { experience, moments, photos } = useExperience();
-    const items = moments.length > 0
-        ? moments.map((moment) => ({ src: moment.photo_url, caption: moment.title ?? moment.date }))
-        : photos.map((src) => ({ src, caption: null }));
+    const items =
+        moments.length > 0
+            ? moments.map((moment) => ({
+                  src: moment.photo_url,
+                  caption: moment.title ?? moment.date,
+              }))
+            : photos.map((src) => ({ src, caption: null }));
 
     if (items.length === 0) {
         return null;
@@ -252,18 +382,41 @@ function PolaroidWall() {
     return (
         <SectionShell surface>
             <Reveal className="text-center">
-                <ScriptHeading>{experience.event_date ?? 'Our moments together'}</ScriptHeading>
+                <ScriptHeading>
+                    {experience.event_date ?? 'Our moments together'}
+                </ScriptHeading>
             </Reveal>
             <div className="relative mt-12">
-                <svg className="pointer-events-none absolute inset-0 hidden size-full md:block" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
-                    <path d="M5 20 C 25 5, 35 45, 55 25 S 85 40, 95 15 M8 75 C 30 55, 40 95, 62 70 S 88 85, 96 65" fill="none" stroke="currentColor" strokeOpacity="0.45" strokeWidth="0.35" strokeDasharray="1.2 1.2" />
+                <svg
+                    className="pointer-events-none absolute inset-0 hidden size-full md:block"
+                    viewBox="0 0 100 100"
+                    preserveAspectRatio="none"
+                    aria-hidden
+                >
+                    <path
+                        d="M5 20 C 25 5, 35 45, 55 25 S 85 40, 95 15 M8 75 C 30 55, 40 95, 62 70 S 88 85, 96 65"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeOpacity="0.45"
+                        strokeWidth="0.35"
+                        strokeDasharray="1.2 1.2"
+                    />
                 </svg>
                 <div className="relative grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
                     {items.slice(0, 12).map((item, index) => (
                         <Reveal key={index} delay={(index % 4) * 100}>
                             <div className="relative">
-                                {index % 3 === 1 && <Heart className="absolute -top-3 left-1/2 z-10 size-6 -translate-x-1/2 text-[#D04A6B]" fill="currentColor" />}
-                                <Polaroid src={item.src} caption={item.caption} rotate={ROTATIONS[index % ROTATIONS.length]} />
+                                {index % 3 === 1 && (
+                                    <Heart
+                                        className="absolute -top-3 left-1/2 z-10 size-6 -translate-x-1/2 text-[#D04A6B]"
+                                        fill="currentColor"
+                                    />
+                                )}
+                                <Polaroid
+                                    src={item.src}
+                                    caption={item.caption}
+                                    rotate={ROTATIONS[index % ROTATIONS.length]}
+                                />
                             </div>
                         </Reveal>
                     ))}
@@ -275,18 +428,31 @@ function PolaroidWall() {
 
 function FilmStrip() {
     const { experience, preset, photos, photoAt, openPhoto } = useExperience();
-    const frames = Array.from({ length: Math.max(3, Math.min(photos.length, 6)) }, (_, index) => photoAt(index));
-    const sprockets = 'repeating-linear-gradient(90deg, transparent 0 10px, #F5F0E8 10px 22px, transparent 22px 34px)';
+    const frames = Array.from(
+        { length: Math.max(3, Math.min(photos.length, 6)) },
+        (_, index) => photoAt(index),
+    );
+    const sprockets =
+        'repeating-linear-gradient(90deg, transparent 0 10px, #F5F0E8 10px 22px, transparent 22px 34px)';
 
     return (
         <SectionShell>
             <Reveal className="text-center">
-                <h2 className="font-display text-3xl font-semibold tracking-wide uppercase">{preset.labels?.filmStrip ?? 'My favorite person'}</h2>
+                <h2 className="font-display text-3xl font-semibold tracking-wide uppercase">
+                    {preset.labels?.filmStrip ?? 'My favorite person'}
+                </h2>
             </Reveal>
             <Reveal delay={150}>
-                <div className="scrollbar-none mt-10 -mx-5 overflow-x-auto px-5 pb-4">
+                <div className="-mx-5 mt-10 scrollbar-none overflow-x-auto px-5 pb-4">
                     <div className="relative mx-auto w-max -rotate-1 bg-[#141414] px-4 py-7 shadow-[0_24px_50px_-20px_rgb(0_0_0/0.7)]">
-                        <div className="absolute inset-x-0 top-2 h-3 opacity-90" style={{ backgroundImage: sprockets, backgroundSize: '34px 12px', borderRadius: 2 }} />
+                        <div
+                            className="absolute inset-x-0 top-2 h-3 opacity-90"
+                            style={{
+                                backgroundImage: sprockets,
+                                backgroundSize: '34px 12px',
+                                borderRadius: 2,
+                            }}
+                        />
                         <div className="flex gap-3">
                             {frames.map((src, index) => (
                                 <div key={index} className="w-44 sm:w-56">
@@ -294,16 +460,34 @@ function FilmStrip() {
                                         <span>TAPTALE 400</span>
                                         <span>{index + 1}A</span>
                                     </p>
-                                    <PhotoFill src={src} className="aspect-[4/3] w-full" onClick={src ? () => openPhoto(src) : undefined} />
+                                    <PhotoFill
+                                        src={src}
+                                        className="aspect-[4/3] w-full"
+                                        onClick={
+                                            src
+                                                ? () => openPhoto(src)
+                                                : undefined
+                                        }
+                                    />
                                 </div>
                             ))}
                         </div>
-                        <div className="absolute inset-x-0 bottom-2 h-3 opacity-90" style={{ backgroundImage: sprockets, backgroundSize: '34px 12px' }} />
+                        <div
+                            className="absolute inset-x-0 bottom-2 h-3 opacity-90"
+                            style={{
+                                backgroundImage: sprockets,
+                                backgroundSize: '34px 12px',
+                            }}
+                        />
                     </div>
                 </div>
             </Reveal>
             <Reveal className="mt-6 text-center">
-                <p className="font-display text-2xl font-semibold uppercase">{preset.labels?.filmCaption ?? experience.quote ?? 'I love you so much!'}</p>
+                <p className="font-display text-2xl font-semibold uppercase">
+                    {preset.labels?.filmCaption ??
+                        experience.quote ??
+                        'I love you so much!'}
+                </p>
             </Reveal>
         </SectionShell>
     );
@@ -320,21 +504,63 @@ function Timeline() {
         <SectionShell>
             <Reveal className="text-center">
                 <Eyebrow>The moments</Eyebrow>
-                <h2 className="mt-3 font-display text-4xl">{preset.labels?.timeline ?? 'How we happened'}</h2>
+                <h2 className="mt-3 font-display text-4xl">
+                    {preset.labels?.timeline ?? 'How we happened'}
+                </h2>
             </Reveal>
             <div className="relative mt-14">
                 <div className="absolute top-0 bottom-0 left-4 w-px bg-[var(--x-accent)]/60 md:left-1/2" />
                 <ol className="space-y-14">
                     {moments.map((moment, index) => (
-                        <li key={index} className={cn('relative grid gap-6 pl-12 md:grid-cols-2 md:pl-0', index % 2 === 1 && 'md:[&>*:first-child]:order-2')}>
+                        <li
+                            key={index}
+                            className={cn(
+                                'relative grid gap-6 pl-12 md:grid-cols-2 md:pl-0',
+                                index % 2 === 1 &&
+                                    'md:[&>*:first-child]:order-2',
+                            )}
+                        >
                             <span className="absolute top-6 left-4 size-4 -translate-x-1/2 rounded-full border-2 border-[var(--x-bg)] bg-[var(--x-accent)] md:left-1/2" />
-                            <Reveal className={cn(index % 2 === 0 ? 'md:pr-12 md:text-right' : 'md:pl-12')}>
-                                <Polaroid src={moment.photo_url} rotate={index % 2 === 0 ? -3 : 3} className={cn('w-56', index % 2 === 0 ? 'md:ml-auto' : '')} />
+                            <Reveal
+                                className={cn(
+                                    index % 2 === 0
+                                        ? 'md:pr-12 md:text-right'
+                                        : 'md:pl-12',
+                                )}
+                            >
+                                <Polaroid
+                                    src={moment.photo_url}
+                                    rotate={index % 2 === 0 ? -3 : 3}
+                                    className={cn(
+                                        'w-56',
+                                        index % 2 === 0 ? 'md:ml-auto' : '',
+                                    )}
+                                />
                             </Reveal>
-                            <Reveal delay={150} className={cn('self-center', index % 2 === 0 ? 'md:pl-12' : 'md:pr-12 md:text-right')}>
-                                {moment.date && <p className="text-xs font-semibold tracking-[0.3em] text-[var(--x-accent)] uppercase">{moment.date}</p>}
-                                {moment.title && <h3 className="mt-1 font-display text-2xl">{moment.title}</h3>}
-                                {moment.caption && <p className="mt-2 leading-relaxed text-[var(--x-muted)]">{moment.caption}</p>}
+                            <Reveal
+                                delay={150}
+                                className={cn(
+                                    'self-center',
+                                    index % 2 === 0
+                                        ? 'md:pl-12'
+                                        : 'md:pr-12 md:text-right',
+                                )}
+                            >
+                                {moment.date && (
+                                    <p className="text-xs font-semibold tracking-[0.3em] text-[var(--x-accent)] uppercase">
+                                        {moment.date}
+                                    </p>
+                                )}
+                                {moment.title && (
+                                    <h3 className="mt-1 font-display text-2xl">
+                                        {moment.title}
+                                    </h3>
+                                )}
+                                {moment.caption && (
+                                    <p className="mt-2 leading-relaxed text-[var(--x-muted)]">
+                                        {moment.caption}
+                                    </p>
+                                )}
                             </Reveal>
                         </li>
                     ))}
@@ -346,13 +572,34 @@ function Timeline() {
 
 function Gifts() {
     const { experience, preset } = useExperience();
-    const [open, setOpen] = useState<'flowers' | 'letter' | 'song' | null>(null);
-    const hasSong = !!(experience.music_url || experience.audio_url || experience.song_title);
+    const [open, setOpen] = useState<'flowers' | 'letter' | 'song' | null>(
+        null,
+    );
+    const hasSong = !!(
+        experience.music_url ||
+        experience.audio_url ||
+        experience.song_title
+    );
 
     const gifts = [
-        { key: 'flowers' as const, icon: Flower2, label: 'Flowers for you', show: !!experience.flowers_note },
-        { key: 'letter' as const, icon: Mail, label: 'My love letter', show: !!experience.message },
-        { key: 'song' as const, icon: Music, label: 'A song for you', show: hasSong },
+        {
+            key: 'flowers' as const,
+            icon: Flower2,
+            label: 'Flowers for you',
+            show: !!experience.flowers_note,
+        },
+        {
+            key: 'letter' as const,
+            icon: Mail,
+            label: 'My love letter',
+            show: !!experience.message,
+        },
+        {
+            key: 'song' as const,
+            icon: Music,
+            label: 'A song for you',
+            show: hasSong,
+        },
     ].filter((gift) => gift.show);
 
     if (gifts.length === 0) {
@@ -362,43 +609,90 @@ function Gifts() {
     return (
         <SectionShell>
             <Reveal className="text-center">
-                <ScriptHeading>{preset.labels?.gifts ?? experience.title}</ScriptHeading>
-                {experience.subtitle && <p className="mt-2 font-display text-[var(--x-muted)]">{experience.subtitle}</p>}
+                <ScriptHeading>
+                    {preset.labels?.gifts ?? experience.title}
+                </ScriptHeading>
+                {experience.subtitle && (
+                    <p className="mt-2 font-display text-[var(--x-muted)]">
+                        {experience.subtitle}
+                    </p>
+                )}
             </Reveal>
             <div className="mt-12 grid gap-8 sm:grid-cols-3">
                 {gifts.map((gift, index) => (
                     <Reveal key={gift.key} delay={index * 120}>
-                        <button type="button" onClick={() => setOpen(gift.key)} className="group flex w-full flex-col items-center">
+                        <button
+                            type="button"
+                            onClick={() => setOpen(gift.key)}
+                            className="group flex w-full flex-col items-center"
+                        >
                             <span className="flex size-36 items-center justify-center rounded-full bg-[var(--x-paper)] text-[#D04A6B] shadow-[0_20px_40px_-18px_rgb(0_0_0/0.55)] transition-transform group-hover:-translate-y-2 group-hover:rotate-3">
-                                <gift.icon className="size-16" strokeWidth={1.3} />
+                                <gift.icon
+                                    className="size-16"
+                                    strokeWidth={1.3}
+                                />
                             </span>
-                            <span className="mt-5 font-display text-xl">{gift.label}</span>
-                            <span className="mt-1 text-xs tracking-[0.25em] text-[var(--x-muted)] uppercase">Tap to open</span>
+                            <span className="mt-5 font-display text-xl">
+                                {gift.label}
+                            </span>
+                            <span className="mt-1 text-xs tracking-[0.25em] text-[var(--x-muted)] uppercase">
+                                Tap to open
+                            </span>
                         </button>
                     </Reveal>
                 ))}
             </div>
 
             {open && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" onClick={() => setOpen(null)}>
-                    <div className="relative max-h-[90vh] w-full max-w-lg animate-fade-up overflow-y-auto rounded-[1.75rem] bg-[var(--x-paper)] p-8 text-[var(--x-paper-ink)]" onClick={(event) => event.stopPropagation()}>
-                        <button type="button" onClick={() => setOpen(null)} className="absolute top-4 right-4 rounded-full p-1.5 hover:bg-black/5" aria-label="Close">
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+                    onClick={() => setOpen(null)}
+                >
+                    <div
+                        className="relative max-h-[90vh] w-full max-w-lg animate-fade-up overflow-y-auto rounded-[1.75rem] bg-[var(--x-paper)] p-8 text-[var(--x-paper-ink)]"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <button
+                            type="button"
+                            onClick={() => setOpen(null)}
+                            className="absolute top-4 right-4 rounded-full p-1.5 hover:bg-black/5"
+                            aria-label="Close"
+                        >
                             <X className="size-5" />
                         </button>
                         {open === 'flowers' && (
                             <div className="text-center">
                                 <Bouquet />
-                                <p className="mt-4 font-display text-2xl">Flowers for you</p>
-                                <p className="mt-3 font-display text-lg leading-relaxed italic">{experience.flowers_note}</p>
+                                <p className="mt-4 font-display text-2xl">
+                                    Flowers for you
+                                </p>
+                                <p className="mt-3 font-display text-lg leading-relaxed italic">
+                                    {experience.flowers_note}
+                                </p>
                             </div>
                         )}
                         {open === 'letter' && (
                             <div>
-                                {experience.recipient_name && <p className="font-display text-lg italic">Dear {experience.recipient_name},</p>}
-                                {paragraphs(experience.message).map((part, index) => (
-                                    <p key={index} className="mt-3 font-display leading-relaxed whitespace-pre-line italic">{part}</p>
-                                ))}
-                                {experience.sender_name && <p className="mt-4 text-right font-script text-3xl">— {experience.sender_name}</p>}
+                                {experience.recipient_name && (
+                                    <p className="font-display text-lg italic">
+                                        Dear {experience.recipient_name},
+                                    </p>
+                                )}
+                                {paragraphs(experience.message).map(
+                                    (part, index) => (
+                                        <p
+                                            key={index}
+                                            className="mt-3 font-display leading-relaxed whitespace-pre-line italic"
+                                        >
+                                            {part}
+                                        </p>
+                                    ),
+                                )}
+                                {experience.sender_name && (
+                                    <p className="mt-4 text-right font-script text-3xl">
+                                        — {experience.sender_name}
+                                    </p>
+                                )}
                             </div>
                         )}
                         {open === 'song' && <SongCard compact />}
@@ -410,7 +704,15 @@ function Gifts() {
 }
 
 function Bouquet() {
-    const petals = ['#FFFFFF', '#FFF4F6', '#FFFFFF', '#FFF0F3', '#FFFFFF', '#FFF7F8', '#FFFFFF'];
+    const petals = [
+        '#FFFFFF',
+        '#FFF4F6',
+        '#FFFFFF',
+        '#FFF0F3',
+        '#FFFFFF',
+        '#FFF7F8',
+        '#FFFFFF',
+    ];
 
     return (
         <svg viewBox="0 0 160 170" className="mx-auto w-44" aria-hidden>
@@ -420,25 +722,54 @@ function Bouquet() {
 
                 return (
                     <g key={index}>
-                        <path d={`M${x} ${y + 18} Q ${x + 2} ${y + 70}, 80 132`} stroke="#5E8C4F" strokeWidth="3" fill="none" />
-                        <path d={`M${x - 9} ${y + 6} Q ${x - 10} ${y - 14}, ${x} ${y - 16} Q ${x + 10} ${y - 14}, ${x + 9} ${y + 6} Q ${x} ${y + 22}, ${x - 9} ${y + 6}Z`} fill={color} stroke="#E7D3D8" strokeWidth="1.2" />
+                        <path
+                            d={`M${x} ${y + 18} Q ${x + 2} ${y + 70}, 80 132`}
+                            stroke="#5E8C4F"
+                            strokeWidth="3"
+                            fill="none"
+                        />
+                        <path
+                            d={`M${x - 9} ${y + 6} Q ${x - 10} ${y - 14}, ${x} ${y - 16} Q ${x + 10} ${y - 14}, ${x + 9} ${y + 6} Q ${x} ${y + 22}, ${x - 9} ${y + 6}Z`}
+                            fill={color}
+                            stroke="#E7D3D8"
+                            strokeWidth="1.2"
+                        />
                     </g>
                 );
             })}
             <path d="M58 118 L80 165 L102 118 Z" fill="#F2B8C6" />
-            <path d="M66 126 Q80 136 94 126" stroke="#D04A6B" strokeWidth="3" fill="none" />
+            <path
+                d="M66 126 Q80 136 94 126"
+                stroke="#D04A6B"
+                strokeWidth="3"
+                fill="none"
+            />
         </svg>
     );
 }
 
-function Vinyl({ spinning, label }: { spinning: boolean; label: string | null }) {
+function Vinyl({
+    spinning,
+    label,
+}: {
+    spinning: boolean;
+    label: string | null;
+}) {
     return (
         <div
-            className={cn('relative aspect-square w-full rounded-full shadow-[0_24px_50px_-18px_rgb(0_0_0/0.7)]', spinning && 'animate-[spin_6s_linear_infinite]')}
-            style={{ background: 'repeating-radial-gradient(circle, #111 0 2px, #1d1d1d 2px 4px)' }}
+            className={cn(
+                'relative aspect-square w-full rounded-full shadow-[0_24px_50px_-18px_rgb(0_0_0/0.7)]',
+                spinning && 'animate-[spin_6s_linear_infinite]',
+            )}
+            style={{
+                background:
+                    'repeating-radial-gradient(circle, #111 0 2px, #1d1d1d 2px 4px)',
+            }}
         >
             <div className="absolute inset-[32%] flex items-center justify-center rounded-full bg-[var(--x-accent)] p-2 text-center text-[var(--x-accent-ink)]">
-                <span className="line-clamp-2 text-[10px] font-semibold tracking-wide uppercase">{label ?? 'Our song'}</span>
+                <span className="line-clamp-2 text-[10px] font-semibold tracking-wide uppercase">
+                    {label ?? 'Our song'}
+                </span>
             </div>
             <div className="absolute inset-[47%] rounded-full bg-[#111]" />
             <div className="absolute inset-0 rounded-full bg-[linear-gradient(135deg,rgb(255_255_255/0.12),transparent_40%,rgb(255_255_255/0.06)_60%,transparent)]" />
@@ -452,26 +783,68 @@ function SongCard({ compact = false }: { compact?: boolean }) {
     const embed = embedFor(experience.music_url);
 
     return (
-        <div className={cn('grid items-center gap-8', !compact && 'md:grid-cols-[0.8fr_1.2fr]')}>
-            <div className={cn('mx-auto w-full', compact ? 'max-w-[12rem]' : 'max-w-xs')}>
+        <div
+            className={cn(
+                'grid items-center gap-8',
+                !compact && 'md:grid-cols-[0.8fr_1.2fr]',
+            )}
+        >
+            <div
+                className={cn(
+                    'mx-auto w-full',
+                    compact ? 'max-w-[12rem]' : 'max-w-xs',
+                )}
+            >
                 <Vinyl spinning={playing} label={experience.song_title} />
             </div>
             <div className="text-center md:text-left">
-                {experience.song_title && <p className="font-display text-2xl">{experience.song_title}</p>}
-                {experience.song_artist && <p className="opacity-75">{experience.song_artist}</p>}
+                {experience.song_title && (
+                    <p className="font-display text-2xl">
+                        {experience.song_title}
+                    </p>
+                )}
+                {experience.song_artist && (
+                    <p className="opacity-75">{experience.song_artist}</p>
+                )}
                 {available && (
-                    <button type="button" onClick={toggle} className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--x-accent)] px-6 py-3 font-medium text-[var(--x-accent-ink)] shadow-lg transition hover:scale-105">
-                        {playing ? <Pause className="size-5" /> : <Play className="size-5" />}
+                    <button
+                        type="button"
+                        onClick={toggle}
+                        className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--x-accent)] px-6 py-3 font-medium text-[var(--x-accent-ink)] shadow-lg transition hover:scale-105"
+                    >
+                        {playing ? (
+                            <Pause className="size-5" />
+                        ) : (
+                            <Play className="size-5" />
+                        )}
                         {playing ? 'Pause' : 'Play our song'}
                     </button>
                 )}
                 {embed && (
-                    <div className={cn('mt-5 overflow-hidden rounded-2xl shadow-xl', embed.kind === 'video' ? 'aspect-video' : 'h-[152px]')}>
-                        <iframe src={embed.src} title="Our song" className="size-full" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" />
+                    <div
+                        className={cn(
+                            'mt-5 overflow-hidden rounded-2xl shadow-xl',
+                            embed.kind === 'video'
+                                ? 'aspect-video'
+                                : 'h-[152px]',
+                        )}
+                    >
+                        <iframe
+                            src={embed.src}
+                            title="Our song"
+                            className="size-full"
+                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                            loading="lazy"
+                        />
                     </div>
                 )}
                 {!embed && experience.music_url && (
-                    <a href={experience.music_url} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex items-center gap-2 underline underline-offset-4">
+                    <a
+                        href={experience.music_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-5 inline-flex items-center gap-2 underline underline-offset-4"
+                    >
                         <Music className="size-4" /> Listen to our song
                     </a>
                 )}
@@ -483,14 +856,20 @@ function SongCard({ compact = false }: { compact?: boolean }) {
 function SongSection() {
     const { experience, preset } = useExperience();
 
-    if (!experience.music_url && !experience.audio_url && !experience.song_title) {
+    if (
+        !experience.music_url &&
+        !experience.audio_url &&
+        !experience.song_title
+    ) {
         return null;
     }
 
     return (
         <SectionShell surface>
             <Reveal className="mb-10 text-center">
-                <ScriptHeading>{preset.labels?.song ?? 'This song reminds me of you'}</ScriptHeading>
+                <ScriptHeading>
+                    {preset.labels?.song ?? 'This song reminds me of you'}
+                </ScriptHeading>
             </Reveal>
             <Reveal delay={150}>
                 <SongCard />
@@ -503,24 +882,51 @@ function PlayerSection() {
     const { experience, photoAt } = useExperience();
     const { available, playing, toggle } = useExperienceAudio();
     const embed = embedFor(experience.music_url);
-    const lines = (experience.message ?? '').split('\n').map((line) => line.trim()).filter(Boolean);
+    const lines = (experience.message ?? '')
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean);
 
     return (
         <section className="relative flex min-h-[100svh] items-center justify-center overflow-hidden px-5 py-16">
-            <PhotoFill src={photoAt(0)} className="absolute inset-0 size-full scale-125 opacity-40 blur-3xl" />
+            <PhotoFill
+                src={photoAt(0)}
+                className="absolute inset-0 size-full scale-125 opacity-40 blur-3xl"
+            />
             <Reveal className="relative w-full max-w-sm">
-                <p className="mb-6 text-center font-script text-4xl sm:text-5xl">{experience.title}</p>
+                <p className="mb-6 text-center font-script text-4xl sm:text-5xl">
+                    {experience.title}
+                </p>
                 <div className="rounded-[2rem] bg-black/35 p-6 shadow-2xl backdrop-blur-xl">
-                    <PhotoFill src={photoAt(0)} className="aspect-square w-full rounded-2xl shadow-lg" />
+                    <PhotoFill
+                        src={photoAt(0)}
+                        className="aspect-square w-full rounded-2xl shadow-lg"
+                    />
                     <div className="mt-5 flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                            <p className="truncate text-xl font-bold">{experience.song_title ?? 'Our Song'}</p>
-                            <p className="truncate opacity-75">{experience.song_artist ?? experience.sender_name ?? 'For you'}</p>
+                            <p className="truncate text-xl font-bold">
+                                {experience.song_title ?? 'Our Song'}
+                            </p>
+                            <p className="truncate opacity-75">
+                                {experience.song_artist ??
+                                    experience.sender_name ??
+                                    'For you'}
+                            </p>
                         </div>
-                        <Heart className="size-6 shrink-0 text-[var(--x-accent)]" fill="currentColor" />
+                        <Heart
+                            className="size-6 shrink-0 text-[var(--x-accent)]"
+                            fill="currentColor"
+                        />
                     </div>
                     <div className="mt-4 h-1 overflow-hidden rounded-full bg-white/20">
-                        <div className={cn('h-full rounded-full bg-white', playing ? 'w-full transition-[width] duration-[180s] ease-linear' : 'w-[35%]')} />
+                        <div
+                            className={cn(
+                                'h-full rounded-full bg-white',
+                                playing
+                                    ? 'w-full transition-[width] duration-[180s] ease-linear'
+                                    : 'w-[35%]',
+                            )}
+                        />
                     </div>
                     <div className="mt-5 flex items-center justify-between">
                         <Shuffle className="size-5 text-[var(--x-accent)]" />
@@ -531,21 +937,50 @@ function PlayerSection() {
                             className="flex size-16 items-center justify-center rounded-full bg-white text-black shadow-lg transition hover:scale-105"
                             aria-label={playing ? 'Pause' : 'Play'}
                         >
-                            {playing ? <Pause className="size-7" fill="currentColor" /> : <Play className="ml-1 size-7" fill="currentColor" />}
+                            {playing ? (
+                                <Pause className="size-7" fill="currentColor" />
+                            ) : (
+                                <Play
+                                    className="ml-1 size-7"
+                                    fill="currentColor"
+                                />
+                            )}
                         </button>
                         <SkipForward className="size-6" fill="currentColor" />
                         <Repeat className="size-5 opacity-70" />
                     </div>
                 </div>
                 {embed && (
-                    <div className={cn('mt-6 overflow-hidden rounded-2xl shadow-xl', embed.kind === 'video' ? 'aspect-video' : 'h-[152px]')}>
-                        <iframe src={embed.src} title="Our song" className="size-full" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" />
+                    <div
+                        className={cn(
+                            'mt-6 overflow-hidden rounded-2xl shadow-xl',
+                            embed.kind === 'video'
+                                ? 'aspect-video'
+                                : 'h-[152px]',
+                        )}
+                    >
+                        <iframe
+                            src={embed.src}
+                            title="Our song"
+                            className="size-full"
+                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                            loading="lazy"
+                        />
                     </div>
                 )}
                 {lines.length > 0 && (
                     <div className="mt-8 space-y-2 text-center font-display text-lg leading-relaxed">
                         {lines.slice(0, 8).map((line, index) => (
-                            <p key={index} className={index === 1 ? 'text-2xl font-semibold' : 'opacity-75'}>{line}</p>
+                            <p
+                                key={index}
+                                className={
+                                    index === 1
+                                        ? 'text-2xl font-semibold'
+                                        : 'opacity-75'
+                                }
+                            >
+                                {line}
+                            </p>
                         ))}
                     </div>
                 )}
@@ -566,13 +1001,21 @@ function Scrapbook() {
                     className="relative mx-auto max-w-3xl rotate-1 rounded-[2rem] p-6 shadow-[0_30px_60px_-24px_rgb(0_0_0/0.6)] sm:p-10"
                     style={{
                         backgroundColor: '#FBE3E6',
-                        backgroundImage: 'linear-gradient(90deg, rgb(208 74 107 / 0.18) 50%, transparent 50%), linear-gradient(rgb(208 74 107 / 0.18) 50%, transparent 50%)',
+                        backgroundImage:
+                            'linear-gradient(90deg, rgb(208 74 107 / 0.18) 50%, transparent 50%), linear-gradient(rgb(208 74 107 / 0.18) 50%, transparent 50%)',
                         backgroundSize: '36px 36px',
                     }}
                 >
                     <div className="grid grid-cols-2 gap-5 sm:grid-cols-3">
                         {Array.from({ length: count }, (_, index) => (
-                            <Polaroid key={index} src={photoAt(index)} rotate={ROTATIONS[(index + 3) % ROTATIONS.length]} tape={index % 2 === 0} />
+                            <Polaroid
+                                key={index}
+                                src={photoAt(index)}
+                                rotate={
+                                    ROTATIONS[(index + 3) % ROTATIONS.length]
+                                }
+                                tape={index % 2 === 0}
+                            />
                         ))}
                     </div>
                     {stickers.map((Sticker, index) => (
@@ -580,10 +1023,17 @@ function Scrapbook() {
                             key={index}
                             className="absolute size-10 text-[#D04A6B] drop-shadow"
                             fill={index === 1 ? '#FFD86B' : '#FFC2D1'}
-                            style={{ top: `${[4, 88, 40, 70][index]}%`, left: `${[90, 4, -3, 96][index]}%` }}
+                            style={{
+                                top: `${[4, 88, 40, 70][index]}%`,
+                                left: `${[90, 4, -3, 96][index]}%`,
+                            }}
                         />
                     ))}
-                    {experience.quote && <p className="mt-8 text-center font-script text-4xl text-[#8B1A22]">{experience.quote}</p>}
+                    {experience.quote && (
+                        <p className="mt-8 text-center font-script text-4xl text-[#8B1A22]">
+                            {experience.quote}
+                        </p>
+                    )}
                 </div>
             </Reveal>
         </SectionShell>
@@ -600,12 +1050,24 @@ function Gallery() {
     return (
         <SectionShell>
             <Reveal className="text-center">
-                <ScriptHeading>{preset.labels?.gallery ?? 'Our album'}</ScriptHeading>
+                <ScriptHeading>
+                    {preset.labels?.gallery ?? 'Our album'}
+                </ScriptHeading>
             </Reveal>
             <div className="mt-10 columns-2 gap-4 sm:columns-3 [&>*]:mb-4">
                 {photos.map((src, index) => (
-                    <Reveal key={index} delay={(index % 3) * 100} className="break-inside-avoid">
-                        <img src={src} alt="" loading="lazy" onClick={() => openPhoto(src)} className="w-full cursor-zoom-in rounded-2xl shadow-lg transition duration-500 hover:scale-[1.02]" />
+                    <Reveal
+                        key={index}
+                        delay={(index % 3) * 100}
+                        className="break-inside-avoid"
+                    >
+                        <img
+                            src={src}
+                            alt=""
+                            loading="lazy"
+                            onClick={() => openPhoto(src)}
+                            className="w-full cursor-zoom-in rounded-2xl shadow-lg transition duration-500 hover:scale-[1.02]"
+                        />
                     </Reveal>
                 ))}
             </div>
@@ -626,10 +1088,22 @@ function VideoSection() {
             <Reveal>
                 {embed ? (
                     <div className="mx-auto aspect-video max-w-3xl overflow-hidden rounded-3xl shadow-2xl">
-                        <iframe src={embed.src} title="Our video" className="size-full" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen loading="lazy" />
+                        <iframe
+                            src={embed.src}
+                            title="Our video"
+                            className="size-full"
+                            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                            allowFullScreen
+                            loading="lazy"
+                        />
                     </div>
                 ) : (
-                    <a href={experience.video_url} target="_blank" rel="noopener noreferrer" className="mx-auto flex max-w-sm items-center justify-center gap-3 rounded-3xl bg-[var(--x-accent)] p-5 font-medium text-[var(--x-accent-ink)]">
+                    <a
+                        href={experience.video_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mx-auto flex max-w-sm items-center justify-center gap-3 rounded-3xl bg-[var(--x-accent)] p-5 font-medium text-[var(--x-accent-ink)]"
+                    >
                         <Play className="size-6" /> Watch our video
                     </a>
                 )}
@@ -646,10 +1120,22 @@ function QuoteBanner() {
     }
 
     return (
-        <section className="relative overflow-hidden px-6 py-16 text-center" style={{ background: 'var(--x-accent)', color: 'var(--x-accent-ink)' }}>
+        <section
+            className="relative overflow-hidden px-6 py-16 text-center"
+            style={{
+                background: 'var(--x-accent)',
+                color: 'var(--x-accent-ink)',
+            }}
+        >
             <Reveal>
-                <p className="mx-auto max-w-3xl font-display text-3xl leading-snug italic sm:text-4xl">“{experience.quote}”</p>
-                {experience.sender_name && <p className="mt-3 text-sm tracking-[0.3em] uppercase opacity-80">— {experience.sender_name}</p>}
+                <p className="mx-auto max-w-3xl font-display text-3xl leading-snug italic sm:text-4xl">
+                    “{experience.quote}”
+                </p>
+                {experience.sender_name && (
+                    <p className="mt-3 text-sm tracking-[0.3em] uppercase opacity-80">
+                        — {experience.sender_name}
+                    </p>
+                )}
             </Reveal>
         </section>
     );
@@ -682,18 +1168,29 @@ function Countdown() {
         <SectionShell surface className="text-center">
             <Reveal>
                 <Eyebrow>{preset.labels?.countdown ?? 'Counting down'}</Eyebrow>
-                <p className="mt-3 font-display text-3xl">{experience.event_date}</p>
+                <p className="mt-3 font-display text-3xl">
+                    {experience.event_date}
+                </p>
                 {remaining > 0 ? (
                     <div className="mx-auto mt-8 grid max-w-xl grid-cols-4 gap-3">
                         {units.map(([label, value]) => (
-                            <div key={label} className="rounded-2xl bg-[var(--x-paper)] px-2 py-4 text-[var(--x-paper-ink)] shadow-lg">
-                                <p className="font-display text-3xl font-semibold tabular-nums sm:text-5xl">{String(value).padStart(2, '0')}</p>
-                                <p className="mt-1 text-[10px] tracking-[0.25em] uppercase opacity-70 sm:text-xs">{label}</p>
+                            <div
+                                key={label}
+                                className="rounded-2xl bg-[var(--x-paper)] px-2 py-4 text-[var(--x-paper-ink)] shadow-lg"
+                            >
+                                <p className="font-display text-3xl font-semibold tabular-nums sm:text-5xl">
+                                    {String(value).padStart(2, '0')}
+                                </p>
+                                <p className="mt-1 text-[10px] tracking-[0.25em] uppercase opacity-70 sm:text-xs">
+                                    {label}
+                                </p>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <p className="mt-6 font-script text-5xl">The day is here!</p>
+                    <p className="mt-6 font-script text-5xl">
+                        The day is here!
+                    </p>
                 )}
             </Reveal>
         </SectionShell>
@@ -713,15 +1210,32 @@ function Details() {
             <Reveal>
                 <div className="mx-auto max-w-xl rounded-[2rem] border border-[var(--x-accent)] p-2">
                     <div className="rounded-[1.6rem] border border-[var(--x-accent)]/50 bg-[var(--x-paper)] px-8 py-12 text-center text-[var(--x-paper-ink)]">
-                        <Heart className="mx-auto size-7 text-[var(--x-accent)]" fill="currentColor" />
-                        {experience.subtitle && <p className="mt-4 text-sm tracking-[0.3em] uppercase opacity-70">{experience.subtitle}</p>}
-                        {experience.event_date && <p className="mt-3 font-display text-3xl">{experience.event_date}</p>}
+                        <Heart
+                            className="mx-auto size-7 text-[var(--x-accent)]"
+                            fill="currentColor"
+                        />
+                        {experience.subtitle && (
+                            <p className="mt-4 text-sm tracking-[0.3em] uppercase opacity-70">
+                                {experience.subtitle}
+                            </p>
+                        )}
+                        {experience.event_date && (
+                            <p className="mt-3 font-display text-3xl">
+                                {experience.event_date}
+                            </p>
+                        )}
                         <div className="mt-6 space-y-3 font-display leading-relaxed">
                             {parts.map((part, index) => (
-                                <p key={index} className="whitespace-pre-line">{part}</p>
+                                <p key={index} className="whitespace-pre-line">
+                                    {part}
+                                </p>
                             ))}
                         </div>
-                        {experience.sender_name && <p className="mt-6 font-script text-4xl">{experience.sender_name}</p>}
+                        {experience.sender_name && (
+                            <p className="mt-6 font-script text-4xl">
+                                {experience.sender_name}
+                            </p>
+                        )}
                     </div>
                 </div>
             </Reveal>
@@ -736,8 +1250,14 @@ function Closing({ children }: { children?: ReactNode }) {
         <section className="relative overflow-hidden px-6 pt-20 pb-28 text-center">
             <FloatingHearts count={6} />
             <Reveal className="relative">
-                <p className="font-script text-5xl sm:text-6xl">{preset.labels?.closing ?? 'I love you'}</p>
-                {experience.sender_name && <p className="mt-3 font-display text-lg text-[var(--x-muted)] italic">— {experience.sender_name}</p>}
+                <p className="font-script text-5xl sm:text-6xl">
+                    {preset.labels?.closing ?? 'I love you'}
+                </p>
+                {experience.sender_name && (
+                    <p className="mt-3 font-display text-lg text-[var(--x-muted)] italic">
+                        — {experience.sender_name}
+                    </p>
+                )}
                 {children}
             </Reveal>
         </section>

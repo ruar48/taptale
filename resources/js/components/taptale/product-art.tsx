@@ -142,7 +142,11 @@ function Illustration({
                 <div className="relative w-[46%] -translate-x-[8%] rotate-[-4deg] transition-transform duration-700 group-hover:rotate-0">
                     <MiniCdMockup
                         content={{
-                            palette: { background: '#1A1A1F', ink: '#F8F3ED', accent: '#E9C9C9' },
+                            palette: {
+                                background: '#1A1A1F',
+                                ink: '#F8F3ED',
+                                accent: '#E9C9C9',
+                            },
                             songTitle: 'Golden Days',
                             artist: 'Ana & Leo',
                         }}
@@ -153,11 +157,39 @@ function Illustration({
         case 'music':
             return (
                 <div className="relative flex w-[70%] items-start justify-center gap-[6%]">
-                    <KeychainMockup className="w-[44%] -rotate-6" aspect={5 / 8} ringColor="#C0C0C0">
-                        <TemplatePreview layout="music_player" fit={false} palette={{ background: '#FFFFFF', ink: '#1F1D22', accent: '#B86F83' }} songTitle="Our Song" artist="Ana & Leo" />
+                    <KeychainMockup
+                        className="w-[44%] -rotate-6"
+                        aspect={5 / 8}
+                        ringColor="#C0C0C0"
+                    >
+                        <TemplatePreview
+                            layout="music_player"
+                            fit={false}
+                            palette={{
+                                background: '#FFFFFF',
+                                ink: '#1F1D22',
+                                accent: '#B86F83',
+                            }}
+                            songTitle="Our Song"
+                            artist="Ana & Leo"
+                        />
                     </KeychainMockup>
-                    <KeychainMockup className="mt-[10%] w-[44%] rotate-6" aspect={5 / 8} ringColor="#D4AF37">
-                        <TemplatePreview layout="music_player" fit={false} palette={{ background: '#121214', ink: '#F5F5F5', accent: '#E9C9C9' }} songTitle="Forever Yours" artist="Mia" />
+                    <KeychainMockup
+                        className="mt-[10%] w-[44%] rotate-6"
+                        aspect={5 / 8}
+                        ringColor="#D4AF37"
+                    >
+                        <TemplatePreview
+                            layout="music_player"
+                            fit={false}
+                            palette={{
+                                background: '#121214',
+                                ink: '#F5F5F5',
+                                accent: '#E9C9C9',
+                            }}
+                            songTitle="Forever Yours"
+                            artist="Mia"
+                        />
                     </KeychainMockup>
                 </div>
             );
@@ -165,9 +197,37 @@ function Illustration({
         case 'strip':
             return (
                 <div className="relative flex h-[86%] items-start justify-center gap-[4%]">
-                    {[{ background: '#FFFFFF', ink: '#343039', accent: '#B86F83' }, { background: '#F4E3EC', ink: '#5A2E3E', accent: '#B86F83' }, { background: '#141416', ink: '#F5F5F5', accent: '#E3A587' }].map((stripPalette, index) => (
-                        <KeychainMockup key={index} className={cn('w-[19cqw]', index === 1 ? 'mt-[6%]' : 'rotate-[-3deg]')} aspect={1 / 3} ringColor="#C0C0C0">
-                            <TemplatePreview layout="photo_strip" fit={false} palette={stripPalette} />
+                    {[
+                        {
+                            background: '#FFFFFF',
+                            ink: '#343039',
+                            accent: '#B86F83',
+                        },
+                        {
+                            background: '#F4E3EC',
+                            ink: '#5A2E3E',
+                            accent: '#B86F83',
+                        },
+                        {
+                            background: '#141416',
+                            ink: '#F5F5F5',
+                            accent: '#E3A587',
+                        },
+                    ].map((stripPalette, index) => (
+                        <KeychainMockup
+                            key={index}
+                            className={cn(
+                                'w-[19cqw]',
+                                index === 1 ? 'mt-[6%]' : 'rotate-[-3deg]',
+                            )}
+                            aspect={1 / 3}
+                            ringColor="#C0C0C0"
+                        >
+                            <TemplatePreview
+                                layout="photo_strip"
+                                fit={false}
+                                palette={stripPalette}
+                            />
                         </KeychainMockup>
                     ))}
                 </div>
@@ -178,7 +238,17 @@ function Illustration({
                 <div className="relative w-[40%] animate-float">
                     <TapWaves />
                     <KeychainMockup shape="circle" ringColor="#343039" nfc>
-                        <TemplatePreview layout="tap_tag" fit={false} palette={{ background: '#1F1D22', ink: '#FFFFFF', accent: '#B86F83' }} names="@ana.leo" message="Tap to connect" />
+                        <TemplatePreview
+                            layout="tap_tag"
+                            fit={false}
+                            palette={{
+                                background: '#1F1D22',
+                                ink: '#FFFFFF',
+                                accent: '#B86F83',
+                            }}
+                            names="@ana.leo"
+                            message="Tap to connect"
+                        />
                     </KeychainMockup>
                 </div>
             );
@@ -187,7 +257,17 @@ function Illustration({
             return (
                 <div className="relative w-[42%] rotate-[5deg] transition-transform duration-700 group-hover:rotate-0">
                     <WoodenMockup>
-                        <TemplatePreview layout="engraved" fit={false} palette={{ background: '#C79B6D', ink: '#4A2C17', accent: '#7A4B2A' }} message="Drive safe, I need you here with me" names="Love, Ana" />
+                        <TemplatePreview
+                            layout="engraved"
+                            fit={false}
+                            palette={{
+                                background: '#C79B6D',
+                                ink: '#4A2C17',
+                                accent: '#7A4B2A',
+                            }}
+                            message="Drive safe, I need you here with me"
+                            names="Love, Ana"
+                        />
                     </WoodenMockup>
                 </div>
             );
@@ -196,7 +276,13 @@ function Illustration({
             return (
                 <div className="relative w-[50%] -rotate-3 transition-transform duration-700 group-hover:rotate-0">
                     <DieCutMockup>
-                        <TemplatePreview layout="die_cut" fit={false} bare palette={palette} names="Bestie!" />
+                        <TemplatePreview
+                            layout="die_cut"
+                            fit={false}
+                            bare
+                            palette={palette}
+                            names="Bestie!"
+                        />
                     </DieCutMockup>
                 </div>
             );

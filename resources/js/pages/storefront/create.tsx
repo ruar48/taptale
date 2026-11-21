@@ -772,23 +772,57 @@ export default function CreateGift({
                                         {isMusicDesign && (
                                             <div className="grid gap-4 sm:grid-cols-2">
                                                 <Field
-                                                    label={isCdDesign ? 'Album title' : 'Song title'}
-                                                    error={errors['personalization.song_title']}
+                                                    label={
+                                                        isCdDesign
+                                                            ? 'Album title'
+                                                            : 'Song title'
+                                                    }
+                                                    error={
+                                                        errors[
+                                                            'personalization.song_title'
+                                                        ]
+                                                    }
                                                 >
                                                     <Input
-                                                        value={data.personalization.song_title}
-                                                        onChange={(event) => setPersonalization('song_title', event.target.value)}
-                                                        placeholder={isCdDesign ? 'e.g. Golden Days' : 'e.g. Our Song'}
+                                                        value={
+                                                            data.personalization
+                                                                .song_title
+                                                        }
+                                                        onChange={(event) =>
+                                                            setPersonalization(
+                                                                'song_title',
+                                                                event.target
+                                                                    .value,
+                                                            )
+                                                        }
+                                                        placeholder={
+                                                            isCdDesign
+                                                                ? 'e.g. Golden Days'
+                                                                : 'e.g. Our Song'
+                                                        }
                                                         maxLength={80}
                                                     />
                                                 </Field>
                                                 <Field
                                                     label="Artist"
-                                                    error={errors['personalization.artist']}
+                                                    error={
+                                                        errors[
+                                                            'personalization.artist'
+                                                        ]
+                                                    }
                                                 >
                                                     <Input
-                                                        value={data.personalization.artist}
-                                                        onChange={(event) => setPersonalization('artist', event.target.value)}
+                                                        value={
+                                                            data.personalization
+                                                                .artist
+                                                        }
+                                                        onChange={(event) =>
+                                                            setPersonalization(
+                                                                'artist',
+                                                                event.target
+                                                                    .value,
+                                                            )
+                                                        }
                                                         placeholder="e.g. Ana & Leo"
                                                         maxLength={80}
                                                     />
@@ -796,7 +830,11 @@ export default function CreateGift({
                                             </div>
                                         )}
                                         <Field
-                                            label={isCdDesign ? 'Tracklist (one song per line)' : 'Message'}
+                                            label={
+                                                isCdDesign
+                                                    ? 'Tracklist (one song per line)'
+                                                    : 'Message'
+                                            }
                                             error={
                                                 errors[
                                                     'personalization.message'

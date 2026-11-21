@@ -85,7 +85,7 @@ export function DesignPreview({
     if (product.art_style === 'wood' && material) {
         palette = material.includes('walnut')
             ? WOOD_PALETTES.walnut
-            : template?.palette ?? WOOD_PALETTES.maple;
+            : (template?.palette ?? WOOD_PALETTES.maple);
     }
 
     const content = {
@@ -149,7 +149,13 @@ export function DesignPreview({
                 <div className={className}>
                     <KeychainMockup
                         className="w-[62%]"
-                        shape={byGroup('shape')?.name.toLowerCase().includes('square') ? 'rect' : 'circle'}
+                        shape={
+                            byGroup('shape')
+                                ?.name.toLowerCase()
+                                .includes('square')
+                                ? 'rect'
+                                : 'circle'
+                        }
                         aspect={1}
                         ringColor={byGroup('color')?.swatch ?? '#343039'}
                         nfc
@@ -164,7 +170,9 @@ export function DesignPreview({
                 <div className={className}>
                     <WoodenMockup
                         className="w-[64%]"
-                        rounded={byGroup('shape')?.name.toLowerCase().includes('round')}
+                        rounded={byGroup('shape')
+                            ?.name.toLowerCase()
+                            .includes('round')}
                     >
                         {design}
                     </WoodenMockup>
@@ -178,7 +186,12 @@ export function DesignPreview({
                         className="w-[70%]"
                         ringColor={byGroup('color')?.swatch ?? '#C0C0C0'}
                     >
-                        <TemplatePreview layout={layout} fit={false} bare {...content} />
+                        <TemplatePreview
+                            layout={layout}
+                            fit={false}
+                            bare
+                            {...content}
+                        />
                     </DieCutMockup>
                 </div>
             );

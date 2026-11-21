@@ -46,6 +46,7 @@ test('the owner updates their experience and photos', function () {
 
     $this->actingAs($experience->user)
         ->put(route('account.experiences.update', $experience), [
+            'template' => 'love_story',
             'title' => 'Five years of us',
             'message' => 'I love you',
             'theme' => 'midnight',
