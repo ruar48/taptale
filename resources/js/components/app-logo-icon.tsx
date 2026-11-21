@@ -1,12 +1,38 @@
 import type { SVGAttributes } from 'react';
 
+/**
+ * Taptale mark: a keepsake tag with a "tap" ripple.
+ */
 export default function AppLogoIcon(props: SVGAttributes<SVGElement>) {
     return (
-        <svg {...props} viewBox="0 0 40 42" xmlns="http://www.w3.org/2000/svg">
+        <svg
+            {...props}
+            viewBox="0 0 40 40"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+        >
             <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M17.2 5.63325L8.6 0.855469L0 5.63325V32.1434L16.2 41.1434L32.4 32.1434V23.699L40 19.4767V9.85547L31.4 5.07769L22.8 9.85547V18.2999L17.2 21.411V5.63325ZM38 18.2999L32.4 21.411V15.2545L38 12.1434V18.2999ZM36.9409 10.4439L31.4 13.5221L25.8591 10.4439L31.4 7.36561L36.9409 10.4439ZM24.8 18.2999V12.1434L30.4 15.2545V21.411L24.8 18.2999ZM23.8 20.0323L29.3409 23.1105L16.2 30.411L10.6591 27.3328L23.8 20.0323ZM7.6 27.9212L15.2 32.1434V38.2999L2 30.9666V7.92116L7.6 11.0323V27.9212ZM8.6 9.29991L3.05913 6.22165L8.6 3.14339L14.1409 6.22165L8.6 9.29991ZM30.4 24.8101L17.2 32.1434V38.2999L30.4 30.9666V24.8101ZM9.6 11.0323L15.2 7.92117V22.5221L9.6 25.6333V11.0323Z"
+                d="M14 8.5a4 4 0 0 1 8 0"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+            />
+            <path
+                d="M9 15.5c0-2.5 2-4.5 4.5-4.5h9c2.5 0 4.5 2 4.5 4.5v13.2c0 1.2-.5 2.4-1.4 3.2l-6.5 5.6a2 2 0 0 1-2.6 0l-6.5-5.6A4.3 4.3 0 0 1 9 28.7V15.5Z"
+                fill="currentColor"
+            />
+            <path
+                d="M18 26.2s-4.2-2.5-4.2-5.3a2.3 2.3 0 0 1 4.2-1.3 2.3 2.3 0 0 1 4.2 1.3c0 2.8-4.2 5.3-4.2 5.3Z"
+                fill="var(--logo-heart, #fff)"
+            />
+            <path
+                d="M30.5 13.5a7 7 0 0 1 0 9M33.8 10.5a11.5 11.5 0 0 1 0 15"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                opacity="0.55"
             />
         </svg>
     );

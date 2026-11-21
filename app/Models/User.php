@@ -69,6 +69,6 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      */
     public function isAdmin(): bool
     {
-        return $this->is_admin;
+        return (bool) $this->is_admin;
     }
 }

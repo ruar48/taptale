@@ -1,4 +1,5 @@
 import type { Auth } from '@/types/auth';
+import type { CategorySummary } from '@/types/taptale';
 
 declare module 'react' {
     interface InputHTMLAttributes<T> {
@@ -12,6 +13,11 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             sidebarOpen: boolean;
+            storefront: {
+                currencySymbol: string;
+                tagline: string;
+            };
+            navCategories: CategorySummary[];
             [key: string]: unknown;
         };
     }
