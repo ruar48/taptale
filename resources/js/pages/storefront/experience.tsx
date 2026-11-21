@@ -33,7 +33,8 @@ export default function Experience({
         () =>
             preset.gate === null ||
             (typeof window !== 'undefined' &&
-                new URLSearchParams(window.location.search).get('intro') === '0'),
+                new URLSearchParams(window.location.search).get('intro') ===
+                    '0'),
     );
     const [lightbox, setLightbox] = useState<string | null>(null);
 

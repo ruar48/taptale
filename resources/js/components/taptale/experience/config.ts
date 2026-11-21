@@ -243,7 +243,10 @@ export const EXPERIENCE_PRESETS: Record<
     little_something: {
         gate: 'tap',
         sections: ['hero_script', 'gifts', 'letter_paper', 'quote', 'closing'],
-        labels: { gate: 'A little something for you', gifts: 'Open your gifts' },
+        labels: {
+            gate: 'A little something for you',
+            gifts: 'Open your gifts',
+        },
     },
     girlfriends_day: {
         gate: 'envelope',
