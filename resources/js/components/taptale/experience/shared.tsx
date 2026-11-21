@@ -1,4 +1,4 @@
-import { Heart, Music, Pause } from 'lucide-react';
+import { Camera, Heart, Loader2, Music, Pause } from 'lucide-react';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import type {
@@ -16,6 +16,10 @@ export type ExperienceContextValue = {
     photoAt: (index: number) => string | null;
     moments: ExperienceMoment[];
     openPhoto: (url: string) => void;
+    /** True when the owner is viewing: empty frames become "Add photo" buttons. */
+    editable: boolean;
+    uploading: boolean;
+    addPhotos: (files: File[], moment?: number) => void;
 };
 
 export const ExperienceContext = createContext<ExperienceContextValue | null>(
@@ -197,17 +201,114 @@ export function Reveal({
 /**
  * A photo, or a soft themed placeholder when the customer hasn't added one.
  */
+/**
+ * A file picker styled for the memory page. Used by the owner to drop a
+ * photo straight into the page.
+ */
+export function AddPhotoButton({
+    moment,
+    multiple = false,
+    label = 'Add photo',
+    className,
+    children,
+}: {
+    moment?: number;
+    multiple?: boolean;
+    label?: string;
+    className?: string;
+    children?: ReactNode;
+}) {
+    const context = useContext(ExperienceContext);
+
+    if (!context?.editable) {
+        return null;
+    }
+
+    return (
+        <label
+            className={cn(
+                'cursor-pointer',
+                context.uploading && 'pointer-events-none opacity-70',
+                className,
+            )}
+        >
+            <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple={multiple}
+                className="sr-only"
+                disabled={context.uploading}
+                onChange={(event) => {
+                    const files = Array.from(event.target.files ?? []);
+
+                    if (files.length > 0) {
+                        context.addPhotos(files, moment);
+                    }
+
+                    event.target.value = '';
+                }}
+                aria-label={label}
+            />
+            {children ?? (
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-[#3A2A30] shadow-lg">
+                    {context.uploading ? (
+                        <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                        <Camera className="size-4" />
+                    )}
+                    {context.uploading ? 'Uploading…' : label}
+                </span>
+            )}
+        </label>
+    );
+}
+
 export function PhotoFill({
     src,
     className,
     style,
     onClick,
+    moment,
 }: {
     src: string | null;
     className?: string;
     style?: CSSProperties;
     onClick?: () => void;
+    /** Attach a photo added into this frame to a timeline moment. */
+    moment?: number;
 }) {
+    const context = useContext(ExperienceContext);
+
+    if (!src && context?.editable) {
+        return (
+            <AddPhotoButton
+                moment={moment}
+                className={cn(
+                    'group/add relative isolate flex flex-col items-center justify-center gap-2 overflow-hidden border-2 border-dashed border-white/80 text-white transition hover:brightness-105',
+                    className,
+                )}
+            >
+                <span
+                    className="absolute inset-0 -z-10"
+                    style={{
+                        background:
+                            'linear-gradient(135deg, color-mix(in oklab, var(--x-accent) 70%, white), color-mix(in oklab, var(--x-accent) 30%, white))',
+                    }}
+                />
+                <span className="flex size-12 items-center justify-center rounded-full bg-white/90 text-[#B23A62] shadow transition group-hover/add:scale-110">
+                    {context.uploading ? (
+                        <Loader2 className="size-5 animate-spin" />
+                    ) : (
+                        <Camera className="size-5" />
+                    )}
+                </span>
+                <span className="rounded-full bg-black/25 px-3 py-1 text-xs font-semibold tracking-wide text-white backdrop-blur-sm">
+                    {context.uploading ? 'Uploading…' : 'Add photo'}
+                </span>
+            </AddPhotoButton>
+        );
+    }
+
     if (src) {
         return (
             <img
@@ -248,12 +349,14 @@ export function Polaroid({
     rotate = 0,
     className,
     tape = false,
+    moment,
 }: {
     src: string | null;
     caption?: string | null;
     rotate?: number;
     className?: string;
     tape?: boolean;
+    moment?: number;
 }) {
     const { openPhoto } = useExperience();
 
@@ -278,6 +381,7 @@ export function Polaroid({
                 src={src}
                 className="aspect-square w-full"
                 onClick={src ? () => openPhoto(src) : undefined}
+                moment={moment}
             />
             {caption && (
                 <figcaption className="mt-2 truncate text-center font-display text-sm text-[#3A2A2A] italic">

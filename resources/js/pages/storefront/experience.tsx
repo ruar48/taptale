@@ -1,6 +1,8 @@
-import { Head, Link } from '@inertiajs/react';
-import { Eye, Sparkles, X } from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { Camera, Eye, Pencil, Sparkles, X } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
+import ExperiencePhotoController from '@/actions/App/Http/Controllers/Account/ExperiencePhotoController';
 import {
     presetFor,
     themeFor,
@@ -9,11 +11,13 @@ import {
 import { Gate } from '@/components/taptale/experience/gates';
 import { ExperienceSection } from '@/components/taptale/experience/sections';
 import {
+    AddPhotoButton,
     AudioProvider,
     ExperienceContext,
     MusicButton,
 } from '@/components/taptale/experience/shared';
 import { home } from '@/routes';
+import { edit as editExperience } from '@/routes/account/experiences';
 import { templates as memoryPages } from '@/routes/experiences';
 import { create as startOrder } from '@/routes/orders';
 import type { DigitalExperience } from '@/types';
@@ -22,10 +26,12 @@ export default function Experience({
     experience,
     isPreview,
     isDemo = false,
+    canEdit = false,
 }: {
     experience: DigitalExperience;
     isPreview: boolean;
     isDemo?: boolean;
+    canEdit?: boolean;
 }) {
     const theme = themeFor(experience.theme);
     const preset = presetFor(experience.template);
@@ -37,10 +43,48 @@ export default function Experience({
                     '0'),
     );
     const [lightbox, setLightbox] = useState<string | null>(null);
+    const [uploading, setUploading] = useState(false);
 
     const photos = experience.photos.map((photo) => photo.url);
-    const photoAt = (index: number): string | null =>
-        photos.length > 0 ? photos[index % photos.length] : null;
+
+    /*
+     * Visitors see photos repeat so every frame is filled. The owner sees
+     * empty frames instead, so they can tap one and add a picture.
+     */
+    const photoAt = (index: number): string | null => {
+        if (canEdit) {
+            return photos[index] ?? null;
+        }
+
+        return photos.length > 0 ? photos[index % photos.length] : null;
+    };
+
+    const addPhotos = (files: File[], moment?: number) => {
+        if (!canEdit || uploading) {
+            return;
+        }
+
+        router.post(
+            ExperiencePhotoController.store.url(experience.code),
+            {
+                photos: files,
+                ...(moment !== undefined ? { moment } : {}),
+            },
+            {
+                forceFormData: true,
+                preserveScroll: true,
+                preserveState: true,
+                onStart: () => setUploading(true),
+                onFinish: () => setUploading(false),
+                onError: (errors) => {
+                    toast.error(
+                        Object.values(errors)[0] ??
+                            'The photo could not be added. Please try again.',
+                    );
+                },
+            },
+        );
+    };
 
     return (
         <ExperienceContext.Provider
@@ -52,6 +96,9 @@ export default function Experience({
                 photoAt,
                 moments: experience.moments,
                 openPhoto: setLightbox,
+                editable: canEdit,
+                uploading,
+                addPhotos,
             }}
         >
             <AudioProvider src={experience.audio_url}>
@@ -60,7 +107,7 @@ export default function Experience({
                     className="min-h-screen overflow-x-hidden"
                     style={themeStyle(theme)}
                 >
-                    {(isPreview || isDemo) && (
+                    {(isPreview || isDemo || canEdit) && (
                         <div className="sticky top-0 z-40 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-amber-100 px-4 py-2 text-center text-sm text-amber-900">
                             {isDemo ? (
                                 <>
@@ -82,8 +129,43 @@ export default function Experience({
                                 </>
                             ) : (
                                 <>
-                                    <Eye className="size-4" /> Preview — only
-                                    you can see this page until you publish it.
+                                    {isPreview ? (
+                                        <Eye className="size-4" />
+                                    ) : (
+                                        <Camera className="size-4" />
+                                    )}
+                                    {isPreview
+                                        ? 'Preview — only you can see this page until you publish it.'
+                                        : 'This is your page.'}
+                                    {canEdit && (
+                                        <span>
+                                            Tap any empty frame to add a photo.
+                                        </span>
+                                    )}
+                                    {canEdit && (
+                                        <AddPhotoButton
+                                            multiple
+                                            className="inline-flex"
+                                        >
+                                            <span className="inline-flex items-center gap-1 font-semibold underline underline-offset-2">
+                                                <Camera className="size-3.5" />
+                                                {uploading
+                                                    ? 'Uploading…'
+                                                    : 'Add photos'}
+                                            </span>
+                                        </AddPhotoButton>
+                                    )}
+                                    {canEdit && (
+                                        <Link
+                                            href={editExperience(
+                                                experience.code,
+                                            )}
+                                            className="inline-flex items-center gap-1 font-semibold underline underline-offset-2"
+                                        >
+                                            <Pencil className="size-3.5" /> Edit
+                                            page
+                                        </Link>
+                                    )}
                                 </>
                             )}
                         </div>

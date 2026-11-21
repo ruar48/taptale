@@ -1,0 +1,72 @@
+<?php
+
+namespace App\Http\Controllers\Account;
+
+use App\Http\Controllers\Controller;
+use App\Models\DigitalExperience;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rules\File;
+use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
+
+/**
+ * Lets the owner drop photos straight into empty frames while viewing
+ * their memory page.
+ */
+class ExperiencePhotoController extends Controller
+{
+    /**
+     * Add photos to the page, optionally attaching the first one to a moment.
+     */
+    public function store(Request $request, DigitalExperience $experience): RedirectResponse
+    {
+        Gate::authorize('update', $experience);
+
+        $validated = $request->validate([
+            'photos' => ['required', 'array', 'min:1', 'max:10'],
+            'photos.*' => [File::image()->types(['jpg', 'jpeg', 'png', 'webp'])->max((int) config('taptale.max_upload_kilobytes'))],
+            'moment' => ['nullable', 'integer', 'min:0'],
+        ], [
+            'photos.required' => 'Please choose a photo to add.',
+        ], [
+            'photos.*' => 'photo',
+        ]);
+
+        $photos = $experience->photos ?? [];
+
+        if (count($photos) + count($validated['photos']) > DigitalExperience::MAX_PHOTOS) {
+            throw ValidationException::withMessages([
+                'photos' => 'Your page can have at most '.DigitalExperience::MAX_PHOTOS.' photos.',
+            ]);
+        }
+
+        $firstNewIndex = count($photos);
+        $disk = (string) config('taptale.uploads_disk');
+
+        foreach ($validated['photos'] as $photo) {
+            $stored = $photo->store("experiences/{$experience->id}", $disk);
+
+            if ($stored !== false) {
+                $photos[] = $stored;
+            }
+        }
+
+        $moments = $experience->moments ?? [];
+        $momentIndex = $validated['moment'] ?? null;
+
+        if ($momentIndex !== null && isset($moments[$momentIndex]) && count($photos) > $firstNewIndex) {
+            $moments[$momentIndex]['photo'] = $firstNewIndex;
+        }
+
+        $experience->update([
+            'photos' => $photos,
+            'moments' => $moments,
+        ]);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Photo added to your page.')]);
+
+        return back();
+    }
+}

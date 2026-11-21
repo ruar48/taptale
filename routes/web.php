@@ -63,6 +63,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('experiences/{experience}', [Account\ExperienceController::class, 'edit'])->name('experiences.edit');
         Route::put('experiences/{experience}', [Account\ExperienceController::class, 'update'])->name('experiences.update');
+        Route::post('experiences/{experience}/photos', [Account\ExperiencePhotoController::class, 'store'])
+            ->middleware('throttle:30,1')
+            ->name('experiences.photos.store');
     });
 });
 

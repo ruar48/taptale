@@ -44,6 +44,7 @@ class ExperienceController extends Controller
             'experience' => $buildDemo->handle($experienceTemplate),
             'isPreview' => false,
             'isDemo' => true,
+            'canEdit' => false,
         ]);
     }
 
@@ -64,6 +65,7 @@ class ExperienceController extends Controller
             'experience' => new DigitalExperienceResource($experience),
             'isPreview' => ! $experience->is_published,
             'isDemo' => false,
+            'canEdit' => $request->user()?->can('update', $experience) ?? false,
         ]);
     }
 

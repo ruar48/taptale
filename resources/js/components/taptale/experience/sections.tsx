@@ -22,6 +22,7 @@ import {
 } from '@/components/taptale/experience/config';
 import type { SectionKey } from '@/components/taptale/experience/config';
 import {
+    AddPhotoButton,
     Eyebrow,
     FloatingHearts,
     PhotoFill,
@@ -135,6 +136,12 @@ function HeroPhoto() {
                     <p className="mt-6 text-sm tracking-[0.3em] uppercase opacity-90">
                         For {experience.recipient_name}
                     </p>
+                )}
+                {!cover && (
+                    <AddPhotoButton
+                        label="Add a cover photo"
+                        className="mt-8 inline-block"
+                    />
                 )}
             </Reveal>
             <ScrollHint />
@@ -376,14 +383,25 @@ function LetterPaper() {
 }
 
 function PolaroidWall() {
-    const { experience, moments, photos } = useExperience();
-    const items =
+    const { experience, moments, photos, editable } = useExperience();
+    const items: {
+        src: string | null;
+        caption: string | null;
+        moment?: number;
+    }[] =
         moments.length > 0
-            ? moments.map((moment) => ({
+            ? moments.map((moment, index) => ({
                   src: moment.photo_url,
                   caption: moment.title ?? moment.date,
+                  moment: index,
               }))
             : photos.map((src) => ({ src, caption: null }));
+
+    if (editable && moments.length === 0) {
+        while (items.length < 4 || items.length % 4 !== 0) {
+            items.push({ src: null, caption: null });
+        }
+    }
 
     if (items.length === 0) {
         return null;
@@ -426,6 +444,7 @@ function PolaroidWall() {
                                     src={item.src}
                                     caption={item.caption}
                                     rotate={ROTATIONS[index % ROTATIONS.length]}
+                                    moment={item.moment}
                                 />
                             </div>
                         </Reveal>
@@ -536,6 +555,7 @@ function Timeline() {
                             >
                                 <Polaroid
                                     src={moment.photo_url}
+                                    moment={index}
                                     rotate={index % 2 === 0 ? -3 : 3}
                                     className={cn(
                                         'w-56',
@@ -1047,9 +1067,9 @@ function Scrapbook() {
 }
 
 function Gallery() {
-    const { preset, photos, openPhoto } = useExperience();
+    const { preset, photos, openPhoto, editable } = useExperience();
 
-    if (photos.length === 0) {
+    if (photos.length === 0 && !editable) {
         return null;
     }
 
@@ -1076,6 +1096,14 @@ function Gallery() {
                         />
                     </Reveal>
                 ))}
+                {editable && (
+                    <div className="break-inside-avoid">
+                        <PhotoFill
+                            src={null}
+                            className="aspect-[4/3] w-full rounded-2xl"
+                        />
+                    </div>
+                )}
             </div>
         </SectionShell>
     );
