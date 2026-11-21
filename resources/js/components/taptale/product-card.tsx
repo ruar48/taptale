@@ -23,7 +23,10 @@ export function ProductCard({
             className="group flex flex-col overflow-hidden rounded-3xl border border-border/70 bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_48px_-24px_rgb(113_61_80/0.35)]"
         >
             <div className="relative">
-                <ProductArt product={product} className="aspect-[4/3.6] w-full" />
+                <ProductArt
+                    product={product}
+                    className="aspect-[4/3.6] w-full"
+                />
                 <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
                     {product.is_bestseller && (
                         <span className="rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-plum uppercase shadow-sm backdrop-blur">

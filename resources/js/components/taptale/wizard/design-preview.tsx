@@ -5,7 +5,13 @@ import {
     shapeFromOption,
 } from '@/components/taptale/keychain-mockup';
 import { TemplatePreview } from '@/components/taptale/template-preview';
-import type { Palette, Product, ProductOption, Template, TemplateLayout } from '@/types';
+import type {
+    Palette,
+    Product,
+    ProductOption,
+    Template,
+    TemplateLayout,
+} from '@/types';
 
 const FALLBACK_PALETTE: Palette = {
     background: '#F8F3ED',
@@ -77,7 +83,10 @@ export function DesignPreview({
                 <div className="relative mx-auto w-[82%] rounded-[1.5rem] bg-white p-4 shadow-[0_30px_60px_-24px_rgb(52_48_57/0.55)]">
                     <div className="overflow-hidden rounded-xl">{design}</div>
                     <div className="absolute right-6 bottom-6 flex size-16 items-center justify-center rounded-xl bg-white shadow-md sm:size-20">
-                        <QrCode className="size-12 text-charcoal sm:size-16" strokeWidth={1.2} />
+                        <QrCode
+                            className="size-12 text-charcoal sm:size-16"
+                            strokeWidth={1.2}
+                        />
                     </div>
                 </div>
             </div>

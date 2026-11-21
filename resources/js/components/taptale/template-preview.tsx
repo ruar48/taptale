@@ -80,9 +80,7 @@ export function TemplatePreview({
         case 'polaroid':
             body = (
                 <div className="flex size-full items-center justify-center p-[8cqw]">
-                    <div
-                        className="flex w-full -rotate-2 flex-col bg-white p-[4cqw] pb-[3cqw] shadow-[0_4cqw_8cqw_-3cqw_rgb(0_0_0/0.25)]"
-                    >
+                    <div className="flex w-full -rotate-2 flex-col bg-white p-[4cqw] pb-[3cqw] shadow-[0_4cqw_8cqw_-3cqw_rgb(0_0_0/0.25)]">
                         {photo('aspect-square w-full')}
                         <p
                             className="mt-[3cqw] truncate text-center font-display italic"
@@ -309,9 +307,21 @@ function Photo({
 
 function Stars({ color }: { color: string }) {
     const stars = [
-        [8, 10, 1], [22, 6, 0.6], [80, 9, 1.2], [90, 22, 0.7], [12, 30, 0.8],
-        [70, 4, 0.5], [50, 7, 0.9], [94, 50, 0.6], [6, 60, 1], [88, 76, 0.9],
-        [15, 85, 0.7], [35, 93, 0.5], [65, 92, 1], [42, 3, 0.4], [96, 92, 0.5],
+        [8, 10, 1],
+        [22, 6, 0.6],
+        [80, 9, 1.2],
+        [90, 22, 0.7],
+        [12, 30, 0.8],
+        [70, 4, 0.5],
+        [50, 7, 0.9],
+        [94, 50, 0.6],
+        [6, 60, 1],
+        [88, 76, 0.9],
+        [15, 85, 0.7],
+        [35, 93, 0.5],
+        [65, 92, 1],
+        [42, 3, 0.4],
+        [96, 92, 0.5],
     ];
 
     return (

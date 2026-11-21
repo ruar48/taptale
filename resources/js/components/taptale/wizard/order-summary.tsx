@@ -30,7 +30,13 @@ export function OrderSummary({
             <dl className="mt-4 space-y-2.5 text-sm">
                 <Row label="Occasion" value={category?.name} />
                 <Row label="Gift" value={product?.name} />
-                <Row label="Template" value={template?.name ?? (product ? 'Custom design' : undefined)} />
+                <Row
+                    label="Template"
+                    value={
+                        template?.name ??
+                        (product ? 'Custom design' : undefined)
+                    }
+                />
                 <Row label="Design" value={designModeLabel ?? undefined} />
             </dl>
 
@@ -39,12 +45,17 @@ export function OrderSummary({
                     {price.selected.length > 0 && (
                         <ul className="mt-4 space-y-1 border-t border-dashed pt-4 text-xs text-muted-foreground">
                             {price.selected.map((option) => (
-                                <li key={option.id} className="flex justify-between gap-2">
+                                <li
+                                    key={option.id}
+                                    className="flex justify-between gap-2"
+                                >
                                     <span className="truncate">
                                         {option.group_label}: {option.name}
                                     </span>
                                     {option.price_modifier !== 0 && (
-                                        <span>{money(option.price_modifier)}</span>
+                                        <span>
+                                            {money(option.price_modifier)}
+                                        </span>
                                     )}
                                 </li>
                             ))}
@@ -59,13 +70,19 @@ export function OrderSummary({
                         </div>
                         {price.customizationFee > 0 && (
                             <div className="flex justify-between">
-                                <dt className="text-muted-foreground">Design service</dt>
+                                <dt className="text-muted-foreground">
+                                    Design service
+                                </dt>
                                 <dd>{money(price.customizationFee)}</dd>
                             </div>
                         )}
                         <div className="flex justify-between">
                             <dt className="text-muted-foreground">Delivery</dt>
-                            <dd>{price.deliveryFee === 0 ? 'Free' : money(price.deliveryFee)}</dd>
+                            <dd>
+                                {price.deliveryFee === 0
+                                    ? 'Free'
+                                    : money(price.deliveryFee)}
+                            </dd>
                         </div>
                         <div className="flex items-baseline justify-between border-t pt-3">
                             <dt className="font-medium">Total</dt>
@@ -74,12 +91,18 @@ export function OrderSummary({
                             </dd>
                         </div>
                     </dl>
-                    {pricing.free_delivery_threshold > 0 && price.deliveryFee > 0 && (
-                        <p className="mt-3 flex items-center gap-2 rounded-xl bg-blush-light/60 px-3 py-2 text-xs text-plum dark:bg-rose/10 dark:text-blush">
-                            <Truck className="size-4 shrink-0" />
-                            Add {money(pricing.free_delivery_threshold - price.subtotal)} more for free delivery
-                        </p>
-                    )}
+                    {pricing.free_delivery_threshold > 0 &&
+                        price.deliveryFee > 0 && (
+                            <p className="mt-3 flex items-center gap-2 rounded-xl bg-blush-light/60 px-3 py-2 text-xs text-plum dark:bg-rose/10 dark:text-blush">
+                                <Truck className="size-4 shrink-0" />
+                                Add{' '}
+                                {money(
+                                    pricing.free_delivery_threshold -
+                                        price.subtotal,
+                                )}{' '}
+                                more for free delivery
+                            </p>
+                        )}
                 </>
             )}
         </div>

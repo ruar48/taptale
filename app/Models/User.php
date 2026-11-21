@@ -25,6 +25,8 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string|null $province
  * @property string|null $postal_code
  * @property bool $is_admin
+ * @property-read int|null $orders_count
+ * @property-read int|string|null $orders_sum_total
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $two_factor_secret

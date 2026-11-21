@@ -45,13 +45,13 @@ class PriceOrder
             'customization_fee' => $customizationFee,
             'delivery_fee' => $deliveryFee,
             'total' => $subtotal + $customizationFee + $deliveryFee,
-            'selected_options' => $selected->map(fn (ProductOption $option): array => [
+            'selected_options' => array_values($selected->map(fn (ProductOption $option): array => [
                 'id' => $option->id,
                 'group' => $option->group->value,
                 'group_label' => $option->group->label(),
                 'name' => $option->name,
                 'price_modifier' => $option->price_modifier,
-            ])->values()->all(),
+            ])->all()),
             'enables_digital_experience' => $product->has_digital_experience
                 || $selected->contains(fn (ProductOption $option): bool => $option->enables_digital_experience),
         ];

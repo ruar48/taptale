@@ -40,8 +40,11 @@ export default function TemplatesGallery({
                     description="Every template is a starting point. Add your photos, names and message — or ask our designers to adapt it for you."
                 />
 
-                <div className="scrollbar-none mt-8 -mx-4 flex gap-2 overflow-x-auto px-4 pb-2">
-                    <FilterChip active={filter === null} onClick={() => setFilter(null)}>
+                <div className="-mx-4 mt-8 flex scrollbar-none gap-2 overflow-x-auto px-4 pb-2">
+                    <FilterChip
+                        active={filter === null}
+                        onClick={() => setFilter(null)}
+                    >
                         All designs
                     </FilterChip>
                     {categories.map((category) => (
@@ -75,9 +78,13 @@ export default function TemplatesGallery({
                                     </span>
                                 </span>
                             </div>
-                            <p className="mt-3 font-display text-lg">{template.name}</p>
+                            <p className="mt-3 font-display text-lg">
+                                {template.name}
+                            </p>
                             <p className="line-clamp-1 text-sm text-muted-foreground">
-                                {template.categories?.map((category) => category.name).join(' · ')}
+                                {template.categories
+                                    ?.map((category) => category.name)
+                                    .join(' · ')}
                             </p>
                         </button>
                     ))}
@@ -89,7 +96,10 @@ export default function TemplatesGallery({
                 )}
             </section>
 
-            <Dialog open={previewing !== null} onOpenChange={(open) => !open && setPreviewing(null)}>
+            <Dialog
+                open={previewing !== null}
+                onOpenChange={(open) => !open && setPreviewing(null)}
+            >
                 <DialogContent className="max-w-3xl overflow-hidden p-0 sm:rounded-3xl [&>button]:hidden">
                     {previewing && (
                         <div className="grid sm:grid-cols-2">
@@ -121,18 +131,25 @@ export default function TemplatesGallery({
                                     {previewing.name}
                                 </DialogTitle>
                                 <DialogDescription className="mt-2">
-                                    {previewing.description ?? previewing.layout_label}
+                                    {previewing.description ??
+                                        previewing.layout_label}
                                 </DialogDescription>
                                 <div className="mt-4 flex gap-2">
-                                    {Object.values(previewing.palette).map((color) => (
-                                        <span
-                                            key={color}
-                                            className="size-7 rounded-full ring-1 ring-black/10"
-                                            style={{ backgroundColor: color }}
-                                        />
-                                    ))}
+                                    {Object.values(previewing.palette).map(
+                                        (color) => (
+                                            <span
+                                                key={color}
+                                                className="size-7 rounded-full ring-1 ring-black/10"
+                                                style={{
+                                                    backgroundColor: color,
+                                                }}
+                                            />
+                                        ),
+                                    )}
                                 </div>
-                                <p className="mt-6 text-sm font-medium">Perfect for</p>
+                                <p className="mt-6 text-sm font-medium">
+                                    Perfect for
+                                </p>
                                 <div className="mt-2 flex flex-wrap gap-2">
                                     {previewing.categories?.map((category) => (
                                         <Button
@@ -142,7 +159,15 @@ export default function TemplatesGallery({
                                             size="sm"
                                             className="rounded-full"
                                         >
-                                            <Link href={startOrder({ query: { category: category.slug, template: previewing.slug } })}>
+                                            <Link
+                                                href={startOrder({
+                                                    query: {
+                                                        category: category.slug,
+                                                        template:
+                                                            previewing.slug,
+                                                    },
+                                                })}
+                                            >
                                                 {category.name}
                                             </Link>
                                         </Button>

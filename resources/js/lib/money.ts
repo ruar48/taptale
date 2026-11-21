@@ -38,7 +38,10 @@ export function formatFileSize(bytes: number): string {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function formatDate(iso: string | null | undefined, withTime = false): string {
+export function formatDate(
+    iso: string | null | undefined,
+    withTime = false,
+): string {
     if (!iso) {
         return '—';
     }

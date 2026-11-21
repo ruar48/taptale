@@ -57,8 +57,13 @@ export default function CategoryShow({
                         size="lg"
                         className="mt-8 h-13 rounded-full bg-white px-7 text-base text-plum hover:bg-cream"
                     >
-                        <Link href={startOrder({ query: { category: category.slug } })}>
-                            <Sparkles className="size-5" /> Personalize a {category.name.replace(/s$/, '').toLowerCase()}
+                        <Link
+                            href={startOrder({
+                                query: { category: category.slug },
+                            })}
+                        >
+                            <Sparkles className="size-5" /> Personalize a{' '}
+                            {category.name.replace(/s$/, '').toLowerCase()}
                         </Link>
                     </Button>
                 </div>
@@ -71,7 +76,8 @@ export default function CategoryShow({
                 />
                 {products.length === 0 ? (
                     <p className="mt-8 rounded-3xl border border-dashed p-10 text-center text-muted-foreground">
-                        New keepsakes for this occasion are on their way. Check back soon!
+                        New keepsakes for this occasion are on their way. Check
+                        back soon!
                     </p>
                 ) : (
                     <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -104,7 +110,9 @@ export default function CategoryShow({
                                             imageUrl={template.preview_url}
                                         />
                                     </div>
-                                    <p className="mt-3 font-display">{template.name}</p>
+                                    <p className="mt-3 font-display">
+                                        {template.name}
+                                    </p>
                                     <p className="text-xs text-muted-foreground">
                                         {template.layout_label}
                                     </p>
@@ -127,7 +135,9 @@ export default function CategoryShow({
                             >
                                 <span
                                     className="size-2.5 rounded-full"
-                                    style={{ backgroundColor: other.accent_color }}
+                                    style={{
+                                        backgroundColor: other.accent_color,
+                                    }}
                                 />
                                 {other.name}
                                 <ArrowRight className="size-3.5 opacity-50" />

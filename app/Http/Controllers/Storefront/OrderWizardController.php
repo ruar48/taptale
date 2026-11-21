@@ -11,7 +11,6 @@ use App\Http\Resources\ProductResource;
 use App\Http\Resources\TemplateResource;
 use App\Models\Category;
 use App\Models\PaymentMethod;
-use App\Models\Product;
 use App\Models\Template;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

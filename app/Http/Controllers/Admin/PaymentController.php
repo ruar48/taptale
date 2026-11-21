@@ -39,7 +39,7 @@ class PaymentController extends Controller
                     ->paginate(20)
                     ->withQueryString()
             ),
-            'filters' => ['status' => $status?->value ?? 'all'],
+            'filters' => ['status' => $status->value ?? 'all'],
             'pendingCount' => Payment::query()->where('status', PaymentStatus::Submitted)->count(),
         ]);
     }

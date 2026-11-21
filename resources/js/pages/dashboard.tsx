@@ -6,7 +6,10 @@ import { Button } from '@/components/ui/button';
 import { useMoney } from '@/hooks/use-money';
 import { formatDate } from '@/lib/money';
 import { dashboard } from '@/routes';
-import { index as ordersIndex, show as orderShow } from '@/routes/account/orders';
+import {
+    index as ordersIndex,
+    show as orderShow,
+} from '@/routes/account/orders';
 import { create as startOrder } from '@/routes/orders';
 import type { Order } from '@/types';
 
@@ -16,7 +19,11 @@ type Props = {
     stats: { total: number; open: number; completed: number };
 };
 
-export default function Dashboard({ recentOrders, needsAttention, stats }: Props) {
+export default function Dashboard({
+    recentOrders,
+    needsAttention,
+    stats,
+}: Props) {
     const { auth } = usePage().props;
     const money = useMoney();
 
@@ -31,9 +38,13 @@ export default function Dashboard({ recentOrders, needsAttention, stats }: Props
                         {auth.user.name.split(' ')[0]}
                     </h1>
                     <p className="relative mt-2 max-w-lg text-white/80">
-                        Track your gifts, approve designs and manage your tap-enabled memories — all in one place.
+                        Track your gifts, approve designs and manage your
+                        tap-enabled memories — all in one place.
                     </p>
-                    <Button asChild className="relative mt-5 rounded-full bg-cream text-plum hover:bg-white">
+                    <Button
+                        asChild
+                        className="relative mt-5 rounded-full bg-cream text-plum hover:bg-white"
+                    >
                         <Link href={startOrder()}>
                             <Sparkles className="size-4" /> Create a new gift
                         </Link>
@@ -46,9 +57,16 @@ export default function Dashboard({ recentOrders, needsAttention, stats }: Props
                         { label: 'In progress', value: stats.open },
                         { label: 'Completed', value: stats.completed },
                     ].map((stat) => (
-                        <div key={stat.label} className="rounded-2xl border bg-card p-5">
-                            <p className="text-sm text-muted-foreground">{stat.label}</p>
-                            <p className="mt-1 font-display text-3xl">{stat.value}</p>
+                        <div
+                            key={stat.label}
+                            className="rounded-2xl border bg-card p-5"
+                        >
+                            <p className="text-sm text-muted-foreground">
+                                {stat.label}
+                            </p>
+                            <p className="mt-1 font-display text-3xl">
+                                {stat.value}
+                            </p>
                         </div>
                     ))}
                 </div>
@@ -56,7 +74,8 @@ export default function Dashboard({ recentOrders, needsAttention, stats }: Props
                 {needsAttention.length > 0 && (
                     <section className="rounded-2xl border border-rose/30 bg-blush-light/40 p-5 dark:bg-rose/10">
                         <h2 className="flex items-center gap-2 font-display text-lg">
-                            <BellRing className="size-5 text-rose" /> Needs your attention
+                            <BellRing className="size-5 text-rose" /> Needs your
+                            attention
                         </h2>
                         <ul className="mt-4 grid gap-3">
                             {needsAttention.map((order) => (
@@ -66,15 +85,19 @@ export default function Dashboard({ recentOrders, needsAttention, stats }: Props
                                         className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-card p-4 transition hover:shadow-md"
                                     >
                                         <div>
-                                            <p className="font-medium">{order.product_name}</p>
+                                            <p className="font-medium">
+                                                {order.product_name}
+                                            </p>
                                             <p className="text-sm text-muted-foreground">
-                                                {order.status === 'awaiting_customer_approval'
+                                                {order.status ===
+                                                'awaiting_customer_approval'
                                                     ? 'Your design is ready — please review it.'
                                                     : 'Upload your payment to get started.'}
                                             </p>
                                         </div>
                                         <span className="inline-flex items-center gap-1 text-sm font-medium text-plum dark:text-blush">
-                                            Open <ArrowRight className="size-4" />
+                                            Open{' '}
+                                            <ArrowRight className="size-4" />
                                         </span>
                                     </Link>
                                 </li>
@@ -87,7 +110,10 @@ export default function Dashboard({ recentOrders, needsAttention, stats }: Props
                     <div className="flex items-center justify-between">
                         <h2 className="font-display text-lg">Recent orders</h2>
                         {recentOrders.length > 0 && (
-                            <Link href={ordersIndex()} className="text-sm font-medium text-plum hover:underline dark:text-blush">
+                            <Link
+                                href={ordersIndex()}
+                                className="text-sm font-medium text-plum hover:underline dark:text-blush"
+                            >
                                 View all
                             </Link>
                         )}
@@ -95,8 +121,12 @@ export default function Dashboard({ recentOrders, needsAttention, stats }: Props
                     {recentOrders.length === 0 ? (
                         <div className="flex flex-col items-center py-12 text-center">
                             <Package className="size-10 text-blush" />
-                            <p className="mt-3 font-display text-xl">No orders yet</p>
-                            <p className="mt-1 text-sm text-muted-foreground">Your first keepsake is just a few taps away.</p>
+                            <p className="mt-3 font-display text-xl">
+                                No orders yet
+                            </p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Your first keepsake is just a few taps away.
+                            </p>
                             <Button asChild className="mt-5 rounded-full">
                                 <Link href={startOrder()}>Start creating</Link>
                             </Button>
@@ -105,22 +135,40 @@ export default function Dashboard({ recentOrders, needsAttention, stats }: Props
                         <ul className="mt-4 divide-y">
                             {recentOrders.map((order) => (
                                 <li key={order.id}>
-                                    <Link href={orderShow(order.reference)} className="flex items-center gap-4 py-3">
+                                    <Link
+                                        href={orderShow(order.reference)}
+                                        className="flex items-center gap-4 py-3"
+                                    >
                                         <div className="hidden size-12 shrink-0 overflow-hidden rounded-xl sm:block">
                                             <ProductArt
-                                                product={{ id: order.id, name: order.product_name, art_style: order.product_art_style ?? 'acrylic' }}
+                                                product={{
+                                                    id: order.id,
+                                                    name: order.product_name,
+                                                    art_style:
+                                                        order.product_art_style ??
+                                                        'acrylic',
+                                                }}
                                                 className="size-full"
                                             />
                                         </div>
                                         <div className="min-w-0 flex-1">
-                                            <p className="truncate font-medium">{order.product_name}</p>
+                                            <p className="truncate font-medium">
+                                                {order.product_name}
+                                            </p>
                                             <p className="text-xs text-muted-foreground">
-                                                {order.reference} · {formatDate(order.created_at)}
+                                                {order.reference} ·{' '}
+                                                {formatDate(order.created_at)}
                                             </p>
                                         </div>
                                         <div className="flex flex-col items-end gap-1">
-                                            <StatusBadge tone={order.status_tone}>{order.status_label}</StatusBadge>
-                                            <span className="text-sm font-medium">{money(order.total)}</span>
+                                            <StatusBadge
+                                                tone={order.status_tone}
+                                            >
+                                                {order.status_label}
+                                            </StatusBadge>
+                                            <span className="text-sm font-medium">
+                                                {money(order.total)}
+                                            </span>
                                         </div>
                                     </Link>
                                 </li>

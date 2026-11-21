@@ -7,6 +7,7 @@ use App\Enums\DesignMode;
 use App\Enums\OrderFileKind;
 use App\Enums\OrderStatus;
 use App\Models\Category;
+use App\Models\DigitalExperience;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Template;
@@ -29,9 +30,9 @@ class PlaceOrder
      */
     public function handle(User $customer, array $data, array $photos): Order
     {
-        $category = Category::findOrFail($data['category_id']);
-        $product = Product::findOrFail($data['product_id']);
-        $template = isset($data['template_id']) ? Template::find($data['template_id']) : null;
+        $category = Category::query()->whereKey($data['category_id'])->firstOrFail();
+        $product = Product::query()->whereKey($data['product_id'])->firstOrFail();
+        $template = isset($data['template_id']) ? Template::query()->whereKey($data['template_id'])->first() : null;
         $designMode = DesignMode::from($data['design_mode']);
         $quantity = (int) $data['quantity'];
 
@@ -75,13 +76,14 @@ class PlaceOrder
             );
 
             if ($pricing['enables_digital_experience']) {
-                $order->experience()->create([
-                    'user_id' => $customer->id,
+                $experience = new DigitalExperience([
                     'title' => $order->personalization['names'] ?? $product->name,
                     'message' => $order->personalization['message'] ?? null,
                     'event_date' => $order->personalization['date'] ?? null,
                     'photos' => [],
                 ]);
+                $experience->user()->associate($customer);
+                $order->experience()->save($experience);
             }
 
             if (! empty($data['save_details'])) {

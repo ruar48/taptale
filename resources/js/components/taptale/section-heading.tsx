@@ -19,7 +19,8 @@ export function SectionHeading({
         <div
             className={cn(
                 'flex flex-col gap-4 md:flex-row md:items-end md:justify-between',
-                align === 'center' && 'items-center text-center md:flex-col md:items-center',
+                align === 'center' &&
+                    'items-center text-center md:flex-col md:items-center',
                 className,
             )}
         >

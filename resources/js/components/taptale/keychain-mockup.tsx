@@ -129,7 +129,7 @@ export function KeychainMockup({
                             shape === 'heart' ? `url(#${clipId})` : undefined,
                     }}
                 >
-                    <div className="size-full [&>*]:size-full [&>*]:!aspect-auto">
+                    <div className="size-full [&>*]:!aspect-auto [&>*]:size-full">
                         {children}
                     </div>
                 </div>

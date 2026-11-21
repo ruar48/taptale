@@ -6,7 +6,10 @@ import { cn } from '@/lib/utils';
 import { home } from '@/routes';
 import type { DigitalExperience } from '@/types';
 
-const THEMES: Record<string, { page: string; card: string; accent: string; muted: string }> = {
+const THEMES: Record<
+    string,
+    { page: string; card: string; accent: string; muted: string }
+> = {
     blush: {
         page: 'bg-gradient-to-b from-blush-light via-cream to-cream text-charcoal',
         card: 'bg-white/70',
@@ -80,23 +83,36 @@ export default function Experience({
 
             {isPreview && (
                 <div className="sticky top-0 z-20 flex items-center justify-center gap-2 bg-amber-100 px-4 py-2 text-center text-sm text-amber-900">
-                    <Eye className="size-4" /> Preview — only you can see this page until you publish it.
+                    <Eye className="size-4" /> Preview — only you can see this
+                    page until you publish it.
                 </div>
             )}
 
             <main className="mx-auto max-w-lg px-5 pt-14 pb-16">
                 <header className="animate-fade-up text-center">
-                    <p className={cn('text-xs font-semibold tracking-[0.35em] uppercase', theme.accent)}>
+                    <p
+                        className={cn(
+                            'text-xs font-semibold tracking-[0.35em] uppercase',
+                            theme.accent,
+                        )}
+                    >
                         A Taptale memory
                     </p>
                     <h1 className="mt-4 font-display text-5xl leading-tight font-medium text-balance">
                         {experience.title}
                     </h1>
                     {experience.subtitle && (
-                        <p className={cn('mt-3 text-lg italic', theme.muted)}>{experience.subtitle}</p>
+                        <p className={cn('mt-3 text-lg italic', theme.muted)}>
+                            {experience.subtitle}
+                        </p>
                     )}
                     {experience.event_date && (
-                        <p className={cn('mt-4 text-sm tracking-[0.3em] uppercase', theme.accent)}>
+                        <p
+                            className={cn(
+                                'mt-4 text-sm tracking-[0.3em] uppercase',
+                                theme.accent,
+                            )}
+                        >
                             {experience.event_date}
                         </p>
                     )}
@@ -111,7 +127,9 @@ export default function Experience({
                                 onClick={() => setLightbox(photo.url)}
                                 className={cn(
                                     'animate-fade-up overflow-hidden rounded-2xl shadow-lg',
-                                    index === 0 && experience.photos.length % 2 === 1 && 'col-span-2',
+                                    index === 0 &&
+                                        experience.photos.length % 2 === 1 &&
+                                        'col-span-2',
                                 )}
                                 style={{ animationDelay: `${index * 80}ms` }}
                             >
@@ -119,7 +137,13 @@ export default function Experience({
                                     src={photo.url}
                                     alt=""
                                     loading="lazy"
-                                    className={cn('w-full object-cover', index === 0 && experience.photos.length % 2 === 1 ? 'aspect-[4/3]' : 'aspect-square')}
+                                    className={cn(
+                                        'w-full object-cover',
+                                        index === 0 &&
+                                            experience.photos.length % 2 === 1
+                                            ? 'aspect-[4/3]'
+                                            : 'aspect-square',
+                                    )}
                                 />
                             </button>
                         ))}
@@ -127,7 +151,12 @@ export default function Experience({
                 )}
 
                 {experience.message && (
-                    <section className={cn('mt-10 rounded-3xl p-7 backdrop-blur', theme.card)}>
+                    <section
+                        className={cn(
+                            'mt-10 rounded-3xl p-7 backdrop-blur',
+                            theme.card,
+                        )}
+                    >
                         <p className="font-display text-xl leading-relaxed whitespace-pre-line italic">
                             “{experience.message}”
                         </p>
@@ -147,8 +176,19 @@ export default function Experience({
                                 />
                             </div>
                         ) : (
-                            <a href={experience.video_url} target="_blank" rel="noopener noreferrer" className={cn('flex items-center gap-3 rounded-3xl p-5 backdrop-blur', theme.card)}>
-                                <PlayCircle className={cn('size-8', theme.accent)} /> Watch our video
+                            <a
+                                href={experience.video_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={cn(
+                                    'flex items-center gap-3 rounded-3xl p-5 backdrop-blur',
+                                    theme.card,
+                                )}
+                            >
+                                <PlayCircle
+                                    className={cn('size-8', theme.accent)}
+                                />{' '}
+                                Watch our video
                             </a>
                         )}
                     </section>
@@ -159,21 +199,37 @@ export default function Experience({
                         href={experience.music_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={cn('mt-4 flex items-center gap-3 rounded-3xl p-5 backdrop-blur', theme.card)}
+                        className={cn(
+                            'mt-4 flex items-center gap-3 rounded-3xl p-5 backdrop-blur',
+                            theme.card,
+                        )}
                     >
                         <Music className={cn('size-7', theme.accent)} />
                         <span>
                             <span className="block font-medium">Our song</span>
-                            <span className={cn('text-sm', theme.muted)}>Tap to listen</span>
+                            <span className={cn('text-sm', theme.muted)}>
+                                Tap to listen
+                            </span>
                         </span>
                     </a>
                 )}
 
                 <footer className="mt-16 flex flex-col items-center gap-2 text-center">
-                    <Link href={home()} className="opacity-80 transition hover:opacity-100">
-                        <BrandLogo inverted={experience.theme === 'plum' || experience.theme === 'midnight'} className="scale-90" />
+                    <Link
+                        href={home()}
+                        className="opacity-80 transition hover:opacity-100"
+                    >
+                        <BrandLogo
+                            inverted={
+                                experience.theme === 'plum' ||
+                                experience.theme === 'midnight'
+                            }
+                            className="scale-90"
+                        />
                     </Link>
-                    <p className={cn('text-xs', theme.muted)}>Every tap tells a story.</p>
+                    <p className={cn('text-xs', theme.muted)}>
+                        Every tap tells a story.
+                    </p>
                 </footer>
             </main>
 
@@ -184,7 +240,11 @@ export default function Experience({
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
                     aria-label="Close photo"
                 >
-                    <img src={lightbox} alt="" className="max-h-full max-w-full rounded-xl" />
+                    <img
+                        src={lightbox}
+                        alt=""
+                        className="max-h-full max-w-full rounded-xl"
+                    />
                 </button>
             )}
         </div>

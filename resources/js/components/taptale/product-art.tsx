@@ -163,13 +163,15 @@ function QrPattern({ seed }: { seed: number }) {
         const x = index % size;
         const y = Math.floor(index / size);
         const inFinder =
-            (x < 5 && y < 5) || (x >= size - 5 && y < 5) || (x < 5 && y >= size - 5);
+            (x < 5 && y < 5) ||
+            (x >= size - 5 && y < 5) ||
+            (x < 5 && y >= size - 5);
 
         if (inFinder) {
             return false;
         }
 
-        return ((x * 7 + y * 13 + seed * 5 + x * y) % 5) < 2;
+        return (x * 7 + y * 13 + seed * 5 + x * y) % 5 < 2;
     });
 
     return (
@@ -193,8 +195,20 @@ function QrPattern({ seed }: { seed: number }) {
             ].map(([x, y]) => (
                 <g key={`${x}-${y}`}>
                     <rect x={x} y={y} width="5" height="5" fill="#713D50" />
-                    <rect x={x + 1} y={y + 1} width="3" height="3" fill="#fff" />
-                    <rect x={x + 1.75} y={y + 1.75} width="1.5" height="1.5" fill="#713D50" />
+                    <rect
+                        x={x + 1}
+                        y={y + 1}
+                        width="3"
+                        height="3"
+                        fill="#fff"
+                    />
+                    <rect
+                        x={x + 1.75}
+                        y={y + 1.75}
+                        width="1.5"
+                        height="1.5"
+                        fill="#713D50"
+                    />
                 </g>
             ))}
         </svg>

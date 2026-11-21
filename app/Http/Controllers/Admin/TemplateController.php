@@ -10,10 +10,12 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Template;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use RuntimeException;
 
 class TemplateController extends Controller
 {
@@ -119,11 +121,25 @@ class TemplateController extends Controller
             }
 
             if ($replacing) {
-                $template->{$column} = $request->file($input)->store('templates', $diskName);
+                $template->{$column} = $this->storeImage($request->file($input), $diskName);
             }
         }
 
         $template->save();
+    }
+
+    /**
+     * Store an uploaded template image, failing loudly if the disk rejects it.
+     */
+    private function storeImage(UploadedFile $file, string $disk): string
+    {
+        $path = $file->store('templates', $disk);
+
+        if ($path === false) {
+            throw new RuntimeException('The template image could not be stored.');
+        }
+
+        return $path;
     }
 
     /**

@@ -20,11 +20,16 @@ export default function CategoriesIndex({
                 <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {categories.map((category) => (
                         <div key={category.id} className="relative">
-                            <CategoryCard category={category} className="min-h-52" />
+                            <CategoryCard
+                                category={category}
+                                className="min-h-52"
+                            />
                             {category.products_count !== undefined && (
                                 <span className="pointer-events-none absolute right-5 bottom-5 rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white backdrop-blur">
                                     {category.products_count}{' '}
-                                    {category.products_count === 1 ? 'gift' : 'gifts'}
+                                    {category.products_count === 1
+                                        ? 'gift'
+                                        : 'gifts'}
                                 </span>
                             )}
                         </div>

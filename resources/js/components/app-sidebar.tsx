@@ -72,7 +72,10 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={isAdmin ? adminDashboard() : dashboard()} prefetch>
+                            <Link
+                                href={isAdmin ? adminDashboard() : dashboard()}
+                                prefetch
+                            >
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
@@ -85,7 +88,10 @@ export function AppSidebar() {
                     <>
                         <NavMain label="Studio" items={adminOperationsItems} />
                         <NavMain label="Catalog" items={adminCatalogItems} />
-                        <NavMain label="My account" items={customerNavItems.slice(1, 2)} />
+                        <NavMain
+                            label="My account"
+                            items={customerNavItems.slice(1, 2)}
+                        />
                     </>
                 ) : (
                     <NavMain label="My account" items={customerNavItems} />

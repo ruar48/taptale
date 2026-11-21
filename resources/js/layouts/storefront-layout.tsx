@@ -31,12 +31,18 @@ import { cn } from '@/lib/utils';
 import { dashboard, home, login, logout, register } from '@/routes';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import { index as accountOrders } from '@/routes/account/orders';
-import { index as categoriesIndex, show as categoryShow } from '@/routes/categories';
+import {
+    index as categoriesIndex,
+    show as categoryShow,
+} from '@/routes/categories';
 import { create as startOrder } from '@/routes/orders';
 import { index as templatesIndex } from '@/routes/templates';
 
-export default function StorefrontLayout({ children }: { children: ReactNode }) {
-
+export default function StorefrontLayout({
+    children,
+}: {
+    children: ReactNode;
+}) {
     return (
         <div className="flex min-h-screen flex-col bg-cream text-charcoal dark:bg-background dark:text-foreground">
             <SiteHeader />
@@ -54,7 +60,11 @@ function SiteHeader() {
     return (
         <header className="sticky top-0 z-40 border-b border-plum/10 bg-cream/85 backdrop-blur-xl dark:border-border dark:bg-background/85">
             <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 sm:px-6 lg:h-20 lg:px-8">
-                <Link href={home()} className="shrink-0" aria-label="Taptale home">
+                <Link
+                    href={home()}
+                    className="shrink-0"
+                    aria-label="Taptale home"
+                >
                     <BrandLogo className="dark:[&_span]:text-blush" />
                 </Link>
 
@@ -75,7 +85,10 @@ function SiteHeader() {
                                     >
                                         <span
                                             className="size-2.5 rounded-full"
-                                            style={{ backgroundColor: category.accent_color }}
+                                            style={{
+                                                backgroundColor:
+                                                    category.accent_color,
+                                            }}
                                         />
                                         {category.name}
                                     </Link>
@@ -92,7 +105,9 @@ function SiteHeader() {
                         </DropdownMenuContent>
                     </DropdownMenu>
                     <NavLink href={templatesIndex().url}>Templates</NavLink>
-                    <NavLink href={`${home().url}#how-it-works`}>How it works</NavLink>
+                    <NavLink href={`${home().url}#how-it-works`}>
+                        How it works
+                    </NavLink>
                 </nav>
 
                 <div className="ml-auto flex items-center gap-2">
@@ -140,8 +155,12 @@ function SiteHeader() {
                                     asChild
                                     className="h-12 rounded-full bg-plum text-base text-white hover:bg-plum-dark"
                                 >
-                                    <Link href={startOrder()} onClick={() => setOpen(false)}>
-                                        <Sparkles className="size-4" /> Start creating
+                                    <Link
+                                        href={startOrder()}
+                                        onClick={() => setOpen(false)}
+                                    >
+                                        <Sparkles className="size-4" /> Start
+                                        creating
                                     </Link>
                                 </Button>
                                 <div>
@@ -149,41 +168,76 @@ function SiteHeader() {
                                         Occasions
                                     </p>
                                     <div className="grid gap-1">
-                                        {(navCategories ?? []).map((category) => (
-                                            <Link
-                                                key={category.id}
-                                                href={categoryShow(category.slug)}
-                                                onClick={() => setOpen(false)}
-                                                className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-plum/5"
-                                            >
-                                                <span
-                                                    className="size-2.5 rounded-full"
-                                                    style={{ backgroundColor: category.accent_color }}
-                                                />
-                                                {category.name}
-                                            </Link>
-                                        ))}
+                                        {(navCategories ?? []).map(
+                                            (category) => (
+                                                <Link
+                                                    key={category.id}
+                                                    href={categoryShow(
+                                                        category.slug,
+                                                    )}
+                                                    onClick={() =>
+                                                        setOpen(false)
+                                                    }
+                                                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-plum/5"
+                                                >
+                                                    <span
+                                                        className="size-2.5 rounded-full"
+                                                        style={{
+                                                            backgroundColor:
+                                                                category.accent_color,
+                                                        }}
+                                                    />
+                                                    {category.name}
+                                                </Link>
+                                            ),
+                                        )}
                                     </div>
                                 </div>
                                 <div className="grid gap-1 border-t border-plum/10 pt-4">
-                                    <Link href={templatesIndex()} onClick={() => setOpen(false)} className="rounded-xl px-3 py-2.5 hover:bg-plum/5">
+                                    <Link
+                                        href={templatesIndex()}
+                                        onClick={() => setOpen(false)}
+                                        className="rounded-xl px-3 py-2.5 hover:bg-plum/5"
+                                    >
                                         Design templates
                                     </Link>
                                     {user ? (
                                         <>
-                                            <Link href={accountOrders()} onClick={() => setOpen(false)} className="rounded-xl px-3 py-2.5 hover:bg-plum/5">
+                                            <Link
+                                                href={accountOrders()}
+                                                onClick={() => setOpen(false)}
+                                                className="rounded-xl px-3 py-2.5 hover:bg-plum/5"
+                                            >
                                                 My orders
                                             </Link>
-                                            <Link href={user.is_admin ? adminDashboard() : dashboard()} onClick={() => setOpen(false)} className="rounded-xl px-3 py-2.5 hover:bg-plum/5">
-                                                {user.is_admin ? 'Admin dashboard' : 'My account'}
+                                            <Link
+                                                href={
+                                                    user.is_admin
+                                                        ? adminDashboard()
+                                                        : dashboard()
+                                                }
+                                                onClick={() => setOpen(false)}
+                                                className="rounded-xl px-3 py-2.5 hover:bg-plum/5"
+                                            >
+                                                {user.is_admin
+                                                    ? 'Admin dashboard'
+                                                    : 'My account'}
                                             </Link>
                                         </>
                                     ) : (
                                         <>
-                                            <Link href={login()} onClick={() => setOpen(false)} className="rounded-xl px-3 py-2.5 hover:bg-plum/5">
+                                            <Link
+                                                href={login()}
+                                                onClick={() => setOpen(false)}
+                                                className="rounded-xl px-3 py-2.5 hover:bg-plum/5"
+                                            >
                                                 Sign in
                                             </Link>
-                                            <Link href={register()} onClick={() => setOpen(false)} className="rounded-xl px-3 py-2.5 hover:bg-plum/5">
+                                            <Link
+                                                href={register()}
+                                                onClick={() => setOpen(false)}
+                                                className="rounded-xl px-3 py-2.5 hover:bg-plum/5"
+                                            >
                                                 Create an account
                                             </Link>
                                         </>
@@ -206,7 +260,9 @@ function NavLink({ href, children }: { href: string; children: ReactNode }) {
             href={href}
             className={cn(
                 'rounded-full px-4 py-2 text-sm font-medium transition-colors hover:bg-plum/5',
-                url.startsWith(href) && href !== '/' && 'bg-plum/5 text-plum dark:text-blush',
+                url.startsWith(href) &&
+                    href !== '/' &&
+                    'bg-plum/5 text-plum dark:text-blush',
             )}
         >
             {children}
@@ -221,7 +277,10 @@ function AccountMenu() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="gap-2 rounded-full px-2 sm:px-3">
+                <Button
+                    variant="ghost"
+                    className="gap-2 rounded-full px-2 sm:px-3"
+                >
                     <span className="flex size-8 items-center justify-center rounded-full bg-blush text-plum">
                         <UserRound className="size-4" />
                     </span>
@@ -237,8 +296,12 @@ function AccountMenu() {
                 <DropdownMenuSeparator />
                 {user.is_admin && (
                     <DropdownMenuItem asChild>
-                        <Link href={adminDashboard()} className="cursor-pointer">
-                            <ShieldCheck className="mr-2 size-4" /> Admin dashboard
+                        <Link
+                            href={adminDashboard()}
+                            className="cursor-pointer"
+                        >
+                            <ShieldCheck className="mr-2 size-4" /> Admin
+                            dashboard
                         </Link>
                     </DropdownMenuItem>
                 )}
@@ -254,7 +317,11 @@ function AccountMenu() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                    <Link href={logout()} as="button" className="w-full cursor-pointer">
+                    <Link
+                        href={logout()}
+                        as="button"
+                        className="w-full cursor-pointer"
+                    >
                         Log out
                     </Link>
                 </DropdownMenuItem>
@@ -288,7 +355,10 @@ function SiteFooter() {
                     <ul className="grid gap-2 text-sm text-cream/75">
                         {(navCategories ?? []).slice(0, 6).map((category) => (
                             <li key={category.id}>
-                                <Link href={categoryShow(category.slug)} className="hover:text-white">
+                                <Link
+                                    href={categoryShow(category.slug)}
+                                    className="hover:text-white"
+                                >
                                     {category.name}
                                 </Link>
                             </li>
@@ -300,10 +370,38 @@ function SiteFooter() {
                         Taptale
                     </p>
                     <ul className="grid gap-2 text-sm text-cream/75">
-                        <li><Link href={startOrder()} className="hover:text-white">Start creating</Link></li>
-                        <li><Link href={templatesIndex()} className="hover:text-white">Design templates</Link></li>
-                        <li><Link href={accountOrders()} className="hover:text-white">Track my order</Link></li>
-                        <li><Link href={`${home().url}#how-it-works`} className="hover:text-white">How it works</Link></li>
+                        <li>
+                            <Link
+                                href={startOrder()}
+                                className="hover:text-white"
+                            >
+                                Start creating
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                href={templatesIndex()}
+                                className="hover:text-white"
+                            >
+                                Design templates
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                href={accountOrders()}
+                                className="hover:text-white"
+                            >
+                                Track my order
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                href={`${home().url}#how-it-works`}
+                                className="hover:text-white"
+                            >
+                                How it works
+                            </Link>
+                        </li>
                     </ul>
                 </div>
             </div>

@@ -152,7 +152,9 @@ export function FileDropzone({
                             <button
                                 type="button"
                                 onClick={() =>
-                                    onChange(files.filter((_, i) => i !== index))
+                                    onChange(
+                                        files.filter((_, i) => i !== index),
+                                    )
                                 }
                                 className="absolute top-1.5 right-1.5 flex size-7 items-center justify-center rounded-full bg-white/90 text-charcoal shadow transition hover:bg-white"
                                 aria-label={`Remove ${file.name}`}
@@ -165,7 +167,9 @@ export function FileDropzone({
             )}
 
             {(error || localError) && (
-                <p className="text-sm text-destructive">{error ?? localError}</p>
+                <p className="text-sm text-destructive">
+                    {error ?? localError}
+                </p>
             )}
         </div>
     );

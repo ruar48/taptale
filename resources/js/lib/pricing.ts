@@ -36,8 +36,7 @@ export function calculatePrice(
     const unitPrice = Math.max(0, product.base_price + modifiers);
     const safeQuantity = Math.max(0, quantity || 0);
     const subtotal = unitPrice * safeQuantity;
-    const customizationFee =
-        designMode === 'assisted' ? product.design_fee : 0;
+    const customizationFee = designMode === 'assisted' ? product.design_fee : 0;
     const deliveryFee =
         config.free_delivery_threshold > 0 &&
         subtotal >= config.free_delivery_threshold
@@ -57,12 +56,20 @@ export function calculatePrice(
 /**
  * Group product options by group, preserving display order.
  */
-export function groupOptions(
-    options: ProductOption[],
-): { group: string; label: string; multiple: boolean; options: ProductOption[] }[] {
+export function groupOptions(options: ProductOption[]): {
+    group: string;
+    label: string;
+    multiple: boolean;
+    options: ProductOption[];
+}[] {
     const groups = new Map<
         string,
-        { group: string; label: string; multiple: boolean; options: ProductOption[] }
+        {
+            group: string;
+            label: string;
+            multiple: boolean;
+            options: ProductOption[];
+        }
     >();
 
     for (const option of options) {
@@ -78,7 +85,16 @@ export function groupOptions(
         groups.get(option.group)!.options.push(option);
     }
 
-    const order = ['size', 'shape', 'material', 'thickness', 'color', 'nfc', 'packaging', 'addon'];
+    const order = [
+        'size',
+        'shape',
+        'material',
+        'thickness',
+        'color',
+        'nfc',
+        'packaging',
+        'addon',
+    ];
 
     return [...groups.values()].sort(
         (a, b) => order.indexOf(a.group) - order.indexOf(b.group),

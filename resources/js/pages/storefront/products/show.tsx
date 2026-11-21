@@ -59,11 +59,14 @@ export default function ProductShow({
                                 className="aspect-square w-full object-cover"
                             />
                         ) : (
-                            <ProductArt product={product} className="aspect-square w-full" />
+                            <ProductArt
+                                product={product}
+                                className="aspect-square w-full"
+                            />
                         )}
                     </div>
                     {images.length > 1 && (
-                        <div className="scrollbar-none mt-4 flex gap-3 overflow-x-auto">
+                        <div className="mt-4 flex scrollbar-none gap-3 overflow-x-auto">
                             {images.map((image, index) => (
                                 <button
                                     key={image.id}
@@ -77,7 +80,11 @@ export default function ProductShow({
                                     )}
                                     aria-label={`Show image ${index + 1}`}
                                 >
-                                    <img src={image.url} alt="" className="size-full object-cover" />
+                                    <img
+                                        src={image.url}
+                                        alt=""
+                                        className="size-full object-cover"
+                                    />
                                 </button>
                             ))}
                         </div>
@@ -100,34 +107,67 @@ export default function ProductShow({
                         {product.name}
                     </h1>
                     <div className="mt-4 flex items-baseline gap-2">
-                        <span className="text-sm text-muted-foreground">From</span>
+                        <span className="text-sm text-muted-foreground">
+                            From
+                        </span>
                         <span className="text-3xl font-semibold text-plum dark:text-blush">
                             {money(product.base_price)}
                         </span>
-                        <span className="text-sm text-muted-foreground">per piece</span>
+                        <span className="text-sm text-muted-foreground">
+                            per piece
+                        </span>
                     </div>
 
                     {product.description && (
                         <div className="mt-6 space-y-3 text-[15px] leading-relaxed text-charcoal/80 dark:text-foreground/80">
-                            {product.description.split('\n').filter(Boolean).map((paragraph, index) => (
-                                <p key={index}>{paragraph}</p>
-                            ))}
+                            {product.description
+                                .split('\n')
+                                .filter(Boolean)
+                                .map((paragraph, index) => (
+                                    <p key={index}>{paragraph}</p>
+                                ))}
                         </div>
                     )}
 
                     <dl className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                        <Fact icon={Clock} label="Production" value={product.production_time} />
-                        <Fact icon={Users} label="Minimum" value={`${product.min_quantity} ${product.min_quantity === 1 ? 'piece' : 'pieces'}`} />
-                        <Fact icon={PaletteIcon} label="Design service" value={`+${money(product.design_fee)}`} />
-                        <Fact icon={Nfc} label="Tap memory page" value={product.has_digital_experience ? 'Included' : groups.some((g) => g.group === 'nfc') ? 'Optional' : 'Not available'} />
+                        <Fact
+                            icon={Clock}
+                            label="Production"
+                            value={product.production_time}
+                        />
+                        <Fact
+                            icon={Users}
+                            label="Minimum"
+                            value={`${product.min_quantity} ${product.min_quantity === 1 ? 'piece' : 'pieces'}`}
+                        />
+                        <Fact
+                            icon={PaletteIcon}
+                            label="Design service"
+                            value={`+${money(product.design_fee)}`}
+                        />
+                        <Fact
+                            icon={Nfc}
+                            label="Tap memory page"
+                            value={
+                                product.has_digital_experience
+                                    ? 'Included'
+                                    : groups.some((g) => g.group === 'nfc')
+                                      ? 'Optional'
+                                      : 'Not available'
+                            }
+                        />
                     </dl>
 
                     {groups.length > 0 && (
                         <div className="mt-10 space-y-6">
-                            <h2 className="font-display text-2xl">Options & add-ons</h2>
+                            <h2 className="font-display text-2xl">
+                                Options & add-ons
+                            </h2>
                             {groups.map((group) => (
                                 <div key={group.group}>
-                                    <p className="mb-2 text-sm font-semibold">{group.label}</p>
+                                    <p className="mb-2 text-sm font-semibold">
+                                        {group.label}
+                                    </p>
                                     <div className="flex flex-wrap gap-2">
                                         {group.options.map((option) => (
                                             <span
@@ -137,12 +177,17 @@ export default function ProductShow({
                                                 {option.swatch && (
                                                     <span
                                                         className="size-3.5 rounded-full ring-1 ring-black/10"
-                                                        style={{ backgroundColor: option.swatch }}
+                                                        style={{
+                                                            backgroundColor:
+                                                                option.swatch,
+                                                        }}
                                                     />
                                                 )}
                                                 {option.name}
                                                 <span className="text-xs text-muted-foreground">
-                                                    {formatModifier(option.price_modifier)}
+                                                    {formatModifier(
+                                                        option.price_modifier,
+                                                    )}
                                                 </span>
                                             </span>
                                         ))}
@@ -165,12 +210,19 @@ export default function ProductShow({
                             className="mt-5 h-13 w-full rounded-full bg-cream text-base text-plum hover:bg-white"
                         >
                             <Link href={personalizeUrl}>
-                                <Sparkles className="size-5" /> Personalize this gift
+                                <Sparkles className="size-5" /> Personalize this
+                                gift
                             </Link>
                         </Button>
                         <ul className="mt-5 grid gap-2 text-sm text-white/80 sm:grid-cols-2">
-                            <li className="flex items-center gap-2"><BadgeCheck className="size-4 text-blush" /> Design approval included</li>
-                            <li className="flex items-center gap-2"><Package className="size-4 text-blush" /> Gift-ready packaging</li>
+                            <li className="flex items-center gap-2">
+                                <BadgeCheck className="size-4 text-blush" />{' '}
+                                Design approval included
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <Package className="size-4 text-blush" />{' '}
+                                Gift-ready packaging
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -179,7 +231,9 @@ export default function ProductShow({
             {templates.length > 0 && (
                 <section className="bg-blush-light/50 py-16 dark:bg-muted/30">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                        <h2 className="font-display text-3xl">Templates for this gift</h2>
+                        <h2 className="font-display text-3xl">
+                            Templates for this gift
+                        </h2>
                         <p className="mt-2 text-muted-foreground">
                             Start from one of these when you personalize — the
                             preview updates with your photos and words.
@@ -190,7 +244,9 @@ export default function ProductShow({
                                     key={template.id}
                                     href={startOrder({
                                         query: {
-                                            category: selectedCategorySlug ?? undefined,
+                                            category:
+                                                selectedCategorySlug ??
+                                                undefined,
                                             product: product.slug,
                                             template: template.slug,
                                         },
@@ -201,10 +257,15 @@ export default function ProductShow({
                                         <TemplatePreview
                                             layout={template.layout}
                                             palette={template.palette}
-                                            imageUrl={template.mockup_url ?? template.preview_url}
+                                            imageUrl={
+                                                template.mockup_url ??
+                                                template.preview_url
+                                            }
                                         />
                                     </div>
-                                    <p className="mt-3 font-display">{template.name}</p>
+                                    <p className="mt-3 font-display">
+                                        {template.name}
+                                    </p>
                                 </Link>
                             ))}
                         </div>
@@ -217,7 +278,11 @@ export default function ProductShow({
                     <h2 className="font-display text-3xl">You may also love</h2>
                     <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                         {relatedProducts.map((related) => (
-                            <ProductCard key={related.id} product={related} categorySlug={selectedCategorySlug ?? undefined} />
+                            <ProductCard
+                                key={related.id}
+                                product={related}
+                                categorySlug={selectedCategorySlug ?? undefined}
+                            />
                         ))}
                     </div>
                 </section>

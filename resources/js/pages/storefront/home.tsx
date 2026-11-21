@@ -79,7 +79,11 @@ export default function Home({
                     }
                     description="Each occasion has its own gifts, templates and design options."
                 >
-                    <Button asChild variant="ghost" className="rounded-full text-plum hover:bg-plum/5 dark:text-blush">
+                    <Button
+                        asChild
+                        variant="ghost"
+                        className="rounded-full text-plum hover:bg-plum/5 dark:text-blush"
+                    >
                         <Link href={categoriesIndex()}>
                             All occasions <ArrowRight className="size-4" />
                         </Link>
@@ -125,14 +129,19 @@ export default function Home({
                             title="Templates our designers love"
                             description="Every template comes alive with your photos and words — preview it live before you order."
                         >
-                            <Button asChild variant="ghost" className="rounded-full text-plum hover:bg-plum/5 dark:text-blush">
+                            <Button
+                                asChild
+                                variant="ghost"
+                                className="rounded-full text-plum hover:bg-plum/5 dark:text-blush"
+                            >
                                 <Link href={templatesIndex()}>
-                                    See all templates <ArrowRight className="size-4" />
+                                    See all templates{' '}
+                                    <ArrowRight className="size-4" />
                                 </Link>
                             </Button>
                         </SectionHeading>
                     </div>
-                    <div className="scrollbar-none mt-10 flex snap-x gap-5 overflow-x-auto px-4 pb-4 sm:px-6 lg:px-[max(2rem,calc((100vw-80rem)/2+2rem))]">
+                    <div className="mt-10 flex snap-x scrollbar-none gap-5 overflow-x-auto px-4 pb-4 sm:px-6 lg:px-[max(2rem,calc((100vw-80rem)/2+2rem))]">
                         {featuredTemplates.map((template) => (
                             <Link
                                 key={template.id}
@@ -196,12 +205,19 @@ export default function Home({
                                         {testimonial.quote}
                                     </blockquote>
                                     <div className="mt-5 flex gap-0.5 text-rose">
-                                        {Array.from({ length: testimonial.rating }).map((_, index) => (
-                                            <Star key={index} className="size-4 fill-current" />
+                                        {Array.from({
+                                            length: testimonial.rating,
+                                        }).map((_, index) => (
+                                            <Star
+                                                key={index}
+                                                className="size-4 fill-current"
+                                            />
                                         ))}
                                     </div>
                                     <figcaption className="mt-2">
-                                        <p className="font-medium">{testimonial.author_name}</p>
+                                        <p className="font-medium">
+                                            {testimonial.author_name}
+                                        </p>
                                         {testimonial.occasion && (
                                             <p className="text-sm text-muted-foreground">
                                                 {testimonial.occasion}
@@ -255,7 +271,8 @@ function Hero() {
             <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 pt-12 pb-20 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:px-8 lg:pt-20 lg:pb-28">
                 <div className="animate-fade-up">
                     <span className="inline-flex items-center gap-2 rounded-full border border-rose/30 bg-white/70 px-4 py-1.5 text-xs font-semibold tracking-wide text-plum backdrop-blur dark:bg-card/60 dark:text-blush">
-                        <Nfc className="size-4" /> NFC & photo keepsakes, handmade
+                        <Nfc className="size-4" /> NFC & photo keepsakes,
+                        handmade
                     </span>
                     <h1 className="mt-6 font-display text-5xl leading-[1.02] font-medium text-balance text-charcoal sm:text-6xl lg:text-7xl dark:text-cream">
                         Gifts that hold{' '}
@@ -283,16 +300,27 @@ function Hero() {
                             variant="outline"
                             className="h-14 rounded-full border-plum/20 bg-white/60 px-8 text-base text-plum hover:bg-white dark:bg-transparent dark:text-blush"
                         >
-                            <Link href={categoriesIndex()}>Browse occasions</Link>
+                            <Link href={categoriesIndex()}>
+                                Browse occasions
+                            </Link>
                         </Button>
                     </div>
                     <ul className="mt-10 grid max-w-lg grid-cols-3 gap-4 text-sm">
                         {[
-                            { icon: BadgeCheck, label: 'Approve before we print' },
+                            {
+                                icon: BadgeCheck,
+                                label: 'Approve before we print',
+                            },
                             { icon: HandHeart, label: 'Handmade with care' },
-                            { icon: PackageCheck, label: 'Nationwide delivery' },
+                            {
+                                icon: PackageCheck,
+                                label: 'Nationwide delivery',
+                            },
                         ].map(({ icon: Icon, label }) => (
-                            <li key={label} className="flex flex-col gap-2 text-charcoal/70 dark:text-foreground/70">
+                            <li
+                                key={label}
+                                className="flex flex-col gap-2 text-charcoal/70 dark:text-foreground/70"
+                            >
                                 <Icon className="size-5 text-rose" />
                                 {label}
                             </li>
@@ -306,7 +334,11 @@ function Hero() {
                         <KeychainMockup ringColor="#B76E79">
                             <TemplatePreview
                                 layout="polaroid"
-                                palette={{ background: '#FFFDF9', ink: '#343039', accent: '#B86F83' }}
+                                palette={{
+                                    background: '#FFFDF9',
+                                    ink: '#343039',
+                                    accent: '#B86F83',
+                                }}
                                 names="Mia & Paolo"
                                 date="Since 2019"
                             />
@@ -325,7 +357,11 @@ function Hero() {
                         <KeychainMockup nfc ringColor="#C9A66B">
                             <TemplatePreview
                                 layout="celestial"
-                                palette={{ background: '#1F1B2E', ink: '#F8F3ED', accent: '#E9C9C9' }}
+                                palette={{
+                                    background: '#1F1B2E',
+                                    ink: '#F8F3ED',
+                                    accent: '#E9C9C9',
+                                }}
                                 names="Under our stars"
                                 date="06 · 21 · 2025"
                             />
@@ -334,7 +370,10 @@ function Hero() {
                     <div className="absolute bottom-[4%] left-[22%] w-[36%] -rotate-[4deg] animate-float-slow [animation-delay:1.5s]">
                         <div className="rounded-[14%] bg-white p-[9%] shadow-[0_24px_40px_-18px_rgb(52_48_57/0.5)]">
                             <div className="flex aspect-square items-center justify-center rounded-xl bg-cream">
-                                <QrCode className="size-3/4 text-charcoal" strokeWidth={1.2} />
+                                <QrCode
+                                    className="size-3/4 text-charcoal"
+                                    strokeWidth={1.2}
+                                />
                             </div>
                             <p className="mt-2 text-center font-display text-sm text-plum italic">
                                 Scan our story
@@ -349,7 +388,10 @@ function Hero() {
 
 function HowItWorks() {
     return (
-        <section id="how-it-works" className="scroll-mt-24 bg-charcoal py-20 text-cream">
+        <section
+            id="how-it-works"
+            className="scroll-mt-24 bg-charcoal py-20 text-cream"
+        >
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="max-w-2xl">
                     <p className="mb-3 text-xs font-semibold tracking-[0.25em] text-blush uppercase">
@@ -371,7 +413,9 @@ function HowItWorks() {
                             <span className="absolute top-6 right-6 flex size-11 items-center justify-center rounded-2xl bg-rose/20 text-blush">
                                 <Icon className="size-5" />
                             </span>
-                            <h3 className="mt-2 font-display text-xl">{title}</h3>
+                            <h3 className="mt-2 font-display text-xl">
+                                {title}
+                            </h3>
                             <p className="mt-2 text-sm leading-relaxed text-cream/70">
                                 {body}
                             </p>
@@ -379,9 +423,14 @@ function HowItWorks() {
                     ))}
                 </ol>
                 <div className="mt-10">
-                    <Button asChild size="lg" className="h-12 rounded-full bg-blush px-7 text-plum-dark hover:bg-white">
+                    <Button
+                        asChild
+                        size="lg"
+                        className="h-12 rounded-full bg-blush px-7 text-plum-dark hover:bg-white"
+                    >
                         <Link href={startOrder()}>
-                            Start with an occasion <ArrowRight className="size-4" />
+                            Start with an occasion{' '}
+                            <ArrowRight className="size-4" />
                         </Link>
                     </Button>
                 </div>
@@ -409,13 +458,17 @@ function TapSection() {
                             </p>
                         </div>
                         <div className="grid grid-cols-2 gap-2 px-4">
-                            {['#E9C9C9', '#B86F83', '#713D50', '#F1D9D2'].map((color) => (
-                                <div
-                                    key={color}
-                                    className="aspect-square rounded-xl"
-                                    style={{ background: `linear-gradient(135deg, ${color}, #ffffff80)` }}
-                                />
-                            ))}
+                            {['#E9C9C9', '#B86F83', '#713D50', '#F1D9D2'].map(
+                                (color) => (
+                                    <div
+                                        key={color}
+                                        className="aspect-square rounded-xl"
+                                        style={{
+                                            background: `linear-gradient(135deg, ${color}, #ffffff80)`,
+                                        }}
+                                    />
+                                ),
+                            )}
                         </div>
                         <p className="px-5 py-6 text-center font-display text-sm text-charcoal/80 italic">
                             “Every tap brings me back to the day you said yes.”
@@ -436,9 +489,21 @@ function TapSection() {
                 />
                 <ul className="mt-8 grid gap-4">
                     {[
-                        { icon: Nfc, title: 'Tap with any modern phone', body: 'No app needed. The tag opens your page instantly.' },
-                        { icon: QrCode, title: 'QR code included', body: 'Works with every phone camera, even without NFC.' },
-                        { icon: Sparkles, title: 'Update it anytime', body: 'Add new photos and messages from your account — the keepsake stays the same.' },
+                        {
+                            icon: Nfc,
+                            title: 'Tap with any modern phone',
+                            body: 'No app needed. The tag opens your page instantly.',
+                        },
+                        {
+                            icon: QrCode,
+                            title: 'QR code included',
+                            body: 'Works with every phone camera, even without NFC.',
+                        },
+                        {
+                            icon: Sparkles,
+                            title: 'Update it anytime',
+                            body: 'Add new photos and messages from your account — the keepsake stays the same.',
+                        },
                     ].map(({ icon: Icon, title, body }) => (
                         <li key={title} className="flex gap-4">
                             <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-blush-light text-plum dark:bg-rose/20 dark:text-blush">
@@ -446,7 +511,9 @@ function TapSection() {
                             </span>
                             <div>
                                 <p className="font-medium">{title}</p>
-                                <p className="text-sm text-muted-foreground">{body}</p>
+                                <p className="text-sm text-muted-foreground">
+                                    {body}
+                                </p>
                             </div>
                         </li>
                     ))}

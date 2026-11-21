@@ -42,20 +42,28 @@ export function OptionPicker({
         <div className="space-y-8">
             {groups.map((group) => {
                 const ids = group.options.map((option) => option.id);
-                const isSwatchGroup = group.options.every((option) => option.swatch);
+                const isSwatchGroup = group.options.every(
+                    (option) => option.swatch,
+                );
 
                 return (
                     <fieldset key={group.group}>
                         <legend className="mb-3 flex items-baseline gap-2">
-                            <span className="font-display text-lg">{group.label}</span>
+                            <span className="font-display text-lg">
+                                {group.label}
+                            </span>
                             <span className="text-xs text-muted-foreground">
-                                {group.multiple ? 'Optional · choose any' : 'Choose one'}
+                                {group.multiple
+                                    ? 'Optional · choose any'
+                                    : 'Choose one'}
                             </span>
                         </legend>
                         <div
                             className={cn(
                                 'grid gap-3',
-                                isSwatchGroup ? 'grid-cols-2 sm:grid-cols-3' : 'sm:grid-cols-2',
+                                isSwatchGroup
+                                    ? 'grid-cols-2 sm:grid-cols-3'
+                                    : 'sm:grid-cols-2',
                             )}
                         >
                             {group.options.map((option) => {
@@ -65,7 +73,11 @@ export function OptionPicker({
                                     <button
                                         key={option.id}
                                         type="button"
-                                        role={group.multiple ? 'checkbox' : 'radio'}
+                                        role={
+                                            group.multiple
+                                                ? 'checkbox'
+                                                : 'radio'
+                                        }
                                         aria-checked={isSelected}
                                         onClick={() => toggle(option, ids)}
                                         className={cn(
@@ -77,8 +89,11 @@ export function OptionPicker({
                                     >
                                         {option.swatch ? (
                                             <span
-                                                className="size-7 shrink-0 rounded-full ring-2 ring-white shadow"
-                                                style={{ backgroundColor: option.swatch }}
+                                                className="size-7 shrink-0 rounded-full shadow ring-2 ring-white"
+                                                style={{
+                                                    backgroundColor:
+                                                        option.swatch,
+                                                }}
                                             />
                                         ) : option.enables_digital_experience ? (
                                             <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-plum text-white">
@@ -86,25 +101,47 @@ export function OptionPicker({
                                             </span>
                                         ) : null}
                                         <span className="min-w-0 flex-1">
-                                            <span className="block text-sm font-medium">{option.name}</span>
+                                            <span className="block text-sm font-medium">
+                                                {option.name}
+                                            </span>
                                             {option.description && (
                                                 <span className="block text-xs text-muted-foreground">
                                                     {option.description}
                                                 </span>
                                             )}
-                                            <span className={cn('block text-xs', option.price_modifier > 0 ? 'text-plum dark:text-blush' : 'text-muted-foreground')}>
-                                                {formatModifier(option.price_modifier, symbol)}
-                                                {option.price_modifier !== 0 && ' / pc'}
+                                            <span
+                                                className={cn(
+                                                    'block text-xs',
+                                                    option.price_modifier > 0
+                                                        ? 'text-plum dark:text-blush'
+                                                        : 'text-muted-foreground',
+                                                )}
+                                            >
+                                                {formatModifier(
+                                                    option.price_modifier,
+                                                    symbol,
+                                                )}
+                                                {option.price_modifier !== 0 &&
+                                                    ' / pc'}
                                             </span>
                                         </span>
                                         <span
                                             className={cn(
                                                 'flex size-5 shrink-0 items-center justify-center border-2 transition',
-                                                group.multiple ? 'rounded-md' : 'rounded-full',
-                                                isSelected ? 'border-rose bg-rose text-white' : 'border-border',
+                                                group.multiple
+                                                    ? 'rounded-md'
+                                                    : 'rounded-full',
+                                                isSelected
+                                                    ? 'border-rose bg-rose text-white'
+                                                    : 'border-border',
                                             )}
                                         >
-                                            {isSelected && <Check className="size-3" strokeWidth={3} />}
+                                            {isSelected && (
+                                                <Check
+                                                    className="size-3"
+                                                    strokeWidth={3}
+                                                />
+                                            )}
                                         </span>
                                     </button>
                                 );

@@ -1,6 +1,16 @@
 import { Head, Link } from '@inertiajs/react';
-import { ArrowRight, Banknote, CalendarRange, Users, Wallet } from 'lucide-react';
-import { AdminPage, PageHeader, TableShell } from '@/components/taptale/admin-ui';
+import {
+    ArrowRight,
+    Banknote,
+    CalendarRange,
+    Users,
+    Wallet,
+} from 'lucide-react';
+import {
+    AdminPage,
+    PageHeader,
+    TableShell,
+} from '@/components/taptale/admin-ui';
 import { StatusBadge } from '@/components/taptale/status-badge';
 import { Button } from '@/components/ui/button';
 import { useMoney } from '@/hooks/use-money';
@@ -21,21 +31,45 @@ type Props = {
     recentOrders: Order[];
 };
 
-export default function AdminDashboard({ metrics, queues, recentOrders }: Props) {
+export default function AdminDashboard({
+    metrics,
+    queues,
+    recentOrders,
+}: Props) {
     const money = useMoney();
 
     return (
         <>
             <Head title="Studio dashboard" />
             <AdminPage>
-                <PageHeader title="Studio dashboard" description="What needs your attention today." />
+                <PageHeader
+                    title="Studio dashboard"
+                    description="What needs your attention today."
+                />
 
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    <Metric icon={Banknote} label="Net revenue" value={money(metrics.revenue)} />
-                    <Metric icon={CalendarRange} label="Orders this month" value={String(metrics.orders_this_month)} />
-                    <Metric icon={Users} label="Customers" value={String(metrics.customers)} />
+                    <Metric
+                        icon={Banknote}
+                        label="Net revenue"
+                        value={money(metrics.revenue)}
+                    />
+                    <Metric
+                        icon={CalendarRange}
+                        label="Orders this month"
+                        value={String(metrics.orders_this_month)}
+                    />
+                    <Metric
+                        icon={Users}
+                        label="Customers"
+                        value={String(metrics.customers)}
+                    />
                     <Link href={paymentsIndex()} className="block">
-                        <Metric icon={Wallet} label="Payments to verify" value={String(metrics.pending_payments)} highlight={metrics.pending_payments > 0} />
+                        <Metric
+                            icon={Wallet}
+                            label="Payments to verify"
+                            value={String(metrics.pending_payments)}
+                            highlight={metrics.pending_payments > 0}
+                        />
                     </Link>
                 </div>
 
@@ -45,12 +79,18 @@ export default function AdminDashboard({ metrics, queues, recentOrders }: Props)
                         {queues.map((queue) => (
                             <Link
                                 key={queue.label}
-                                href={ordersIndex({ query: { status: queue.status } })}
+                                href={ordersIndex({
+                                    query: { status: queue.status },
+                                })}
                                 className="group flex items-center justify-between rounded-2xl border bg-card p-4 transition hover:border-rose/50 hover:shadow-sm"
                             >
                                 <div>
-                                    <p className="text-sm text-muted-foreground">{queue.label}</p>
-                                    <p className="mt-1 font-display text-2xl">{queue.count}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        {queue.label}
+                                    </p>
+                                    <p className="mt-1 font-display text-2xl">
+                                        {queue.count}
+                                    </p>
                                 </div>
                                 <ArrowRight className="size-4 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-rose" />
                             </Link>
@@ -70,7 +110,9 @@ export default function AdminDashboard({ metrics, queues, recentOrders }: Props)
                             <tr>
                                 <th>Order</th>
                                 <th>Customer</th>
-                                <th className="hidden md:table-cell">Product</th>
+                                <th className="hidden md:table-cell">
+                                    Product
+                                </th>
                                 <th>Status</th>
                                 <th className="text-right">Total</th>
                             </tr>
@@ -78,21 +120,42 @@ export default function AdminDashboard({ metrics, queues, recentOrders }: Props)
                         <tbody>
                             {recentOrders.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} className="py-10 text-center text-muted-foreground">No orders yet.</td>
+                                    <td
+                                        colSpan={5}
+                                        className="py-10 text-center text-muted-foreground"
+                                    >
+                                        No orders yet.
+                                    </td>
                                 </tr>
                             )}
                             {recentOrders.map((order) => (
-                                <tr key={order.id} className="hover:bg-muted/30">
+                                <tr
+                                    key={order.id}
+                                    className="hover:bg-muted/30"
+                                >
                                     <td>
-                                        <Link href={orderShow(order.reference)} className="font-medium text-plum hover:underline dark:text-blush">
+                                        <Link
+                                            href={orderShow(order.reference)}
+                                            className="font-medium text-plum hover:underline dark:text-blush"
+                                        >
                                             {order.reference}
                                         </Link>
-                                        <p className="text-xs text-muted-foreground">{formatDate(order.created_at)}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {formatDate(order.created_at)}
+                                        </p>
                                     </td>
                                     <td>{order.customer_name}</td>
-                                    <td className="hidden md:table-cell">{order.product_name}</td>
-                                    <td><StatusBadge tone={order.status_tone}>{order.status_label}</StatusBadge></td>
-                                    <td className="text-right font-medium">{money(order.total)}</td>
+                                    <td className="hidden md:table-cell">
+                                        {order.product_name}
+                                    </td>
+                                    <td>
+                                        <StatusBadge tone={order.status_tone}>
+                                            {order.status_label}
+                                        </StatusBadge>
+                                    </td>
+                                    <td className="text-right font-medium">
+                                        {money(order.total)}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -119,7 +182,9 @@ function Metric({
     highlight?: boolean;
 }) {
     return (
-        <div className={`rounded-2xl border p-5 ${highlight ? 'border-rose/40 bg-blush-light/50 dark:bg-rose/10' : 'bg-card'}`}>
+        <div
+            className={`rounded-2xl border p-5 ${highlight ? 'border-rose/40 bg-blush-light/50 dark:bg-rose/10' : 'bg-card'}`}
+        >
             <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">{label}</p>
                 <Icon className="size-5 text-rose" />
