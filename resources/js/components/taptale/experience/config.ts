@@ -3,6 +3,7 @@ import type { ExperienceTemplateKey } from '@/types';
 
 export type ExperienceTheme = {
     label: string;
+    base: string;
     background: string;
     surface: string;
     ink: string;
@@ -23,6 +24,7 @@ const heartPattern = (color: string) =>
 export const EXPERIENCE_THEMES: Record<string, ExperienceTheme> = {
     crimson: {
         label: 'Crimson love',
+        base: '#8B1A22',
         background: '#8B1A22',
         surface: '#741219',
         ink: '#FFF6F0',
@@ -36,6 +38,7 @@ export const EXPERIENCE_THEMES: Record<string, ExperienceTheme> = {
     },
     rose: {
         label: 'Dusty rose',
+        base: '#B3605E',
         background: '#B3605E',
         surface: '#A15250',
         ink: '#FFF7F2',
@@ -49,6 +52,7 @@ export const EXPERIENCE_THEMES: Record<string, ExperienceTheme> = {
     },
     blush: {
         label: 'Soft blush',
+        base: '#F4DCE2',
         background:
             'linear-gradient(180deg, #F7E2E6 0%, #FBF3EE 45%, #F5E1E8 100%)',
         surface: 'rgb(255 255 255 / 0.55)',
@@ -62,6 +66,7 @@ export const EXPERIENCE_THEMES: Record<string, ExperienceTheme> = {
     },
     plum: {
         label: 'Deep plum',
+        base: '#3B1F2B',
         background: '#3B1F2B',
         surface: '#4A2836',
         ink: '#F8EDF1',
@@ -74,6 +79,7 @@ export const EXPERIENCE_THEMES: Record<string, ExperienceTheme> = {
     },
     midnight: {
         label: 'Midnight',
+        base: '#13111B',
         background: '#13111B',
         surface: '#1D1A28',
         ink: '#F4EFEA',
@@ -86,6 +92,7 @@ export const EXPERIENCE_THEMES: Record<string, ExperienceTheme> = {
     },
     cream: {
         label: 'Classic cream',
+        base: '#F8F3ED',
         background: '#F8F3ED',
         surface: '#EFE6DC',
         ink: '#343039',
@@ -98,6 +105,7 @@ export const EXPERIENCE_THEMES: Record<string, ExperienceTheme> = {
     },
     sunset: {
         label: 'Beach sunset',
+        base: '#2B1B3D',
         background:
             'linear-gradient(180deg, #2B1B3D 0%, #6E3558 50%, #D9806A 100%)',
         surface: 'rgb(255 255 255 / 0.08)',
@@ -111,6 +119,7 @@ export const EXPERIENCE_THEMES: Record<string, ExperienceTheme> = {
     },
     sage: {
         label: 'Garden sage',
+        base: '#EEF2EA',
         background: '#EEF2EA',
         surface: '#E1E8DB',
         ink: '#2F3B2A',
@@ -133,6 +142,7 @@ export function themeFor(key: string): ExperienceTheme {
 export function themeStyle(theme: ExperienceTheme): CSSProperties {
     return {
         '--x-bg': theme.background,
+        '--x-base': theme.base,
         '--x-surface': theme.surface,
         '--x-ink': theme.ink,
         '--x-muted': theme.muted,
@@ -233,7 +243,7 @@ export const EXPERIENCE_PRESETS: Record<
     little_something: {
         gate: 'tap',
         sections: ['hero_script', 'gifts', 'letter_paper', 'quote', 'closing'],
-        labels: { gate: 'A little something for you' },
+        labels: { gate: 'A little something for you', gifts: 'Open your gifts' },
     },
     girlfriends_day: {
         gate: 'envelope',

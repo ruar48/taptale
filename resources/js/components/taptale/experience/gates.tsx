@@ -58,19 +58,15 @@ function EnvelopeGate({
 
     return (
         <>
-            <div className="absolute inset-0">
-                <PhotoFill
-                    src={backdrop}
-                    className="size-full scale-110 blur-[2px]"
-                />
-                <div
-                    className="absolute inset-0"
-                    style={{
-                        background:
-                            'color-mix(in oklab, var(--x-bg) 55%, transparent)',
-                    }}
-                />
-            </div>
+            {backdrop && (
+                <div className="absolute inset-0">
+                    <PhotoFill
+                        src={backdrop}
+                        className="size-full scale-110 blur-[2px]"
+                    />
+                    <div className="absolute inset-0 bg-black/40" />
+                </div>
+            )}
             <FloatingHearts count={8} />
             <div className="relative flex flex-col items-center px-6 text-center">
                 <p className="font-script text-5xl text-white drop-shadow-[0_2px_10px_rgb(0_0_0/0.4)] sm:text-7xl">

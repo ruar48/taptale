@@ -97,21 +97,31 @@ function ScrollHint() {
 
 function HeroPhoto() {
     const { experience, photoAt } = useExperience();
+    const cover = photoAt(0);
 
     return (
-        <section className="relative flex min-h-[100svh] items-center justify-center overflow-hidden px-6 text-center text-white">
-            <PhotoFill
-                src={photoAt(0)}
-                className="absolute inset-0 size-full scale-105"
-            />
-            <div
-                className="absolute inset-0"
-                style={{
-                    background:
-                        'linear-gradient(180deg, rgb(0 0 0 / 0.15), color-mix(in oklab, var(--x-bg) 55%, transparent) 75%, var(--x-bg))',
-                }}
-            />
-            <FloatingHearts count={8} />
+        <section
+            className={cn(
+                'relative flex min-h-[100svh] items-center justify-center overflow-hidden px-6 text-center',
+                cover && 'text-white',
+            )}
+        >
+            {cover && (
+                <>
+                    <PhotoFill
+                        src={cover}
+                        className="absolute inset-0 size-full scale-105"
+                    />
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            background:
+                                'linear-gradient(180deg, rgb(0 0 0 / 0.25), rgb(0 0 0 / 0.45) 60%, var(--x-base))',
+                        }}
+                    />
+                </>
+            )}
+            <FloatingHearts count={cover ? 8 : 14} />
             <Reveal className="relative">
                 <h1 className="font-script text-6xl leading-[1.05] drop-shadow-[0_4px_20px_rgb(0_0_0/0.45)] sm:text-8xl">
                     {experience.title}
@@ -177,7 +187,7 @@ function HeroDoily() {
         >
             <Reveal className="relative">
                 <div className="relative flex aspect-square w-[min(84vw,30rem)] items-center justify-center rounded-full border-[14px] border-dotted border-white bg-[#FFFBF5] p-6 text-center text-[#B23A62] shadow-[0_30px_60px_-20px_rgb(120_30_60/0.45)]">
-                    <div className="flex size-full items-center justify-center rounded-full border-2 border-dashed border-[#F2A5BC] p-6">
+                    <div className="flex size-full flex-col items-center justify-center rounded-full border-2 border-dashed border-[#F2A5BC] p-6">
                         <h1 className="font-display text-4xl leading-tight font-medium tracking-wide uppercase sm:text-5xl">
                             {experience.title}
                         </h1>
@@ -516,7 +526,7 @@ function Timeline() {
                             key={index}
                             className="relative grid gap-6 pl-12 md:grid-cols-2 md:pl-0"
                         >
-                            <span className="absolute top-6 left-4 size-4 -translate-x-1/2 rounded-full border-2 border-[var(--x-bg)] bg-[var(--x-accent)] md:left-1/2" />
+                            <span className="absolute top-6 left-4 size-4 -translate-x-1/2 rounded-full border-2 border-[var(--x-base)] bg-[var(--x-accent)] md:left-1/2" />
                             <Reveal
                                 className={cn(
                                     index % 2 === 0
@@ -762,12 +772,12 @@ function Vinyl({
                     'repeating-radial-gradient(circle, #111 0 2px, #1d1d1d 2px 4px)',
             }}
         >
-            <div className="absolute inset-[32%] flex items-center justify-center rounded-full bg-[var(--x-accent)] p-2 text-center text-[var(--x-accent-ink)]">
-                <span className="line-clamp-2 text-[10px] font-semibold tracking-wide uppercase">
+            <div className="absolute inset-[32%] flex items-start justify-center rounded-full bg-[var(--x-accent)] px-2 pt-[16%] text-center text-[var(--x-accent-ink)]">
+                <span className="line-clamp-1 text-[9px] font-semibold tracking-wide uppercase">
                     {label ?? 'Our song'}
                 </span>
             </div>
-            <div className="absolute inset-[47%] rounded-full bg-[#111]" />
+            <div className="absolute inset-[48%] rounded-full bg-[#111]" />
             <div className="absolute inset-0 rounded-full bg-[linear-gradient(135deg,rgb(255_255_255/0.12),transparent_40%,rgb(255_255_255/0.06)_60%,transparent)]" />
         </div>
     );

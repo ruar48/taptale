@@ -29,7 +29,12 @@ export default function Experience({
 }) {
     const theme = themeFor(experience.theme);
     const preset = presetFor(experience.template);
-    const [opened, setOpened] = useState(preset.gate === null);
+    const [opened, setOpened] = useState(
+        () =>
+            preset.gate === null ||
+            (typeof window !== 'undefined' &&
+                new URLSearchParams(window.location.search).get('intro') === '0'),
+    );
     const [lightbox, setLightbox] = useState<string | null>(null);
 
     const photos = experience.photos.map((photo) => photo.url);
