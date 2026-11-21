@@ -514,18 +514,14 @@ function Timeline() {
                     {moments.map((moment, index) => (
                         <li
                             key={index}
-                            className={cn(
-                                'relative grid gap-6 pl-12 md:grid-cols-2 md:pl-0',
-                                index % 2 === 1 &&
-                                    'md:[&>*:first-child]:order-2',
-                            )}
+                            className="relative grid gap-6 pl-12 md:grid-cols-2 md:pl-0"
                         >
                             <span className="absolute top-6 left-4 size-4 -translate-x-1/2 rounded-full border-2 border-[var(--x-bg)] bg-[var(--x-accent)] md:left-1/2" />
                             <Reveal
                                 className={cn(
                                     index % 2 === 0
-                                        ? 'md:pr-12 md:text-right'
-                                        : 'md:pl-12',
+                                        ? 'md:pr-12'
+                                        : 'md:order-2 md:pl-12',
                                 )}
                             >
                                 <Polaroid
@@ -543,7 +539,7 @@ function Timeline() {
                                     'self-center',
                                     index % 2 === 0
                                         ? 'md:pl-12'
-                                        : 'md:pr-12 md:text-right',
+                                        : 'md:order-1 md:pr-12 md:text-right',
                                 )}
                             >
                                 {moment.date && (
