@@ -20,6 +20,9 @@ export default defineConfig({
                     weights: [400, 500, 600],
                     styles: ['normal', 'italic'],
                 }),
+                bunny('Great Vibes', {
+                    weights: [400],
+                }),
             ],
         }),
         inertia(),

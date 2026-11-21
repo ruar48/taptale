@@ -51,7 +51,7 @@ class Product extends Model
      *
      * @var list<string>
      */
-    public const ART_STYLES = ['acrylic', 'nfc', 'qr', 'photo', 'keepsake'];
+    public const ART_STYLES = ['acrylic', 'nfc', 'qr', 'photo', 'keepsake', 'cd', 'music', 'strip', 'tag', 'wood', 'diecut'];
 
     /**
      * Get the attributes that should be cast.

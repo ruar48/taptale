@@ -21,7 +21,10 @@ Route::get('templates', Storefront\TemplateGalleryController::class)->name('temp
 /*
 | NFC tags and QR codes point here. Kept on the main domain on purpose.
 */
+Route::get('memory-pages', [Storefront\ExperienceController::class, 'templates'])->name('experiences.templates');
+Route::get('memory-pages/{template}', [Storefront\ExperienceController::class, 'demo'])->name('experiences.demo');
 Route::get('t/{experience}', [Storefront\ExperienceController::class, 'show'])->name('experiences.show');
+Route::get('t/{experience}/audio', [Storefront\ExperienceController::class, 'audio'])->name('experiences.audio');
 Route::get('t/{experience}/qr', [Storefront\ExperienceController::class, 'qr'])->name('experiences.qr');
 Route::get('t/{experience}/photos/{index}', [Storefront\ExperienceController::class, 'photo'])
     ->whereNumber('index')

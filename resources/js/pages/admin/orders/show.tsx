@@ -126,6 +126,9 @@ export default function AdminOrderShow({
                                                 layout={order.template.layout}
                                                 palette={order.template.palette}
                                                 photoUrl={designPhoto?.url}
+                                                photos={order.files?.filter((file) => file.kind === 'photo' && file.is_image).map((file) => file.url)}
+                                                songTitle={order.personalization.song_title}
+                                                artist={order.personalization.artist}
                                                 names={
                                                     order.personalization.names
                                                 }

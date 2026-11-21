@@ -18,18 +18,36 @@ class DigitalExperienceResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $photoUrl = fn (int $index): string => route('experiences.photo', ['experience' => $this->code, 'index' => $index]);
+        $photoCount = count($this->photos ?? []);
+
         return [
             'code' => $this->code,
+            'template' => $this->template->value,
+            'theme' => $this->theme,
             'title' => $this->title,
             'subtitle' => $this->subtitle,
+            'recipient_name' => $this->recipient_name,
+            'sender_name' => $this->sender_name,
             'message' => $this->message,
+            'quote' => $this->quote,
+            'flowers_note' => $this->flowers_note,
             'event_date' => $this->event_date,
             'video_url' => $this->video_url,
             'music_url' => $this->music_url,
-            'theme' => $this->theme,
+            'song_title' => $this->song_title,
+            'song_artist' => $this->song_artist,
+            'audio_url' => $this->audio_path !== null ? route('experiences.audio', $this->resource) : null,
             'photos' => collect($this->photos ?? [])->keys()->map(fn (int $index): array => [
                 'index' => $index,
-                'url' => route('experiences.photo', ['experience' => $this->code, 'index' => $index]),
+                'url' => $photoUrl($index),
+            ])->all(),
+            'moments' => collect($this->moments ?? [])->map(fn (array $moment): array => [
+                'date' => $moment['date'] ?? null,
+                'title' => $moment['title'] ?? null,
+                'caption' => $moment['caption'] ?? null,
+                'photo' => $moment['photo'] ?? null,
+                'photo_url' => isset($moment['photo']) && $moment['photo'] < $photoCount ? $photoUrl((int) $moment['photo']) : null,
             ])->all(),
             'nfc_tag_uid' => $this->nfc_tag_uid,
             'is_published' => $this->is_published,

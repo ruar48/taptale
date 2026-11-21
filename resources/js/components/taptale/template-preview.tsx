@@ -1,6 +1,15 @@
-import { Heart } from 'lucide-react';
 import { useId } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
+import {
+    DieCutLayout,
+    EngravedLayout,
+    MiniCdCover,
+    MusicPlayerCard,
+    Photo,
+    PhotoStripLayout,
+    resolveLayout,
+    TapTagLayout,
+} from '@/components/taptale/template-layouts';
 import { cn } from '@/lib/utils';
 import type { Palette, TemplateLayout } from '@/types';
 
@@ -8,19 +17,46 @@ export type TemplatePreviewProps = {
     layout: TemplateLayout;
     palette: Palette;
     photoUrl?: string | null;
+    photos?: (string | null | undefined)[];
     names?: string | null;
     date?: string | null;
     message?: string | null;
+    songTitle?: string | null;
+    artist?: string | null;
     accent?: string | null;
     imageUrl?: string | null;
+    /**
+     * Wrap layouts whose shape isn't 4:5 (strips, CD covers, tags) in a 4:5
+     * frame so they line up in galleries. Turn off inside product mockups.
+     */
+    fit?: boolean;
+    /** Render without a background (die-cut shapes inside mockups). */
+    bare?: boolean;
     className?: string;
 };
 
-const SAMPLE = {
-    names: 'Ana & Leo',
-    date: '02 · 14 · 2026',
-    message: 'Every tap tells our story',
+/**
+ * Native width ÷ height of each layout.
+ */
+export const LAYOUT_RATIO: Record<TemplateLayout, number> = {
+    polaroid: 4 / 5,
+    heart: 4 / 5,
+    arch: 4 / 5,
+    celestial: 4 / 5,
+    floral: 4 / 5,
+    minimal: 4 / 5,
+    mini_cd: 1,
+    music_player: 5 / 8,
+    photo_strip: 1 / 3,
+    tap_tag: 1,
+    engraved: 4 / 5,
+    die_cut: 1,
 };
+
+/**
+ * Layouts that feature a song / album title and artist.
+ */
+export const MUSIC_LAYOUTS: TemplateLayout[] = ['mini_cd', 'music_player'];
 
 /**
  * Renders a design template as a live, resolution-independent preview.
@@ -31,22 +67,33 @@ export function TemplatePreview({
     layout,
     palette,
     photoUrl,
+    photos,
     names,
     date,
     message,
+    songTitle,
+    artist,
     accent,
     imageUrl,
+    fit = true,
+    bare = false,
     className,
 }: TemplatePreviewProps) {
     const clipId = useId().replace(/:/g, '');
-    const colors = { ...palette, accent: accent || palette.accent };
-    const text = {
-        names: names?.trim() || SAMPLE.names,
-        date: date?.trim() || SAMPLE.date,
-        message: message?.trim() || SAMPLE.message,
-    };
+    const { colors, text, photoAt } = resolveLayout({
+        palette,
+        accent,
+        photoUrl,
+        photos,
+        names,
+        date,
+        message,
+        songTitle,
+        artist,
+    });
+    const fitted = fit && LAYOUT_RATIO[layout] !== 4 / 5;
 
-    if (imageUrl && !photoUrl && !names && !message) {
+    if (imageUrl && photoAt(0) === null && !names && !message) {
         return (
             <div
                 className={cn(
@@ -66,17 +113,43 @@ export function TemplatePreview({
 
     const rootStyle: CSSProperties = {
         containerType: 'inline-size',
-        backgroundColor: colors.background,
+        backgroundColor: bare ? 'transparent' : colors.background,
         color: colors.ink,
     };
 
     const photo = (extra?: string) => (
-        <Photo url={photoUrl} accent={colors.accent} className={extra} />
+        <Photo url={photoAt(0)} accent={colors.accent} className={extra} />
     );
+
+    const layoutProps = { colors, text, photoAt };
 
     let body: ReactNode;
 
     switch (layout) {
+        case 'mini_cd':
+            body = <MiniCdCover {...layoutProps} />;
+            break;
+
+        case 'music_player':
+            body = <MusicPlayerCard {...layoutProps} />;
+            break;
+
+        case 'photo_strip':
+            body = <PhotoStripLayout {...layoutProps} />;
+            break;
+
+        case 'tap_tag':
+            body = <TapTagLayout {...layoutProps} />;
+            break;
+
+        case 'engraved':
+            body = <EngravedLayout {...layoutProps} />;
+            break;
+
+        case 'die_cut':
+            body = <DieCutLayout {...layoutProps} bare={bare} />;
+            break;
+
         case 'polaroid':
             body = (
                 <div className="flex size-full items-center justify-center p-[8cqw]">
@@ -256,51 +329,44 @@ export function TemplatePreview({
             );
     }
 
-    return (
+    const ratio = LAYOUT_RATIO[layout];
+
+    const design = (
         <div
             className={cn(
-                'relative aspect-[4/5] w-full overflow-hidden select-none',
-                className,
+                'relative w-full overflow-hidden select-none',
+                !fitted && className,
             )}
-            style={rootStyle}
+            style={{ ...rootStyle, aspectRatio: String(ratio) }}
         >
             {body}
         </div>
     );
-}
 
-function Photo({
-    url,
-    accent,
-    className,
-}: {
-    url?: string | null;
-    accent: string;
-    className?: string;
-}) {
-    if (url) {
-        return (
-            <img
-                src={url}
-                alt=""
-                className={cn('object-cover', className)}
-                draggable={false}
-            />
-        );
+    if (!fitted) {
+        return design;
     }
 
     return (
         <div
-            className={cn('flex items-center justify-center', className)}
+            className={cn(
+                'relative flex aspect-[4/5] w-full items-center justify-center overflow-hidden p-[9%]',
+                className,
+            )}
             style={{
-                background: `linear-gradient(135deg, ${accent}55, ${accent}22 55%, #ffffff55)`,
+                background: `linear-gradient(160deg, color-mix(in oklab, ${colors.accent} 18%, #f8f3ed), color-mix(in oklab, ${colors.accent} 8%, #efe6dc))`,
             }}
         >
-            <Heart
-                className="opacity-70"
-                style={{ width: '12cqw', height: '12cqw', color: accent }}
-                strokeWidth={1.5}
-            />
+            <div
+                className="overflow-hidden rounded-[6%] shadow-[0_12px_28px_-14px_rgb(52_48_57/0.55)]"
+                style={
+                    ratio < 0.8
+                        ? { height: '100%', aspectRatio: String(ratio) }
+                        : { width: '100%', aspectRatio: String(ratio) }
+                }
+            >
+                {design}
+            </div>
         </div>
     );
 }

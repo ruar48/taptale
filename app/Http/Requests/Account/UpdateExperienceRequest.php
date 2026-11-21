@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Account;
 
+use App\Enums\ExperienceTemplate;
 use App\Models\DigitalExperience;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -27,18 +28,35 @@ class UpdateExperienceRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'template' => ['required', Rule::enum(ExperienceTemplate::class)],
+            'theme' => ['required', Rule::in(DigitalExperience::THEMES)],
             'title' => ['required', 'string', 'max:120'],
             'subtitle' => ['nullable', 'string', 'max:160'],
-            'message' => ['nullable', 'string', 'max:3000'],
+            'recipient_name' => ['nullable', 'string', 'max:80'],
+            'sender_name' => ['nullable', 'string', 'max:80'],
+            'message' => ['nullable', 'string', 'max:5000'],
+            'quote' => ['nullable', 'string', 'max:255'],
+            'flowers_note' => ['nullable', 'string', 'max:500'],
             'event_date' => ['nullable', 'string', 'max:60'],
             'video_url' => ['nullable', 'url:https', 'max:500'],
             'music_url' => ['nullable', 'url:https', 'max:500'],
-            'theme' => ['required', Rule::in(DigitalExperience::THEMES)],
+            'song_title' => ['nullable', 'string', 'max:120'],
+            'song_artist' => ['nullable', 'string', 'max:120'],
             'is_published' => ['boolean'],
+
+            'moments' => ['array', 'max:'.DigitalExperience::MAX_MOMENTS],
+            'moments.*.date' => ['nullable', 'string', 'max:60'],
+            'moments.*.title' => ['nullable', 'string', 'max:80'],
+            'moments.*.caption' => ['nullable', 'string', 'max:300'],
+            'moments.*.photo' => ['nullable', 'integer', 'min:0'],
+
             'new_photos' => ['array', 'max:'.DigitalExperience::MAX_PHOTOS],
             'new_photos.*' => [File::image()->types(['jpg', 'jpeg', 'png', 'webp'])->max((int) config('taptale.max_upload_kilobytes'))],
             'remove_photos' => ['array'],
             'remove_photos.*' => ['integer', 'min:0'],
+
+            'audio' => ['nullable', File::types(['mp3', 'm4a', 'aac', 'ogg', 'wav'])->max(15360)],
+            'remove_audio' => ['boolean'],
         ];
     }
 
@@ -63,6 +81,19 @@ class UpdateExperienceRequest extends FormRequest
     }
 
     /**
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'moments.max' => 'You can add up to :max moments.',
+            'audio.max' => 'The song file may not be larger than 15 MB.',
+        ];
+    }
+
+    /**
      * Get custom attributes for validator errors.
      *
      * @return array<string, string>
@@ -72,7 +103,11 @@ class UpdateExperienceRequest extends FormRequest
         return [
             'new_photos.*' => 'photo',
             'video_url' => 'video link',
-            'music_url' => 'music link',
+            'music_url' => 'song link',
+            'audio' => 'song file',
+            'moments.*.caption' => 'moment caption',
+            'moments.*.title' => 'moment title',
+            'moments.*.date' => 'moment date',
         ];
     }
 

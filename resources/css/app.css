@@ -13,6 +13,7 @@
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
     --font-display: 'Fraunces', ui-serif, Georgia, 'Times New Roman', serif;
+    --font-script: 'Great Vibes', 'Brush Script MT', 'Segoe Script', cursive;
 
     /* Taptale brand palette */
     --color-rose: #b86f83;
@@ -30,6 +31,32 @@
     --animate-fade-up: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
     --animate-tap-ring: tap-ring 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
     --animate-shimmer: shimmer 2.5s linear infinite;
+    --animate-heart-rise: heart-rise 9s linear infinite;
+    --animate-wiggle: wiggle 2.4s ease-in-out infinite;
+
+    @keyframes heart-rise {
+        0% {
+            transform: translateY(0) scale(0.8);
+            opacity: 0;
+        }
+        10% {
+            opacity: 0.9;
+        }
+        100% {
+            transform: translateY(-110vh) scale(1.1);
+            opacity: 0;
+        }
+    }
+
+    @keyframes wiggle {
+        0%,
+        100% {
+            transform: rotate(-4deg);
+        }
+        50% {
+            transform: rotate(4deg);
+        }
+    }
 
     @keyframes float {
         0%,

@@ -4,6 +4,11 @@ import {
     materialFromOption,
     shapeFromOption,
 } from '@/components/taptale/keychain-mockup';
+import {
+    DieCutMockup,
+    MiniCdMockup,
+    WoodenMockup,
+} from '@/components/taptale/product-mockups';
 import { TemplatePreview } from '@/components/taptale/template-preview';
 import type {
     Palette,
@@ -22,47 +27,162 @@ const FALLBACK_PALETTE: Palette = {
 /**
  * Live preview of the customer's personalized design on the chosen product.
  */
+const DEFAULT_LAYOUTS: Partial<Record<Product['art_style'], TemplateLayout>> = {
+    cd: 'mini_cd',
+    music: 'music_player',
+    strip: 'photo_strip',
+    tag: 'tap_tag',
+    wood: 'engraved',
+    diecut: 'die_cut',
+};
+
+const WOOD_PALETTES = {
+    maple: { background: '#E2C49A', ink: '#5B3A1E', accent: '#8A5A32' },
+    walnut: { background: '#8A5A3A', ink: '#24140A', accent: '#5A3720' },
+};
+
 export function DesignPreview({
     product,
     template,
     selectedOptions,
     photoUrl,
+    photos,
     names,
     date,
     message,
+    songTitle,
+    artist,
     color,
+    detailed = false,
     className,
 }: {
     product: Product;
     template: Template | null;
     selectedOptions: ProductOption[];
     photoUrl: string | null;
+    photos?: (string | null)[];
     names?: string;
     date?: string;
     message?: string;
+    songTitle?: string;
+    artist?: string;
     color?: string;
+    /** Show every side of the product (e.g. CD front, back and inside). */
+    detailed?: boolean;
     className?: string;
 }) {
     const byGroup = (group: string) =>
         selectedOptions.find((option) => option.group === group);
 
-    const layout: TemplateLayout = template?.layout ?? 'polaroid';
-    const palette = template?.palette ?? FALLBACK_PALETTE;
+    const layout: TemplateLayout =
+        template?.layout ?? DEFAULT_LAYOUTS[product.art_style] ?? 'polaroid';
+    let palette = template?.palette ?? FALLBACK_PALETTE;
     const hasTap =
         product.has_digital_experience ||
         selectedOptions.some((option) => option.enables_digital_experience);
+    const material = byGroup('material')?.name.toLowerCase() ?? '';
 
-    const design = (
-        <TemplatePreview
-            layout={layout}
-            palette={palette}
-            photoUrl={photoUrl}
-            names={names}
-            date={date}
-            message={message}
-            accent={color}
-        />
-    );
+    if (product.art_style === 'wood' && material) {
+        palette = material.includes('walnut')
+            ? WOOD_PALETTES.walnut
+            : template?.palette ?? WOOD_PALETTES.maple;
+    }
+
+    const content = {
+        palette,
+        accent: color,
+        photoUrl,
+        photos,
+        names,
+        date,
+        message,
+        songTitle,
+        artist,
+    };
+
+    const design = <TemplatePreview layout={layout} fit={false} {...content} />;
+
+    switch (product.art_style) {
+        case 'cd':
+            return (
+                <div className={className}>
+                    <MiniCdMockup
+                        content={content}
+                        chainColor={byGroup('color')?.swatch ?? '#C0C0C0'}
+                        nfc={hasTap}
+                        variant={detailed ? 'full' : 'compact'}
+                        className={detailed ? undefined : 'w-[70%]'}
+                    />
+                </div>
+            );
+
+        case 'music':
+            return (
+                <div className={className}>
+                    <KeychainMockup
+                        className="w-[56%]"
+                        aspect={5 / 8}
+                        ringColor={byGroup('color')?.swatch ?? '#C0C0C0'}
+                        nfc={hasTap}
+                    >
+                        {design}
+                    </KeychainMockup>
+                </div>
+            );
+
+        case 'strip':
+            return (
+                <div className={className}>
+                    <KeychainMockup
+                        className="w-[36%]"
+                        aspect={1 / 3}
+                        material={materialFromOption(byGroup('material')?.name)}
+                        ringColor={byGroup('color')?.swatch ?? '#C0C0C0'}
+                    >
+                        {design}
+                    </KeychainMockup>
+                </div>
+            );
+
+        case 'tag':
+            return (
+                <div className={className}>
+                    <KeychainMockup
+                        className="w-[62%]"
+                        shape={byGroup('shape')?.name.toLowerCase().includes('square') ? 'rect' : 'circle'}
+                        aspect={1}
+                        ringColor={byGroup('color')?.swatch ?? '#343039'}
+                        nfc
+                    >
+                        {design}
+                    </KeychainMockup>
+                </div>
+            );
+
+        case 'wood':
+            return (
+                <div className={className}>
+                    <WoodenMockup
+                        className="w-[64%]"
+                        rounded={byGroup('shape')?.name.toLowerCase().includes('round')}
+                    >
+                        {design}
+                    </WoodenMockup>
+                </div>
+            );
+
+        case 'diecut':
+            return (
+                <div className={className}>
+                    <DieCutMockup
+                        className="w-[70%]"
+                        ringColor={byGroup('color')?.swatch ?? '#C0C0C0'}
+                    >
+                        <TemplatePreview layout={layout} fit={false} bare {...content} />
+                    </DieCutMockup>
+                </div>
+            );
+    }
 
     if (product.art_style === 'photo') {
         return (

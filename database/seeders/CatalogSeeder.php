@@ -22,7 +22,7 @@ class CatalogSeeder extends Seeder
         $categories = $this->seedCategories();
         $products = $this->seedProducts();
         $this->assignProducts($categories, $products);
-        $this->seedTemplates($categories);
+        $this->seedTemplates($categories, $products);
         $this->seedPaymentMethods();
         $this->seedTestimonials();
     }
@@ -150,6 +150,103 @@ class CatalogSeeder extends Seeder
                     ...$this->packagingOptions(),
                 ],
             ],
+            'mini-cd' => [
+                'name' => 'Mini CD Album Keychain',
+                'short' => 'A tiny jewel case with your own album cover, tracklist and a printed mini disc inside.',
+                'art' => 'cd', 'price' => 15900, 'fee' => 6000, 'days' => [4, 6],
+                'featured' => true, 'bestseller' => true, 'photos' => 3, 'experience' => false,
+                'options' => [
+                    [OptionGroup::Size, 'Mini case (45 × 40 mm)', 0, true],
+                    [OptionGroup::Size, 'Large case (60 × 54 mm)', 4000],
+                    [OptionGroup::Color, 'Silver ball chain', 0, true, '#C0C0C0'],
+                    [OptionGroup::Color, 'Black ball chain', 0, false, '#343039'],
+                    [OptionGroup::Color, 'Pastel pink chain', 1000, false, '#E9C9C9'],
+                    [OptionGroup::Nfc, 'No NFC', 0, true],
+                    [OptionGroup::Nfc, 'NFC readable — tap to play your song', 6000, false, null, true],
+                    [OptionGroup::AddOn, 'Extra printed disc', 2000],
+                    ...$this->packagingOptions(),
+                ],
+            ],
+            'music-player' => [
+                'name' => 'Music Player Acrylic Keychain',
+                'short' => 'Your photo as the album art of "your song" — with a play bar and scannable song code look.',
+                'art' => 'music', 'price' => 9900, 'fee' => 4000, 'days' => [3, 5],
+                'featured' => true, 'bestseller' => true, 'photos' => 1, 'experience' => false,
+                'options' => [
+                    [OptionGroup::Size, 'Standard (54 × 86 mm)', 0, true],
+                    [OptionGroup::Size, 'Large (63 × 100 mm)', 3000],
+                    [OptionGroup::Thickness, '3 mm', 0, true],
+                    [OptionGroup::Thickness, '5 mm', 1500],
+                    [OptionGroup::Color, 'Silver ring', 0, true, '#C0C0C0'],
+                    [OptionGroup::Color, 'Gold ring', 0, false, '#D4AF37'],
+                    [OptionGroup::Color, 'Rose gold ring', 0, false, '#B76E79'],
+                    [OptionGroup::Nfc, 'No NFC', 0, true],
+                    [OptionGroup::Nfc, 'Add NFC — tap to open your song & memories', 12000, false, null, true],
+                    ...$this->packagingOptions(),
+                ],
+            ],
+            'photo-strip' => [
+                'name' => 'Photobooth Strip Keychain',
+                'short' => 'Four of your favorite shots in a classic photobooth strip, sealed in clear acrylic.',
+                'art' => 'strip', 'price' => 4900, 'fee' => 3000, 'days' => [3, 5],
+                'featured' => false, 'bestseller' => true, 'photos' => 4, 'experience' => false,
+                'options' => [
+                    [OptionGroup::Size, 'Mini strip (25 × 75 mm)', 0, true],
+                    [OptionGroup::Size, 'Classic strip (35 × 105 mm)', 2000],
+                    [OptionGroup::Material, 'Single-sided print', 0, true],
+                    [OptionGroup::Material, 'Double-sided print', 1500],
+                    [OptionGroup::Color, 'Silver ring', 0, true, '#C0C0C0'],
+                    [OptionGroup::Color, 'Gold ring', 0, false, '#D4AF37'],
+                    ...$this->packagingOptions(),
+                ],
+            ],
+            'tap-tag' => [
+                'name' => 'NFC Social Tap Tag',
+                'short' => 'A round tap tag that opens your page, socials or memories on any phone — no app needed.',
+                'art' => 'tag', 'price' => 8900, 'fee' => 3000, 'days' => [3, 5],
+                'featured' => false, 'bestseller' => false, 'photos' => 1, 'experience' => true,
+                'options' => [
+                    [OptionGroup::Shape, 'Circle (30 mm)', 0, true],
+                    [OptionGroup::Shape, 'Rounded square (30 mm)', 0],
+                    [OptionGroup::Color, 'Matte black base', 0, true, '#343039'],
+                    [OptionGroup::Color, 'Blush base', 0, false, '#E9C9C9'],
+                    [OptionGroup::Color, 'White base', 0, false, '#F8F3ED'],
+                    [OptionGroup::AddOn, 'Epoxy dome finish', 2000],
+                    ...$this->packagingOptions(),
+                ],
+            ],
+            'wooden-keychain' => [
+                'name' => 'Engraved Wooden Keychain',
+                'short' => 'Your photo and a heartfelt line, laser-engraved on real wood.',
+                'art' => 'wood', 'price' => 8800, 'fee' => 4000, 'days' => [3, 6],
+                'featured' => true, 'bestseller' => true, 'photos' => 1, 'experience' => false,
+                'options' => [
+                    [OptionGroup::Material, 'Maple (light)', 0, true],
+                    [OptionGroup::Material, 'Walnut (dark)', 2000],
+                    [OptionGroup::Shape, 'Rectangle', 0, true],
+                    [OptionGroup::Shape, 'Rounded tag', 0],
+                    [OptionGroup::AddOn, 'Engraving on the back', 2500],
+                    [OptionGroup::AddOn, 'Leather strap', 3000],
+                    [OptionGroup::Packaging, 'Kraft pouch', 0, true],
+                    [OptionGroup::Packaging, 'Gold-ribbon gift box', 6000],
+                ],
+            ],
+            'die-cut' => [
+                'name' => 'Die-cut Photo Keychain',
+                'short' => 'Your favorite person, pet or meme cut to shape with a glossy sticker-style outline.',
+                'art' => 'diecut', 'price' => 6900, 'fee' => 3000, 'days' => [3, 5],
+                'featured' => false, 'bestseller' => false, 'photos' => 2, 'experience' => false,
+                'options' => [
+                    [OptionGroup::Size, 'Small (50 mm)', 0, true],
+                    [OptionGroup::Size, 'Large (70 mm)', 2500],
+                    [OptionGroup::Material, 'Clear acrylic', 0, true],
+                    [OptionGroup::Material, 'Holographic acrylic', 2500],
+                    [OptionGroup::Color, 'Silver ring', 0, true, '#C0C0C0'],
+                    [OptionGroup::Color, 'Lobster clasp (gold)', 1000, false, '#D4AF37'],
+                    [OptionGroup::AddOn, 'Double-sided print', 1500],
+                    ...$this->packagingOptions(),
+                ],
+            ],
         ];
 
         $products = [];
@@ -249,17 +346,19 @@ class CatalogSeeder extends Seeder
     private function assignProducts(array $categories, array $products): void
     {
         $everyday = ['personalized-acrylic-keychain', 'nfc-memory-keychain', 'personalized-qr-keepsake', 'acrylic-photo-souvenir'];
+        $music = ['mini-cd-album-keychain', 'music-player-acrylic-keychain'];
+        $fun = ['photobooth-strip-keychain', 'die-cut-photo-keychain'];
 
         $map = [
-            'Couple Gifts' => [...$everyday, 'matching-couple-keychains'],
-            'Wedding Souvenirs' => ['event-souvenir-keychains', 'personalized-qr-keepsake', 'nfc-memory-keychain', 'acrylic-photo-souvenir'],
+            'Couple Gifts' => [...$music, ...$everyday, 'matching-couple-keychains', 'photobooth-strip-keychain', 'engraved-wooden-keychain'],
+            'Wedding Souvenirs' => ['event-souvenir-keychains', 'personalized-qr-keepsake', 'nfc-memory-keychain', 'acrylic-photo-souvenir', 'photobooth-strip-keychain'],
             'Baptism Souvenirs' => ['event-souvenir-keychains', 'personalized-acrylic-keychain', 'acrylic-photo-souvenir'],
-            'Birthday Gifts' => $everyday,
-            'Anniversary Gifts' => [...$everyday, 'matching-couple-keychains'],
-            'Graduation Gifts' => ['personalized-acrylic-keychain', 'acrylic-photo-souvenir', 'nfc-memory-keychain', 'event-souvenir-keychains'],
-            "Teacher's Day Gifts" => ['teacher-appreciation-plaque', 'personalized-acrylic-keychain', 'acrylic-photo-souvenir'],
-            'Friendship Gifts' => [...$everyday, 'matching-couple-keychains'],
-            'Family Keepsakes' => ['acrylic-photo-souvenir', 'nfc-memory-keychain', 'personalized-qr-keepsake'],
+            'Birthday Gifts' => [...$music, ...$everyday, ...$fun],
+            'Anniversary Gifts' => [...$music, ...$everyday, 'matching-couple-keychains', 'engraved-wooden-keychain'],
+            'Graduation Gifts' => ['personalized-acrylic-keychain', 'acrylic-photo-souvenir', 'nfc-memory-keychain', 'event-souvenir-keychains', 'nfc-social-tap-tag', 'engraved-wooden-keychain'],
+            "Teacher's Day Gifts" => ['teacher-appreciation-plaque', 'personalized-acrylic-keychain', 'acrylic-photo-souvenir', 'engraved-wooden-keychain'],
+            'Friendship Gifts' => [...$music, ...$fun, ...$everyday, 'matching-couple-keychains', 'nfc-social-tap-tag'],
+            'Family Keepsakes' => ['acrylic-photo-souvenir', 'nfc-memory-keychain', 'personalized-qr-keepsake', 'engraved-wooden-keychain', 'photobooth-strip-keychain'],
             'Other Personalized Gifts' => array_keys($products),
         ];
 
@@ -271,10 +370,39 @@ class CatalogSeeder extends Seeder
     }
 
     /**
+     * Every template is limited to the products whose physical form it fits,
+     * so a mini CD layout is never offered for a wooden keychain.
+     *
      * @param  array<string, Category>  $categories
+     * @param  array<string, Product>  $products
      */
-    private function seedTemplates(array $categories): void
+    private function seedTemplates(array $categories, array $products): void
     {
+        $classic = [
+            'personalized-acrylic-keychain', 'nfc-memory-keychain', 'personalized-qr-keepsake', 'acrylic-photo-souvenir',
+            'matching-couple-keychains', 'event-souvenir-keychains', 'teacher-appreciation-plaque',
+        ];
+
+        $everyOccasion = ['Couple Gifts', 'Anniversary Gifts', 'Birthday Gifts', 'Friendship Gifts', 'Graduation Gifts', 'Family Keepsakes', "Teacher's Day Gifts", 'Wedding Souvenirs', 'Other Personalized Gifts'];
+
+        $productTemplates = [
+            ['Album Era', TemplateLayout::MiniCd, ['#1A1A1F', '#F8F3ED', '#E9C9C9'], $everyOccasion, true, ['mini-cd-album-keychain']],
+            ['Pastel Single', TemplateLayout::MiniCd, ['#F6DDE3', '#5A2E3E', '#B86F83'], $everyOccasion, true, ['mini-cd-album-keychain']],
+            ['Midnight Record', TemplateLayout::MiniCd, ['#22304A', '#F3EDE8', '#D4AF37'], $everyOccasion, false, ['mini-cd-album-keychain']],
+            ['Now Playing · Light', TemplateLayout::MusicPlayer, ['#FFFFFF', '#1F1D22', '#B86F83'], $everyOccasion, true, ['music-player-acrylic-keychain']],
+            ['Now Playing · Dark', TemplateLayout::MusicPlayer, ['#121214', '#F5F5F5', '#E9C9C9'], $everyOccasion, true, ['music-player-acrylic-keychain']],
+            ['Our Song · Blush', TemplateLayout::MusicPlayer, ['#F7E4E6', '#5A2E3E', '#B86F83'], $everyOccasion, false, ['music-player-acrylic-keychain']],
+            ['Photobooth Classic', TemplateLayout::PhotoStrip, ['#FFFFFF', '#343039', '#B86F83'], $everyOccasion, true, ['photobooth-strip-keychain']],
+            ['Film Booth', TemplateLayout::PhotoStrip, ['#141416', '#F5F5F5', '#E3A587'], $everyOccasion, false, ['photobooth-strip-keychain']],
+            ['Pastel Booth', TemplateLayout::PhotoStrip, ['#F4E3EC', '#5A2E3E', '#B86F83'], $everyOccasion, false, ['photobooth-strip-keychain']],
+            ['Tap to Connect', TemplateLayout::TapTag, ['#1F1D22', '#FFFFFF', '#B86F83'], $everyOccasion, true, ['nfc-social-tap-tag']],
+            ['Social Pop', TemplateLayout::TapTag, ['#B86F83', '#FFFFFF', '#713D50'], $everyOccasion, false, ['nfc-social-tap-tag']],
+            ['Drive Safe', TemplateLayout::Engraved, ['#C79B6D', '#4A2C17', '#7A4B2A'], $everyOccasion, true, ['engraved-wooden-keychain']],
+            ['Home Sweet Home', TemplateLayout::Engraved, ['#E2C49A', '#5B3A1E', '#8A5A32'], $everyOccasion, false, ['engraved-wooden-keychain']],
+            ['Sticker Pop', TemplateLayout::DieCut, ['#FDF1F4', '#5A2E3E', '#B86F83'], $everyOccasion, true, ['die-cut-photo-keychain']],
+            ['Cutie Cutout', TemplateLayout::DieCut, ['#EEF6FF', '#1E3A5F', '#5B8DEF'], $everyOccasion, false, ['die-cut-photo-keychain']],
+        ];
+
         $definitions = [
             ['Golden Hour Polaroid', TemplateLayout::Polaroid, ['#FFFDF9', '#343039', '#B86F83'], ['Couple Gifts', 'Anniversary Gifts', 'Friendship Gifts', 'Birthday Gifts', 'Family Keepsakes', 'Other Personalized Gifts'], true],
             ['Forever Heart', TemplateLayout::HeartFrame, ['#F8E6E8', '#713D50', '#B86F83'], ['Couple Gifts', 'Anniversary Gifts', 'Wedding Souvenirs', 'Other Personalized Gifts'], true],
@@ -288,7 +416,12 @@ class CatalogSeeder extends Seeder
             ['Thank You, Teacher', TemplateLayout::Polaroid, ['#F4F7EF', '#2F3B2A', '#7C9473'], ["Teacher's Day Gifts", 'Other Personalized Gifts'], false],
         ];
 
-        foreach ($definitions as $index => [$name, $layout, [$background, $ink, $accent], $categoryNames, $featured]) {
+        $definitions = [
+            ...array_map(fn (array $definition): array => [...$definition, $classic], $definitions),
+            ...$productTemplates,
+        ];
+
+        foreach ($definitions as $index => [$name, $layout, [$background, $ink, $accent], $categoryNames, $featured, $productSlugs]) {
             $template = Template::updateOrCreate(['slug' => Str::slug($name)], [
                 'name' => $name,
                 'description' => $layout->label().' layout in a '.Str::lower($name).' mood.',
@@ -301,6 +434,10 @@ class CatalogSeeder extends Seeder
 
             $template->categories()->sync(
                 collect($categoryNames)->map(fn (string $categoryName): int => $categories[$categoryName]->id)->all()
+            );
+
+            $template->products()->sync(
+                collect($productSlugs)->map(fn (string $slug): int => $products[$slug]->id)->all()
             );
         }
     }

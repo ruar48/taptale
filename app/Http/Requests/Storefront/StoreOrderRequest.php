@@ -39,6 +39,8 @@ class StoreOrderRequest extends FormRequest
             'personalization.names' => [Rule::requiredIf($isSelf), 'nullable', 'string', 'max:120'],
             'personalization.date' => ['nullable', 'string', 'max:60'],
             'personalization.message' => ['nullable', 'string', 'max:300'],
+            'personalization.song_title' => ['nullable', 'string', 'max:80'],
+            'personalization.artist' => ['nullable', 'string', 'max:80'],
             'personalization.color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'personalization.design_brief' => [Rule::requiredIf(! $isSelf), 'nullable', 'string', 'max:2000'],
             'personalization.instructions' => ['nullable', 'string', 'max:2000'],
@@ -129,6 +131,8 @@ class StoreOrderRequest extends FormRequest
             'payment_method_id' => 'payment method',
             'personalization.message' => 'message',
             'personalization.date' => 'date',
+            'personalization.song_title' => 'song title',
+            'personalization.artist' => 'artist',
         ];
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ExperienceTemplate;
 use Database\Factories\DigitalExperienceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
@@ -16,13 +17,22 @@ use Illuminate\Support\Str;
  * @property int $order_id
  * @property int $user_id
  * @property string $code
+ * @property ExperienceTemplate $template
  * @property string $title
  * @property string|null $subtitle
+ * @property string|null $recipient_name
+ * @property string|null $sender_name
  * @property string|null $message
+ * @property string|null $quote
+ * @property string|null $flowers_note
  * @property string|null $event_date
  * @property string|null $video_url
  * @property string|null $music_url
+ * @property string|null $song_title
+ * @property string|null $song_artist
+ * @property string|null $audio_path
  * @property list<string>|null $photos
+ * @property list<array{date?: string|null, title?: string|null, caption?: string|null, photo?: int|null}>|null $moments
  * @property string $theme
  * @property string|null $nfc_tag_uid
  * @property bool $is_published
@@ -31,7 +41,11 @@ use Illuminate\Support\Str;
  * @property Carbon|null $updated_at
  */
 #[RouteKey('code')]
-#[Fillable(['title', 'subtitle', 'message', 'event_date', 'video_url', 'music_url', 'photos', 'theme', 'nfc_tag_uid', 'is_published'])]
+#[Fillable([
+    'template', 'title', 'subtitle', 'recipient_name', 'sender_name', 'message', 'quote', 'flowers_note',
+    'event_date', 'video_url', 'music_url', 'song_title', 'song_artist', 'photos', 'moments', 'theme',
+    'nfc_tag_uid', 'is_published',
+])]
 class DigitalExperience extends Model
 {
     /** @use HasFactory<DigitalExperienceFactory> */
@@ -40,14 +54,31 @@ class DigitalExperience extends Model
     /**
      * Maximum number of photos on one experience page.
      */
-    public const MAX_PHOTOS = 12;
+    public const MAX_PHOTOS = 24;
+
+    /**
+     * Maximum number of timeline / polaroid moments.
+     */
+    public const MAX_MOMENTS = 12;
 
     /**
      * Visual themes for the public experience page.
      *
      * @var list<string>
      */
-    public const THEMES = ['blush', 'plum', 'cream', 'midnight'];
+    public const THEMES = ['crimson', 'rose', 'blush', 'plum', 'midnight', 'cream', 'sunset', 'sage'];
+
+    /**
+     * Default attribute values, mirroring the database defaults.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'template' => 'classic',
+        'theme' => 'blush',
+        'is_published' => false,
+        'view_count' => 0,
+    ];
 
     /**
      * Bootstrap the model and its traits.
@@ -67,7 +98,9 @@ class DigitalExperience extends Model
     protected function casts(): array
     {
         return [
+            'template' => ExperienceTemplate::class,
             'photos' => 'array',
+            'moments' => 'array',
             'is_published' => 'boolean',
             'view_count' => 'integer',
         ];

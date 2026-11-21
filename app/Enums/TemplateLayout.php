@@ -13,6 +13,12 @@ enum TemplateLayout: string
     case Celestial = 'celestial';
     case Floral = 'floral';
     case Minimal = 'minimal';
+    case MiniCd = 'mini_cd';
+    case MusicPlayer = 'music_player';
+    case PhotoStrip = 'photo_strip';
+    case TapTag = 'tap_tag';
+    case Engraved = 'engraved';
+    case DieCut = 'die_cut';
 
     /**
      * Human readable label.
@@ -26,7 +32,21 @@ enum TemplateLayout: string
             self::Celestial => 'Celestial night',
             self::Floral => 'Floral wreath',
             self::Minimal => 'Modern minimal',
+            self::MiniCd => 'Mini CD album',
+            self::MusicPlayer => 'Music player',
+            self::PhotoStrip => 'Photobooth strip',
+            self::TapTag => 'NFC tap tag',
+            self::Engraved => 'Laser engraved',
+            self::DieCut => 'Die-cut sticker',
         };
+    }
+
+    /**
+     * Whether the layout features a song or album title and an artist name.
+     */
+    public function usesMusicDetails(): bool
+    {
+        return in_array($this, [self::MiniCd, self::MusicPlayer], true);
     }
 
     /**

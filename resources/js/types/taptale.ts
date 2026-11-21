@@ -40,7 +40,18 @@ export type ProductOption = {
     sort_order: number;
 };
 
-export type ArtStyle = 'acrylic' | 'nfc' | 'qr' | 'photo' | 'keepsake';
+export type ArtStyle =
+    | 'acrylic'
+    | 'nfc'
+    | 'qr'
+    | 'photo'
+    | 'keepsake'
+    | 'cd'
+    | 'music'
+    | 'strip'
+    | 'tag'
+    | 'wood'
+    | 'diecut';
 
 export type Product = {
     id: number;
@@ -76,7 +87,13 @@ export type TemplateLayout =
     | 'arch'
     | 'celestial'
     | 'floral'
-    | 'minimal';
+    | 'minimal'
+    | 'mini_cd'
+    | 'music_player'
+    | 'photo_strip'
+    | 'tap_tag'
+    | 'engraved'
+    | 'die_cut';
 
 export type Palette = {
     background: string;
@@ -178,27 +195,70 @@ export type Payment = {
     };
 };
 
+export type ExperienceTemplateKey =
+    | 'monthsary'
+    | 'birthday'
+    | 'love_story'
+    | 'little_something'
+    | 'girlfriends_day'
+    | 'valentines'
+    | 'apology'
+    | 'our_song'
+    | 'anniversary'
+    | 'wedding'
+    | 'save_the_date'
+    | 'bestie'
+    | 'family'
+    | 'graduation'
+    | 'classic';
+
+export type ExperienceTemplateOption = {
+    value: ExperienceTemplateKey;
+    label: string;
+    description: string;
+    theme: string;
+};
+
+export type ExperienceMoment = {
+    date: string | null;
+    title: string | null;
+    caption: string | null;
+    photo: number | null;
+    photo_url: string | null;
+};
+
 export type DigitalExperience = {
     code: string;
+    template: ExperienceTemplateKey;
+    theme: string;
     title: string;
     subtitle: string | null;
+    recipient_name: string | null;
+    sender_name: string | null;
     message: string | null;
+    quote: string | null;
+    flowers_note: string | null;
     event_date: string | null;
     video_url: string | null;
     music_url: string | null;
-    theme: string;
+    song_title: string | null;
+    song_artist: string | null;
+    audio_url: string | null;
     photos: { index: number; url: string }[];
+    moments: ExperienceMoment[];
     nfc_tag_uid: string | null;
     is_published: boolean;
     view_count: number;
     public_url: string;
-    qr_url: string;
+    qr_url: string | null;
 };
 
 export type Personalization = {
     names?: string;
     date?: string;
     message?: string;
+    song_title?: string;
+    artist?: string;
     color?: string;
     design_brief?: string;
     instructions?: string;

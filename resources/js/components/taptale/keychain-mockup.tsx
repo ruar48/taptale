@@ -47,6 +47,7 @@ export function KeychainMockup({
     material = 'clear',
     ringColor = '#C9A66B',
     nfc = false,
+    aspect,
     className,
 }: {
     children: ReactNode;
@@ -54,6 +55,8 @@ export function KeychainMockup({
     material?: KeychainMaterial;
     ringColor?: string;
     nfc?: boolean;
+    /** Width ÷ height of a rectangular plate, e.g. 1/3 for photo strips. */
+    aspect?: number;
     className?: string;
 }) {
     const clipId = useId().replace(/:/g, '');
@@ -63,7 +66,9 @@ export function KeychainMockup({
             ? 'rounded-full aspect-square'
             : shape === 'heart'
               ? 'aspect-square'
-              : 'rounded-[12%] aspect-[4/5]';
+              : aspect
+                ? 'rounded-[10cqw]'
+                : 'rounded-[12%] aspect-[4/5]';
 
     return (
         <div
@@ -101,6 +106,8 @@ export function KeychainMockup({
                     edgeShape,
                 )}
                 style={{
+                    aspectRatio:
+                        shape === 'rect' && aspect ? String(aspect) : undefined,
                     clipPath: shape === 'heart' ? `url(#${clipId})` : undefined,
                     background:
                         material === 'frosted'

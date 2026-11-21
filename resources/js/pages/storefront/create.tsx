@@ -17,7 +17,10 @@ import type { ReactNode } from 'react';
 import { CategoryIcon } from '@/components/taptale/category-icon';
 import { FileDropzone } from '@/components/taptale/file-dropzone';
 import { ProductArt } from '@/components/taptale/product-art';
-import { TemplatePreview } from '@/components/taptale/template-preview';
+import {
+    MUSIC_LAYOUTS,
+    TemplatePreview,
+} from '@/components/taptale/template-preview';
 import { DesignPreview } from '@/components/taptale/wizard/design-preview';
 import { OptionPicker } from '@/components/taptale/wizard/option-picker';
 import { OrderSummary } from '@/components/taptale/wizard/order-summary';
@@ -141,6 +144,8 @@ export default function CreateGift({
             names: '',
             date: '',
             message: '',
+            song_title: '',
+            artist: '',
             color: '',
             design_brief: '',
             instructions: '',
@@ -196,19 +201,31 @@ export default function CreateGift({
         [selectedProduct, data.option_ids, data.quantity, designMode, pricing],
     );
 
-    const firstPhoto = data.photos[0] ?? null;
-    const photoUrl = useMemo(
-        () => (firstPhoto ? URL.createObjectURL(firstPhoto) : null),
-        [firstPhoto],
+    const photoUrls = useMemo(
+        () => data.photos.map((photo) => URL.createObjectURL(photo)),
+        [data.photos],
     );
     useEffect(
-        () => () => {
-            if (photoUrl) {
-                URL.revokeObjectURL(photoUrl);
-            }
-        },
-        [photoUrl],
+        () => () => photoUrls.forEach((url) => URL.revokeObjectURL(url)),
+        [photoUrls],
     );
+    const photoUrl = photoUrls[0] ?? null;
+    const activeLayout = template?.layout ?? null;
+    const isMusicDesign =
+        (activeLayout !== null && MUSIC_LAYOUTS.includes(activeLayout)) ||
+        selectedProduct?.art_style === 'cd' ||
+        selectedProduct?.art_style === 'music';
+    const isCdDesign =
+        activeLayout === 'mini_cd' || selectedProduct?.art_style === 'cd';
+    const previewText = {
+        photos: photoUrls,
+        names: data.personalization.names,
+        date: data.personalization.date,
+        message: data.personalization.message,
+        songTitle: data.personalization.song_title,
+        artist: data.personalization.artist,
+        color: data.personalization.color,
+    };
 
     const goTo = (target: number) => {
         setStepError(null);
@@ -752,8 +769,34 @@ export default function CreateGift({
                                                 />
                                             </Field>
                                         </div>
+                                        {isMusicDesign && (
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <Field
+                                                    label={isCdDesign ? 'Album title' : 'Song title'}
+                                                    error={errors['personalization.song_title']}
+                                                >
+                                                    <Input
+                                                        value={data.personalization.song_title}
+                                                        onChange={(event) => setPersonalization('song_title', event.target.value)}
+                                                        placeholder={isCdDesign ? 'e.g. Golden Days' : 'e.g. Our Song'}
+                                                        maxLength={80}
+                                                    />
+                                                </Field>
+                                                <Field
+                                                    label="Artist"
+                                                    error={errors['personalization.artist']}
+                                                >
+                                                    <Input
+                                                        value={data.personalization.artist}
+                                                        onChange={(event) => setPersonalization('artist', event.target.value)}
+                                                        placeholder="e.g. Ana & Leo"
+                                                        maxLength={80}
+                                                    />
+                                                </Field>
+                                            </div>
+                                        )}
                                         <Field
-                                            label="Message"
+                                            label={isCdDesign ? 'Tracklist (one song per line)' : 'Message'}
                                             error={
                                                 errors[
                                                     'personalization.message'
@@ -771,9 +814,13 @@ export default function CreateGift({
                                                         event.target.value,
                                                     )
                                                 }
-                                                placeholder="A short line, quote or inside joke"
+                                                placeholder={
+                                                    isCdDesign
+                                                        ? 'First date\nOur song\nForever starts today'
+                                                        : 'A short line, quote or inside joke'
+                                                }
                                                 maxLength={300}
-                                                rows={2}
+                                                rows={isCdDesign ? 5 : 2}
                                             />
                                         </Field>
 
@@ -997,10 +1044,8 @@ export default function CreateGift({
                                         template={template}
                                         selectedOptions={price?.selected ?? []}
                                         photoUrl={photoUrl}
-                                        names={data.personalization.names}
-                                        date={data.personalization.date}
-                                        message={data.personalization.message}
-                                        color={data.personalization.color}
+                                        {...previewText}
+                                        detailed
                                         className="mx-auto w-full max-w-sm"
                                     />
                                     <div className="space-y-4">
@@ -1393,10 +1438,7 @@ export default function CreateGift({
                                         template={template}
                                         selectedOptions={price?.selected ?? []}
                                         photoUrl={photoUrl}
-                                        names={data.personalization.names}
-                                        date={data.personalization.date}
-                                        message={data.personalization.message}
-                                        color={data.personalization.color}
+                                        {...previewText}
                                         className="mx-auto max-w-[260px]"
                                     />
                                 </div>

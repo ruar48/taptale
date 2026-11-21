@@ -290,6 +290,8 @@ export function PersonalizationDetails({ order }: { order: Order }) {
         ['Names', order.personalization.names],
         ['Date', order.personalization.date],
         ['Message', order.personalization.message],
+        ['Song / album title', order.personalization.song_title],
+        ['Artist', order.personalization.artist],
         ['Design brief', order.personalization.design_brief],
         ['Special instructions', order.personalization.instructions],
         ['Order notes', order.customer_notes ?? undefined],
