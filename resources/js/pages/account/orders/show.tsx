@@ -851,7 +851,7 @@ function ExperienceCard({ order }: { order: Order }) {
             </p>
             <div className="mt-4 flex items-center gap-4">
                 <img
-                    src={experience.qr_url}
+                    src={experience.qr_url ?? undefined}
                     alt="QR code for your memory page"
                     className="size-24 rounded-xl bg-white p-1.5"
                 />

@@ -20,6 +20,7 @@ import { SectionHeading } from '@/components/taptale/section-heading';
 import { TemplatePreview } from '@/components/taptale/template-preview';
 import { Button } from '@/components/ui/button';
 import { index as categoriesIndex } from '@/routes/categories';
+import { templates as memoryPages } from '@/routes/experiences';
 import { create as startOrder } from '@/routes/orders';
 import { index as templatesIndex } from '@/routes/templates';
 import type { Category, Product, Template, Testimonial } from '@/types';
@@ -518,6 +519,15 @@ function TapSection() {
                         </li>
                     ))}
                 </ul>
+                <Button
+                    asChild
+                    className="mt-8 rounded-full bg-plum px-6 text-white hover:bg-plum-dark dark:bg-blush dark:text-plum-dark"
+                >
+                    <Link href={memoryPages()}>
+                        Explore memory page designs{' '}
+                        <ArrowRight className="size-4" />
+                    </Link>
+                </Button>
             </div>
         </section>
     );

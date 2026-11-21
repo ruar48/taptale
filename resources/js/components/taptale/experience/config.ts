@@ -181,6 +181,7 @@ export type ExperiencePreset = {
         gifts: string;
         countdown: string;
         question: string;
+        closing: string;
     }>;
 };
 
@@ -192,7 +193,7 @@ export const EXPERIENCE_PRESETS: Record<ExperienceTemplateKey, ExperiencePreset>
     birthday: {
         gate: 'tap',
         sections: ['hero_photo', 'note', 'gallery', 'song', 'video', 'quote', 'closing'],
-        labels: { gate: 'A birthday surprise', note: 'A little note', gallery: 'Moments I love with you', song: 'A birthday song for you' },
+        labels: { closing: 'Happy birthday, my love', gate: 'A birthday surprise', note: 'A little note', gallery: 'Moments I love with you', song: 'A birthday song for you' },
     },
     love_story: {
         gate: null,
@@ -215,7 +216,7 @@ export const EXPERIENCE_PRESETS: Record<ExperienceTemplateKey, ExperiencePreset>
     apology: {
         gate: 'question',
         sections: ['hero_script', 'letter_paper', 'gallery', 'quote', 'closing'],
-        labels: { question: 'Will you forgive me?', gallery: 'The moments worth fixing it for' },
+        labels: { closing: 'I love you, always', question: 'Will you forgive me?', gallery: 'The moments worth fixing it for' },
     },
     our_song: {
         gate: 'tap',
@@ -230,31 +231,32 @@ export const EXPERIENCE_PRESETS: Record<ExperienceTemplateKey, ExperiencePreset>
     wedding: {
         gate: null,
         sections: ['hero_photo', 'note', 'countdown', 'timeline', 'gallery', 'video', 'song', 'quote', 'closing'],
-        labels: { note: 'With love and gratitude', timeline: 'Our love story', gallery: 'Our wedding album', song: 'Our wedding song', countdown: 'Until forever' },
+        labels: { closing: 'Thank you for celebrating with us', note: 'With love and gratitude', timeline: 'Our love story', gallery: 'Our wedding album', song: 'Our wedding song', countdown: 'Until forever' },
     },
     save_the_date: {
         gate: 'envelope',
         sections: ['hero_script', 'countdown', 'details', 'gallery', 'closing'],
-        labels: { gate: "You're invited!", gateHint: 'Tap the seal to open your invitation', countdown: 'Counting down', gallery: 'Us' },
+        labels: { closing: 'See you there!', gate: "You're invited!", gateHint: 'Tap the seal to open your invitation', countdown: 'Counting down', gallery: 'Us' },
     },
     bestie: {
         gate: 'tap',
         sections: ['hero_script', 'scrapbook', 'film_strip', 'polaroid_wall', 'letter_card', 'song', 'closing'],
-        labels: { gate: 'For my favorite person', filmCaption: 'Best friends forever!' },
+        labels: { closing: 'Love you, bestie!', gate: 'For my favorite person', filmCaption: 'Best friends forever!' },
     },
     family: {
         gate: null,
         sections: ['hero_photo', 'note', 'gallery', 'quote', 'closing'],
-        labels: { note: 'A blessing to our family', gallery: 'Our little moments' },
+        labels: { closing: 'With love and gratitude', note: 'A blessing to our family', gallery: 'Our little moments' },
     },
     graduation: {
         gate: null,
         sections: ['hero_photo', 'note', 'polaroid_wall', 'gallery', 'quote', 'closing'],
-        labels: { note: 'We are so proud of you', gallery: 'The journey' },
+        labels: { closing: 'The best is yet to come', note: 'We are so proud of you', gallery: 'The journey' },
     },
     classic: {
         gate: null,
         sections: ['hero_script', 'gallery', 'note', 'video', 'song', 'closing'],
+        labels: { closing: 'Every tap tells our story' },
     },
 };
 

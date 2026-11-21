@@ -880,7 +880,7 @@ function ExperiencePanel({ order }: { order: Order }) {
         <Panel title="NFC & QR">
             <div className="flex gap-4">
                 <img
-                    src={experience.qr_url}
+                    src={experience.qr_url ?? undefined}
                     alt="QR code"
                     className="size-24 shrink-0 rounded-lg border bg-white p-1"
                 />

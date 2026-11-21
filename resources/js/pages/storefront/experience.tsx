@@ -1,252 +1,87 @@
 import { Head, Link } from '@inertiajs/react';
-import { Eye, Music, PlayCircle } from 'lucide-react';
+import { Eye, Sparkles, X } from 'lucide-react';
 import { useState } from 'react';
-import { BrandLogo } from '@/components/taptale/brand-logo';
-import { cn } from '@/lib/utils';
+import { presetFor, themeFor, themeStyle } from '@/components/taptale/experience/config';
+import { Gate } from '@/components/taptale/experience/gates';
+import { ExperienceSection } from '@/components/taptale/experience/sections';
+import { AudioProvider, ExperienceContext, MusicButton } from '@/components/taptale/experience/shared';
 import { home } from '@/routes';
+import { templates as memoryPages } from '@/routes/experiences';
+import { create as startOrder } from '@/routes/orders';
 import type { DigitalExperience } from '@/types';
-
-const THEMES: Record<
-    string,
-    { page: string; card: string; accent: string; muted: string }
-> = {
-    blush: {
-        page: 'bg-gradient-to-b from-blush-light via-cream to-cream text-charcoal',
-        card: 'bg-white/70',
-        accent: 'text-rose',
-        muted: 'text-charcoal/65',
-    },
-    plum: {
-        page: 'bg-gradient-to-b from-plum via-plum-dark to-charcoal text-cream',
-        card: 'bg-white/10',
-        accent: 'text-blush',
-        muted: 'text-cream/70',
-    },
-    cream: {
-        page: 'bg-cream text-charcoal',
-        card: 'bg-white',
-        accent: 'text-plum',
-        muted: 'text-charcoal/65',
-    },
-    midnight: {
-        page: 'bg-gradient-to-b from-[#1F1B2E] via-[#191624] to-[#100e17] text-cream',
-        card: 'bg-white/[0.06]',
-        accent: 'text-blush',
-        muted: 'text-cream/65',
-    },
-};
-
-/**
- * Turn common video links into an embeddable URL. Unknown hosts are shown
- * as a plain link instead of being embedded.
- */
-function embedUrl(url: string): string | null {
-    try {
-        const parsed = new URL(url);
-
-        if (parsed.hostname.includes('youtube.com')) {
-            const id = parsed.searchParams.get('v');
-
-            return id ? `https://www.youtube-nocookie.com/embed/${id}` : null;
-        }
-
-        if (parsed.hostname === 'youtu.be') {
-            return `https://www.youtube-nocookie.com/embed${parsed.pathname}`;
-        }
-
-        if (parsed.hostname.includes('vimeo.com')) {
-            const id = parsed.pathname.split('/').filter(Boolean).pop();
-
-            return id ? `https://player.vimeo.com/video/${id}` : null;
-        }
-    } catch {
-        return null;
-    }
-
-    return null;
-}
 
 export default function Experience({
     experience,
     isPreview,
+    isDemo = false,
 }: {
     experience: DigitalExperience;
     isPreview: boolean;
+    isDemo?: boolean;
 }) {
-    const theme = THEMES[experience.theme] ?? THEMES.blush;
+    const theme = themeFor(experience.theme);
+    const preset = presetFor(experience.template);
+    const [opened, setOpened] = useState(preset.gate === null);
     const [lightbox, setLightbox] = useState<string | null>(null);
-    const video = experience.video_url ? embedUrl(experience.video_url) : null;
+
+    const photos = experience.photos.map((photo) => photo.url);
+    const photoAt = (index: number): string | null => (photos.length > 0 ? photos[index % photos.length] : null);
 
     return (
-        <div className={cn('min-h-screen', theme.page)}>
-            <Head title={experience.title} />
-
-            {isPreview && (
-                <div className="sticky top-0 z-20 flex items-center justify-center gap-2 bg-amber-100 px-4 py-2 text-center text-sm text-amber-900">
-                    <Eye className="size-4" /> Preview — only you can see this
-                    page until you publish it.
-                </div>
-            )}
-
-            <main className="mx-auto max-w-lg px-5 pt-14 pb-16">
-                <header className="animate-fade-up text-center">
-                    <p
-                        className={cn(
-                            'text-xs font-semibold tracking-[0.35em] uppercase',
-                            theme.accent,
-                        )}
-                    >
-                        A Taptale memory
-                    </p>
-                    <h1 className="mt-4 font-display text-5xl leading-tight font-medium text-balance">
-                        {experience.title}
-                    </h1>
-                    {experience.subtitle && (
-                        <p className={cn('mt-3 text-lg italic', theme.muted)}>
-                            {experience.subtitle}
-                        </p>
-                    )}
-                    {experience.event_date && (
-                        <p
-                            className={cn(
-                                'mt-4 text-sm tracking-[0.3em] uppercase',
-                                theme.accent,
+        <ExperienceContext.Provider
+            value={{
+                experience,
+                preset,
+                theme,
+                photos,
+                photoAt,
+                moments: experience.moments,
+                openPhoto: setLightbox,
+            }}
+        >
+            <AudioProvider src={experience.audio_url}>
+                <Head title={experience.title} />
+                <div className="min-h-screen overflow-x-hidden" style={themeStyle(theme)}>
+                    {(isPreview || isDemo) && (
+                        <div className="sticky top-0 z-40 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-amber-100 px-4 py-2 text-center text-sm text-amber-900">
+                            {isDemo ? (
+                                <>
+                                    <Sparkles className="size-4" /> Demo of the “{experience.title}” design with sample words.
+                                    <Link href={memoryPages()} className="font-semibold underline underline-offset-2">More designs</Link>
+                                    <Link href={startOrder()} className="font-semibold underline underline-offset-2">Create yours</Link>
+                                </>
+                            ) : (
+                                <>
+                                    <Eye className="size-4" /> Preview — only you can see this page until you publish it.
+                                </>
                             )}
-                        >
-                            {experience.event_date}
-                        </p>
+                        </div>
                     )}
-                </header>
 
-                {experience.photos.length > 0 && (
-                    <section className="mt-10 grid grid-cols-2 gap-3">
-                        {experience.photos.map((photo, index) => (
-                            <button
-                                key={photo.index}
-                                type="button"
-                                onClick={() => setLightbox(photo.url)}
-                                className={cn(
-                                    'animate-fade-up overflow-hidden rounded-2xl shadow-lg',
-                                    index === 0 &&
-                                        experience.photos.length % 2 === 1 &&
-                                        'col-span-2',
-                                )}
-                                style={{ animationDelay: `${index * 80}ms` }}
-                            >
-                                <img
-                                    src={photo.url}
-                                    alt=""
-                                    loading="lazy"
-                                    className={cn(
-                                        'w-full object-cover',
-                                        index === 0 &&
-                                            experience.photos.length % 2 === 1
-                                            ? 'aspect-[4/3]'
-                                            : 'aspect-square',
-                                    )}
-                                />
-                            </button>
+                    {!opened && preset.gate && <Gate kind={preset.gate} onOpen={() => setOpened(true)} />}
+
+                    <main>
+                        {preset.sections.map((section) => (
+                            <ExperienceSection key={section} section={section} />
                         ))}
-                    </section>
-                )}
+                    </main>
 
-                {experience.message && (
-                    <section
-                        className={cn(
-                            'mt-10 rounded-3xl p-7 backdrop-blur',
-                            theme.card,
-                        )}
-                    >
-                        <p className="font-display text-xl leading-relaxed whitespace-pre-line italic">
-                            “{experience.message}”
-                        </p>
-                    </section>
-                )}
+                    <footer className="pb-24 text-center text-xs opacity-70">
+                        <Link href={home()} className="hover:underline">Made with Taptale · Every tap tells a story</Link>
+                    </footer>
 
-                {experience.video_url && (
-                    <section className="mt-8">
-                        {video ? (
-                            <div className="aspect-video overflow-hidden rounded-3xl shadow-lg">
-                                <iframe
-                                    src={video}
-                                    title="Video"
-                                    className="size-full"
-                                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                />
-                            </div>
-                        ) : (
-                            <a
-                                href={experience.video_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={cn(
-                                    'flex items-center gap-3 rounded-3xl p-5 backdrop-blur',
-                                    theme.card,
-                                )}
-                            >
-                                <PlayCircle
-                                    className={cn('size-8', theme.accent)}
-                                />{' '}
-                                Watch our video
-                            </a>
-                        )}
-                    </section>
-                )}
+                    <MusicButton />
 
-                {experience.music_url && (
-                    <a
-                        href={experience.music_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={cn(
-                            'mt-4 flex items-center gap-3 rounded-3xl p-5 backdrop-blur',
-                            theme.card,
-                        )}
-                    >
-                        <Music className={cn('size-7', theme.accent)} />
-                        <span>
-                            <span className="block font-medium">Our song</span>
-                            <span className={cn('text-sm', theme.muted)}>
-                                Tap to listen
-                            </span>
-                        </span>
-                    </a>
-                )}
-
-                <footer className="mt-16 flex flex-col items-center gap-2 text-center">
-                    <Link
-                        href={home()}
-                        className="opacity-80 transition hover:opacity-100"
-                    >
-                        <BrandLogo
-                            inverted={
-                                experience.theme === 'plum' ||
-                                experience.theme === 'midnight'
-                            }
-                            className="scale-90"
-                        />
-                    </Link>
-                    <p className={cn('text-xs', theme.muted)}>
-                        Every tap tells a story.
-                    </p>
-                </footer>
-            </main>
-
-            {lightbox && (
-                <button
-                    type="button"
-                    onClick={() => setLightbox(null)}
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
-                    aria-label="Close photo"
-                >
-                    <img
-                        src={lightbox}
-                        alt=""
-                        className="max-h-full max-w-full rounded-xl"
-                    />
-                </button>
-            )}
-        </div>
+                    {lightbox && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4" onClick={() => setLightbox(null)}>
+                            <button type="button" className="absolute top-4 right-4 rounded-full bg-white/10 p-2 text-white" aria-label="Close photo">
+                                <X className="size-6" />
+                            </button>
+                            <img src={lightbox} alt="" className="max-h-full max-w-full rounded-xl" />
+                        </div>
+                    )}
+                </div>
+            </AudioProvider>
+        </ExperienceContext.Provider>
     );
 }

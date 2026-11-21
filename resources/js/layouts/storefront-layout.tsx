@@ -36,6 +36,7 @@ import {
     show as categoryShow,
 } from '@/routes/categories';
 import { create as startOrder } from '@/routes/orders';
+import { templates as memoryPages } from '@/routes/experiences';
 import { index as templatesIndex } from '@/routes/templates';
 
 export default function StorefrontLayout({
@@ -105,6 +106,7 @@ function SiteHeader() {
                         </DropdownMenuContent>
                     </DropdownMenu>
                     <NavLink href={templatesIndex().url}>Templates</NavLink>
+                    <NavLink href={memoryPages().url}>Memory pages</NavLink>
                     <NavLink href={`${home().url}#how-it-works`}>
                         How it works
                     </NavLink>
@@ -200,6 +202,13 @@ function SiteHeader() {
                                         className="rounded-xl px-3 py-2.5 hover:bg-plum/5"
                                     >
                                         Design templates
+                                    </Link>
+                                    <Link
+                                        href={memoryPages()}
+                                        onClick={() => setOpen(false)}
+                                        className="rounded-xl px-3 py-2.5 hover:bg-plum/5"
+                                    >
+                                        Memory page designs
                                     </Link>
                                     {user ? (
                                         <>
@@ -384,6 +393,14 @@ function SiteFooter() {
                                 className="hover:text-white"
                             >
                                 Design templates
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                href={memoryPages()}
+                                className="hover:text-white"
+                            >
+                                Memory page designs
                             </Link>
                         </li>
                         <li>
