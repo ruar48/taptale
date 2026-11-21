@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Policies;
+
+use App\Models\Order;
+use App\Models\User;
+
+class OrderPolicy
+{
+    /**
+     * Customers may view their own orders; administrators may view any order.
+     */
+    public function view(User $user, Order $order): bool
+    {
+        return $user->isAdmin() || $order->user_id === $user->id;
+    }
+
+    /**
+     * Only the customer who placed the order may act on it as the customer
+     * (approve designs, request revisions, pay, upload files, cancel).
+     */
+    public function update(User $user, Order $order): bool
+    {
+        return $order->user_id === $user->id;
+    }
+}

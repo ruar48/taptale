@@ -15,10 +15,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call(CatalogSeeder::class);
+
+        User::factory()->admin()->create([
+            'name' => 'Taptale Admin',
+            'email' => 'admin@taptale.test',
+        ]);
 
         User::factory()->create([
-            'name' => 'Test User',
+            'name' => 'Test Customer',
             'email' => 'test@example.com',
         ]);
     }
