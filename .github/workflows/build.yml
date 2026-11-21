@@ -1,8 +1,7 @@
 name: build
 
-# On every push to main: install dependencies, run `npm run build`, and publish
-# the result (main + compiled public/build) to the `deploy` branch, which the
-# Hostinger deployment pulls from.
+# On every push to main: install dependencies, run `npm run build`, and commit
+# the compiled public/build back to main so the Hostinger deployment serves it.
 
 on:
   push:
@@ -53,11 +52,14 @@ jobs:
       - name: Build assets
         run: npm run build
 
-      - name: Publish to deploy branch
+      - name: Commit built assets to main
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -B deploy
           git add -f public/build
-          git commit -m "build: compiled assets for ${GITHUB_SHA::7}"
-          git push --force origin deploy
+          if git diff --cached --quiet; then
+            echo "Built assets unchanged, nothing to commit."
+            exit 0
+          fi
+          git commit -m "build: compiled assets for ${GITHUB_SHA::7} [skip ci]"
+          git push origin HEAD:main
