@@ -274,6 +274,10 @@ function Waveform({
     );
 }
 
+/**
+ * One lyric line at a time. The colour wipes across the words while it is
+ * sung, then the next line rises in to replace it.
+ */
 function Lyrics({
     synced,
     plain,
@@ -287,9 +291,6 @@ function Lyrics({
     isSynced: boolean;
     compact: boolean;
 }) {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const lines = synced.length > 0 ? synced.map((line) => line.text) : plain;
-
     const activeIndex = useMemo(() => {
         if (!isSynced) {
             return -1;
@@ -308,106 +309,70 @@ function Lyrics({
         return index;
     }, [synced, current, isSynced]);
 
-    /*
-     * Karaoke wipe: how far through the active line we are, so the colour
-     * sweeps across the words in time with the singing.
-     */
-    let lineProgress = 0;
+    const firstLine = synced[0]?.text ?? plain[0] ?? null;
 
-    if (activeIndex >= 0) {
-        const start = synced[activeIndex].time;
-        const next = synced[activeIndex + 1]?.time ?? start + 4;
-        const singing = Math.max(0.6, Math.min(next - start, 6) * 0.9);
-        lineProgress = Math.min(1, Math.max(0, (current - start) / singing));
-    }
-
-    useEffect(() => {
-        const container = containerRef.current;
-        const line = container?.querySelector<HTMLElement>(
-            `[data-line="${Math.max(activeIndex, 0)}"]`,
-        );
-
-        if (!container || !line) {
-            return;
-        }
-
-        container.scrollTo({
-            top:
-                line.offsetTop -
-                container.clientHeight * 0.4 +
-                line.clientHeight / 2,
-            behavior: "smooth",
-        });
-    }, [activeIndex]);
-
-    if (lines.length === 0) {
+    if (!firstLine) {
         return null;
     }
 
+    let text: string;
+    let fill = 0;
+
+    if (!isSynced || activeIndex < 0) {
+        // Before the singing starts (or no timing): show the opening line dimmed.
+        text = firstLine;
+    } else {
+        const start = synced[activeIndex].time;
+        const next = synced[activeIndex + 1]?.time ?? start + 4;
+        const singing = Math.max(0.6, Math.min(next - start, 6) * 0.9);
+
+        text = synced[activeIndex].text || "♪ ♪ ♪";
+        fill = Math.round(
+            Math.min(1, Math.max(0, (current - start) / singing)) * 100,
+        );
+    }
+
+    const active = isSynced && activeIndex >= 0;
+
     return (
         <div
-            ref={containerRef}
+            aria-live="off"
             className={cn(
-                // overflow-hidden: visitors can't scroll it; only the song moves the lyrics.
-                "pointer-events-none relative overflow-hidden select-none [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]",
-                compact ? "h-52" : "h-72 sm:h-80",
+                "pointer-events-none flex items-center select-none max-md:justify-center",
+                compact ? "min-h-24" : "min-h-32 sm:min-h-40",
             )}
         >
-            <div
+            <p
+                key={activeIndex}
                 className={cn(
-                    "text-center md:text-left",
-                    compact ? "py-20" : "py-28 sm:py-32",
+                    "animate-fade-up font-display leading-tight font-semibold text-balance max-md:text-center",
+                    compact
+                        ? "text-2xl"
+                        : "text-3xl sm:text-4xl lg:text-[2.6rem]",
+                    !active && "opacity-50",
                 )}
             >
-                {lines.map((text, index) => {
-                    const active = isSynced && index === activeIndex;
-                    const fill = Math.round(lineProgress * 100);
-
-                    return (
-                        <p
-                            key={index}
-                            data-line={index}
-                            className={cn(
-                                "origin-left font-display leading-snug transition-[opacity,transform,filter] duration-500 max-md:origin-center",
-                                compact
-                                    ? "py-1 text-lg"
-                                    : "py-2 text-2xl sm:text-[1.7rem]",
-                                !isSynced && "opacity-80",
-                                isSynced &&
-                                    (active
-                                        ? "scale-[1.04] font-semibold opacity-100"
-                                        : index < activeIndex
-                                          ? "opacity-30"
-                                          : index - activeIndex <= 2
-                                            ? "opacity-55"
-                                            : "opacity-35 blur-[0.5px]"),
-                            )}
-                        >
-                            {/*
-                             * Inline span: its background is painted as one
-                             * strip across wrapped rows, so the wipe follows
-                             * reading order instead of the box width.
-                             */}
-                            <span
-                                style={
-                                    active
-                                        ? {
-                                              backgroundImage: `linear-gradient(90deg, var(--x-accent) ${fill}%, color-mix(in srgb, var(--x-ink) 55%, transparent) ${fill}%)`,
-                                              WebkitBackgroundClip: "text",
-                                              backgroundClip: "text",
-                                              WebkitBoxDecorationBreak: "slice",
-                                              boxDecorationBreak: "slice",
-                                              color: "transparent",
-                                          }
-                                        : undefined
-                                }
-                            >
-                                {text || "♪ ♪ ♪"}
-                            </span>
-                        </p>
-                    );
-                })}
-            </div>
+                {/*
+                 * Inline span: its background is painted as one strip across
+                 * wrapped rows, so the wipe follows reading order.
+                 */}
+                <span
+                    style={
+                        active
+                            ? {
+                                  backgroundImage: `linear-gradient(90deg, var(--x-accent) ${fill}%, color-mix(in srgb, var(--x-ink) 45%, transparent) ${fill}%)`,
+                                  WebkitBackgroundClip: "text",
+                                  backgroundClip: "text",
+                                  WebkitBoxDecorationBreak: "slice",
+                                  boxDecorationBreak: "slice",
+                                  color: "transparent",
+                              }
+                            : undefined
+                    }
+                >
+                    {text}
+                </span>
+            </p>
         </div>
     );
 }
@@ -575,10 +540,7 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                         </span>
                     </div>
                 </div>
-            </div>
-
-            <div className="min-w-0">
-                <div className="flex items-center gap-4">
+                <div className="mt-6 flex items-center gap-4">
                     {canPlay && (
                         <button
                             type="button"
@@ -624,7 +586,9 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                         </EditableText>
                     </div>
                 </div>
+            </div>
 
+            <div className="min-w-0">
                 {loading && !details && (
                     <div className="mt-6 space-y-3">
                         {[70, 50, 80, 40].map((width) => (
@@ -638,7 +602,7 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                 )}
 
                 {details && hasLyrics && (
-                    <div className="mt-6">
+                    <div>
                         <Lyrics
                             synced={details.synced_lyrics}
                             plain={details.plain_lyrics}
