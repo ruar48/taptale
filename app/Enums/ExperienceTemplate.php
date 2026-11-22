@@ -86,7 +86,7 @@ enum ExperienceTemplate: string
     {
         return match ($this) {
             self::Monthsary => 'A wax-sealed envelope opens to a script greeting, a love letter, a polaroid wall, film strip and your song.',
-            self::Birthday => 'A cinematic photo greeting, a sweet note, your photo album and a birthday song.',
+            self::Birthday => 'A cinematic photo greeting, a sweet note, a polaroid wall of your moments, your photo album and a birthday song.',
             self::LoveStory => '"To my langga" note and a timeline of how you happened, with photos and dates.',
             self::LittleSomething => 'Tap to open: flowers, a love letter and a song — each revealed one by one.',
             self::DigitalBouquet => 'A bouquet that blooms on their screen — stems grow, petals open and fireflies glow around your note. Flowers that never wilt.',

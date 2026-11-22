@@ -485,8 +485,47 @@ function LetterPaper() {
     );
 }
 
+/**
+ * A dashed thread from a polaroid to its right-hand neighbour. It is hidden on
+ * the last card of each row (2, 3 or 4 columns) and on the very last card, so
+ * the line never trails off into empty space.
+ */
+function PolaroidConnector({ index, total }: { index: number; total: number }) {
+    if (index === total - 1) {
+        return null;
+    }
+
+    return (
+        <svg
+            className={cn(
+                "pointer-events-none absolute top-[35%] left-[80%] h-10 w-[calc(40%+1.25rem)]",
+                index % 2 === 1 ? "hidden" : "block",
+                index % 3 === 2 ? "sm:hidden" : "sm:block",
+                index % 4 === 3 ? "lg:hidden" : "lg:block",
+            )}
+            viewBox="0 0 100 40"
+            preserveAspectRatio="none"
+            aria-hidden
+        >
+            <path
+                d={
+                    index % 2 === 0
+                        ? "M0 12 C 30 0, 60 40, 100 22"
+                        : "M0 26 C 35 40, 65 0, 100 16"
+                }
+                fill="none"
+                stroke="currentColor"
+                strokeOpacity="0.45"
+                strokeWidth="1.5"
+                strokeDasharray="5 5"
+                vectorEffect="non-scaling-stroke"
+            />
+        </svg>
+    );
+}
+
 function PolaroidWall() {
-    const { experience, moments, photos, editable } = useExperience();
+    const { experience, preset, moments, photos, editable } = useExperience();
     const items: {
         src: string | null;
         caption: string | null;
@@ -510,54 +549,44 @@ function PolaroidWall() {
         return null;
     }
 
+    const visibleItems = items.slice(0, 12);
+    const defaultTitle = preset.labels?.polaroidWall ?? "Our moments together";
+
     return (
         <SectionShell surface>
             <Reveal className="text-center">
                 <ScriptHeading>
                     <EditableText
                         field="event_date"
-                        value={experience.event_date ?? "Our moments together"}
-                        placeholder="Our moments together"
+                        value={experience.event_date ?? defaultTitle}
+                        placeholder={defaultTitle}
                         label="Section title"
                     />
                 </ScriptHeading>
             </Reveal>
-            <div className="relative mt-12">
-                <svg
-                    className="pointer-events-none absolute inset-0 hidden size-full md:block"
-                    viewBox="0 0 100 100"
-                    preserveAspectRatio="none"
-                    aria-hidden
-                >
-                    <path
-                        d="M5 20 C 25 5, 35 45, 55 25 S 85 40, 95 15 M8 75 C 30 55, 40 95, 62 70 S 88 85, 96 65"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeOpacity="0.45"
-                        strokeWidth="0.35"
-                        strokeDasharray="1.2 1.2"
-                    />
-                </svg>
-                <div className="relative grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
-                    {items.slice(0, 12).map((item, index) => (
-                        <Reveal key={index} delay={(index % 4) * 100}>
-                            <div className="relative">
-                                {index % 3 === 1 && (
-                                    <Heart
-                                        className="absolute -top-3 left-1/2 z-10 size-6 -translate-x-1/2 text-[#D04A6B]"
-                                        fill="currentColor"
-                                    />
-                                )}
-                                <Polaroid
-                                    src={item.src}
-                                    caption={item.caption}
-                                    rotate={ROTATIONS[index % ROTATIONS.length]}
-                                    moment={item.moment}
+            <div className="relative mt-12 grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
+                {visibleItems.map((item, index) => (
+                    <Reveal key={index} delay={(index % 4) * 100}>
+                        <div className="relative">
+                            <PolaroidConnector
+                                index={index}
+                                total={visibleItems.length}
+                            />
+                            {index % 3 === 1 && (
+                                <Heart
+                                    className="absolute -top-3 left-1/2 z-10 size-6 -translate-x-1/2 text-[#D04A6B]"
+                                    fill="currentColor"
                                 />
-                            </div>
-                        </Reveal>
-                    ))}
-                </div>
+                            )}
+                            <Polaroid
+                                src={item.src}
+                                caption={item.caption}
+                                rotate={ROTATIONS[index % ROTATIONS.length]}
+                                moment={item.moment}
+                            />
+                        </div>
+                    </Reveal>
+                ))}
             </div>
         </SectionShell>
     );

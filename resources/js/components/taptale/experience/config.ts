@@ -226,6 +226,7 @@ export type ExperiencePreset = {
         note: string;
         filmStrip: string;
         filmCaption: string;
+        polaroidWall: string;
         timeline: string;
         gallery: string;
         song: string;
@@ -282,6 +283,7 @@ export const EXPERIENCE_PRESETS: Record<
         sections: [
             "hero_photo",
             "note",
+            "polaroid_wall",
             "gallery",
             "song",
             "video",
@@ -289,6 +291,7 @@ export const EXPERIENCE_PRESETS: Record<
             "closing",
         ],
         labels: {
+            polaroidWall: "Our favorite moments",
             closing: "Happy birthday, my love",
             gate: "A birthday surprise",
             note: "A little note",
