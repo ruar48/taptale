@@ -536,7 +536,7 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                     className={place(
                         hasMedia
                             ? 'max-md:col-span-4 max-md:col-start-1 max-md:row-start-1'
-                            : 'max-md:col-span-12 max-md:row-start-1 max-md:mx-auto max-md:w-full max-md:max-w-[16rem]',
+                            : 'max-md:col-span-12 max-md:col-start-1 max-md:row-start-1 max-md:mx-auto max-md:w-full max-md:max-w-[16rem]',
                     )}
                 >
                     <Vinyl
@@ -551,7 +551,7 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                     className={cn(
                         'mt-8',
                         place(
-                            'max-md:col-span-12 max-md:row-start-2 max-md:mt-0 max-md:self-center max-md:opacity-30',
+                            'max-md:col-span-12 max-md:col-start-1 max-md:row-start-2 max-md:mt-0 max-md:self-center max-md:opacity-30',
                         ),
                     )}
                 >
@@ -566,7 +566,7 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                     className={cn(
                         'mt-1 flex justify-between text-xs tabular-nums opacity-60',
                         place(
-                            'max-md:col-span-12 max-md:row-start-3 max-md:-mt-3',
+                            'max-md:col-span-12 max-md:col-start-1 max-md:row-start-3 max-md:-mt-3',
                         ),
                     )}
                 >
@@ -585,7 +585,7 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                                 'max-md:relative max-md:z-10 max-md:row-start-2 max-md:mt-0 max-md:gap-3',
                                 showsLyricsColumn
                                     ? 'max-md:col-span-6 max-md:col-start-1'
-                                    : 'max-md:col-span-12',
+                                    : 'max-md:col-span-12 max-md:col-start-1',
                             ),
                         ),
                     )}
@@ -734,7 +734,9 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                 <div
                     className={cn(
                         'min-w-0',
-                        place('max-md:col-span-12 max-md:row-start-4'),
+                        place(
+                            'max-md:col-span-12 max-md:col-start-1 max-md:row-start-4',
+                        ),
                     )}
                 >
                     {!embed && experience.music_url && (
