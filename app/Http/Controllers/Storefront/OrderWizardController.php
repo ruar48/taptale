@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Storefront;
 
 use App\Actions\Orders\PlaceOrder;
+use App\Enums\ExperienceTemplate;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Storefront\StoreOrderRequest;
 use App\Http\Resources\CategoryResource;
@@ -52,6 +53,7 @@ class OrderWizardController extends Controller
             'templates' => $product
                 ? TemplateResource::collection(Template::active()->availableFor($category, $product)->get())
                 : [],
+            'experienceTemplates' => ExperienceTemplate::options(),
             'initialTemplate' => $request->string('template')->toString() ?: null,
             'paymentMethods' => PaymentMethodResource::collection(PaymentMethod::active()->get()),
             'pricing' => [

@@ -37,11 +37,12 @@ class PlaceOrder
             : $product->categories()->where('is_active', true)->orderBy('sort_order')->first();
         $template = isset($data['template_id']) ? Template::query()->whereKey($data['template_id'])->first() : null;
         $designMode = DesignMode::from($data['design_mode']);
+        $personalizeLater = ! empty($data['personalize_later']);
         $quantity = (int) $data['quantity'];
 
         $pricing = $this->priceOrder->handle($product, $data['option_ids'] ?? [], $quantity, $designMode);
 
-        $order = DB::transaction(function () use ($customer, $data, $category, $product, $template, $designMode, $quantity, $pricing): Order {
+        $order = DB::transaction(function () use ($customer, $data, $category, $product, $template, $designMode, $personalizeLater, $quantity, $pricing): Order {
             $order = $customer->orders()->create([
                 'status' => OrderStatus::AwaitingPayment,
                 'category_id' => $category?->id,
@@ -52,7 +53,7 @@ class PlaceOrder
                 'selected_options' => $pricing['selected_options'],
                 'design_mode' => $designMode,
                 'personalization' => $this->personalization($data['personalization'] ?? []),
-                'preview_approved_at' => $designMode === DesignMode::SelfCustomized ? now() : null,
+                'preview_approved_at' => $designMode === DesignMode::SelfCustomized && ! $personalizeLater ? now() : null,
                 'quantity' => $quantity,
                 'unit_price' => $pricing['unit_price'],
                 'subtotal' => $pricing['subtotal'],
@@ -72,14 +73,17 @@ class PlaceOrder
 
             $order->recordActivity(
                 ActivityType::Placed,
-                $designMode === DesignMode::SelfCustomized
-                    ? 'Order placed. You approved your live design preview at checkout.'
-                    : 'Order placed. Our designers will prepare your design for approval after payment is verified.',
+                match (true) {
+                    $personalizeLater => 'Order placed. Add your photos and details from this page whenever you are ready — we will send your design for approval before anything is made.',
+                    $designMode === DesignMode::SelfCustomized => 'Order placed. You approved your live design preview at checkout.',
+                    default => 'Order placed. Our designers will prepare your design for approval after payment is verified.',
+                },
                 $customer,
             );
 
             if ($pricing['enables_digital_experience']) {
-                $template = ExperienceTemplate::forCategory($category?->slug);
+                $template = ExperienceTemplate::tryFrom((string) ($data['experience_template'] ?? ''))
+                    ?? ExperienceTemplate::forCategory($category?->slug);
 
                 $experience = new DigitalExperience([
                     'template' => $template,

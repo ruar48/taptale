@@ -18,13 +18,12 @@ import type { ReactNode } from 'react';
 import { CategoryIcon } from '@/components/taptale/category-icon';
 import { FileDropzone } from '@/components/taptale/file-dropzone';
 import { ProductArt } from '@/components/taptale/product-art';
-import {
-    MUSIC_LAYOUTS,
-    TemplatePreview,
-} from '@/components/taptale/template-preview';
+import { MUSIC_LAYOUTS } from '@/components/taptale/template-preview';
 import { DesignPreview } from '@/components/taptale/wizard/design-preview';
 import { OptionPicker } from '@/components/taptale/wizard/option-picker';
 import { OrderSummary } from '@/components/taptale/wizard/order-summary';
+import { ProductShowcase } from '@/components/taptale/wizard/product-showcase';
+import { WebsitePicker } from '@/components/taptale/wizard/website-picker';
 import { WizardProgress } from '@/components/taptale/wizard/wizard-progress';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -36,12 +35,13 @@ import { useMoney } from '@/hooks/use-money';
 import { calculatePrice, defaultOptionIds, groupOptions } from '@/lib/pricing';
 import type { PricingConfig } from '@/lib/pricing';
 import { cn } from '@/lib/utils';
-import { WIZARD_STEPS } from '@/lib/wizard';
-import type { DesignMode } from '@/lib/wizard';
+import { stepsFor } from '@/lib/wizard';
+import type { DesignMode, WizardStepKey } from '@/lib/wizard';
 import { create as wizardRoute, store as storeOrder } from '@/routes/orders';
 import { send as sendVerification } from '@/routes/verification';
 import type {
     Category,
+    ExperienceTemplateOption,
     PaymentMethod,
     Personalization,
     Product,
@@ -54,6 +54,7 @@ type Props = {
     products: Product[];
     selectedProduct: Product | null;
     templates: Template[];
+    experienceTemplates: ExperienceTemplateOption[];
     initialTemplate: string | null;
     paymentMethods: PaymentMethod[];
     pricing: PricingConfig & { max_upload_kilobytes: number };
@@ -78,6 +79,8 @@ type WizardForm = {
     personalization: Required<Personalization>;
     photos: File[];
     approve_preview: boolean;
+    personalize_later: boolean;
+    experience_template: string;
     customer_name: string;
     customer_email: string;
     customer_phone: string;
@@ -99,12 +102,11 @@ const COLOR_CHOICES = [
     '#343039',
 ];
 
-const ERROR_STEPS: [RegExp, number][] = [
-    [/^(category_id|product_id)/, 0],
-    [/^template_id/, 1],
-    [/^(design_mode|personalization|photos)/, 2],
-    [/^(option_ids|quantity)/, 3],
-    [/^approve_preview/, 4],
+const ERROR_STEPS: [RegExp, WizardStepKey][] = [
+    [/^(category_id|product_id|template_id)/, 'product'],
+    [/^experience_template/, 'website'],
+    [/^(design_mode|personalization|photos)/, 'customize'],
+    [/^(option_ids|quantity|approve_preview)/, 'specs'],
 ];
 
 export default function CreateGift({
@@ -113,6 +115,7 @@ export default function CreateGift({
     products,
     selectedProduct,
     templates,
+    experienceTemplates,
     initialTemplate,
     paymentMethods,
     pricing,
@@ -125,7 +128,7 @@ export default function CreateGift({
     const preselectedTemplate =
         templates.find((template) => template.slug === initialTemplate) ?? null;
 
-    const initialStep = selectedProduct ? 1 : 0;
+    const initialStep = 0;
     const [step, setStep] = useState(initialStep);
     const [furthest, setFurthest] = useState(initialStep);
     const [templateSkipped, setTemplateSkipped] = useState(false);
@@ -140,7 +143,7 @@ export default function CreateGift({
     const form = useForm<WizardForm>({
         category_id: selectedCategory?.id ?? null,
         product_id: selectedProduct?.id ?? null,
-        template_id: preselectedTemplate?.id ?? null,
+        template_id: preselectedTemplate?.id ?? templates[0]?.id ?? null,
         design_mode: '',
         option_ids: selectedProduct
             ? defaultOptionIds(selectedProduct.options ?? [])
@@ -158,6 +161,8 @@ export default function CreateGift({
         },
         photos: [],
         approve_preview: false,
+        personalize_later: false,
+        experience_template: '',
         customer_name: customer.name ?? '',
         customer_email: customer.email ?? '',
         customer_phone: customer.phone ?? '',
@@ -183,7 +188,7 @@ export default function CreateGift({
             product_id: selectedProduct.id,
             option_ids: defaultOptionIds(selectedProduct.options ?? []),
             quantity: selectedProduct.min_quantity,
-            template_id: null,
+            template_id: templates[0]?.id ?? null,
             photos: current.photos.slice(0, selectedProduct.max_photos),
         }));
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -192,6 +197,21 @@ export default function CreateGift({
     const template =
         templates.find((item) => item.id === data.template_id) ?? null;
     const designMode = data.design_mode || null;
+    const hasTapPage =
+        !!selectedProduct &&
+        (selectedProduct.has_digital_experience ||
+            (selectedProduct.options ?? []).some(
+                (option) => option.enables_digital_experience,
+            ));
+    const steps = stepsFor(hasTapPage);
+    const stepKey: WizardStepKey = steps[step]?.key ?? 'product';
+    const stepIndex = (key: WizardStepKey) =>
+        Math.max(
+            0,
+            steps.findIndex((item) => item.key === key),
+        );
+    const needsPreviewApproval =
+        designMode === 'self' && !data.personalize_later;
 
     const price = useMemo(
         () =>
@@ -292,40 +312,46 @@ export default function CreateGift({
             selectedCategory
                 ? { category: selectedCategory.slug, product: product.slug }
                 : { product: product.slug },
-            1,
+            0,
             product.id,
         );
     };
 
     const validateStep = (index: number): string | null => {
-        switch (index) {
-            case 0:
-                return selectedProduct ? null : 'Please choose a gift.';
-            case 1:
+        switch (steps[index]?.key) {
+            case 'product':
+                if (!selectedProduct) {
+                    return 'Please choose a gift.';
+                }
+
                 return data.template_id || templateSkipped
                     ? null
-                    : 'Please choose a template, or let our designers start from scratch.';
-            case 2:
+                    : 'Please choose a design, or pick “Custom design”.';
+            case 'customize':
+                if (data.personalize_later) {
+                    return null;
+                }
+
                 if (!designMode) {
-                    return 'Please choose how you would like to create your design.';
+                    return 'Please choose how you would like to create your design, or skip this step.';
                 }
 
                 if (
                     designMode === 'self' &&
                     !data.personalization.names.trim()
                 ) {
-                    return 'Please enter the names to feature on your design.';
+                    return 'Please enter the names to feature on your design, or skip this step.';
                 }
 
                 if (
                     designMode === 'assisted' &&
                     !data.personalization.design_brief.trim()
                 ) {
-                    return 'Please describe the design you would like us to create.';
+                    return 'Please describe the design you would like us to create, or skip this step.';
                 }
 
                 return null;
-            case 3: {
+            case 'specs': {
                 const missing = groupOptions(selectedProduct?.options ?? [])
                     .filter((group) => !group.multiple)
                     .find(
@@ -347,15 +373,25 @@ export default function CreateGift({
                     return `Quantity must be between ${selectedProduct?.min_quantity} and ${selectedProduct?.max_quantity}.`;
                 }
 
+                if (needsPreviewApproval && !data.approve_preview) {
+                    return 'Please approve your design preview to continue.';
+                }
+
                 return null;
             }
-            case 4:
-                return designMode === 'self' && !data.approve_preview
-                    ? 'Please approve your design preview to continue.'
-                    : null;
             default:
                 return null;
         }
+    };
+
+    const skipPersonalize = () => {
+        setData((current) => ({
+            ...current,
+            personalize_later: true,
+            design_mode: templateSkipped ? 'assisted' : 'self',
+            approve_preview: false,
+        }));
+        goTo(step + 1);
     };
 
     const next = () => {
@@ -367,13 +403,15 @@ export default function CreateGift({
             return;
         }
 
+        if (stepKey === 'customize' && data.personalize_later && designMode) {
+            setData('personalize_later', false);
+        }
+
         goTo(step + 1);
     };
 
     const isAwaitingVerification =
-        step === WIZARD_STEPS.length - 1 &&
-        !isEmailVerified &&
-        verificationSent;
+        step === steps.length - 1 && !isEmailVerified && verificationSent;
 
     // Once the link is sent, quietly check until the customer clicks it.
     useEffect(() => {
@@ -408,7 +446,7 @@ export default function CreateGift({
     };
 
     const submit = () => {
-        for (let index = 0; index < WIZARD_STEPS.length - 1; index++) {
+        for (let index = 0; index < steps.length - 1; index++) {
             const error = validateStep(index);
 
             if (error) {
@@ -441,10 +479,10 @@ export default function CreateGift({
             preserveScroll: true,
             onError: (serverErrors) => {
                 const firstKey = Object.keys(serverErrors)[0] ?? '';
-                const target =
-                    ERROR_STEPS.find(([pattern]) =>
-                        pattern.test(firstKey),
-                    )?.[1] ?? WIZARD_STEPS.length - 1;
+                const key = ERROR_STEPS.find(([pattern]) =>
+                    pattern.test(firstKey),
+                )?.[1];
+                const target = key ? stepIndex(key) : steps.length - 1;
 
                 if (target !== step) {
                     goTo(target);
@@ -460,7 +498,7 @@ export default function CreateGift({
         .filter(([key]) => key.startsWith('photos'))
         .map(([, message]) => message)[0];
 
-    const isLastStep = step === WIZARD_STEPS.length - 1;
+    const isLastStep = step === steps.length - 1;
 
     return (
         <>
@@ -469,6 +507,7 @@ export default function CreateGift({
             <div className="mx-auto max-w-7xl px-4 pt-8 pb-36 sm:px-6 lg:px-8 lg:pb-16">
                 <div className="mb-8">
                     <WizardProgress
+                        steps={steps}
                         current={step}
                         furthest={furthest}
                         onSelect={goTo}
@@ -477,15 +516,71 @@ export default function CreateGift({
 
                 <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
                     <div key={step} className="animate-fade-up">
-                        {step === 0 && (
+                        {stepKey === 'product' && (
                             <StepShell
-                                title="Choose your gift"
+                                title={
+                                    selectedProduct
+                                        ? 'Your gift'
+                                        : 'Choose your gift'
+                                }
                                 description={
-                                    selectedCategory
-                                        ? `Gift ideas for ${selectedCategory.name.toLowerCase()}. Tap a gift to start.`
-                                        : 'Tap a gift to start. Need ideas? Pick an occasion below.'
+                                    selectedProduct
+                                        ? 'Pick a design to see it on your gift. Want something else? Choose another gift below.'
+                                        : selectedCategory
+                                          ? `Gift ideas for ${selectedCategory.name.toLowerCase()}. Tap a gift to see its details.`
+                                          : 'Tap a gift to see its details and designs. Need ideas? Pick an occasion below.'
                                 }
                             >
+                                {selectedProduct && (
+                                    <div className="mb-10">
+                                        <ProductShowcase
+                                            product={selectedProduct}
+                                            templates={templates}
+                                            selectedTemplateId={
+                                                data.template_id
+                                            }
+                                            customSelected={templateSkipped}
+                                            hasTapPage={hasTapPage}
+                                            loading={loadingSelection !== null}
+                                            onSelectTemplate={(id) => {
+                                                setData((current) => ({
+                                                    ...current,
+                                                    template_id: id,
+                                                    design_mode:
+                                                        current.design_mode ===
+                                                        'assisted'
+                                                            ? ''
+                                                            : current.design_mode,
+                                                }));
+                                                setTemplateSkipped(false);
+                                                setStepError(null);
+                                            }}
+                                            onSelectCustom={() => {
+                                                setData((current) => ({
+                                                    ...current,
+                                                    template_id: null,
+                                                    design_mode: 'assisted',
+                                                }));
+                                                setTemplateSkipped(true);
+                                                setStepError(null);
+                                            }}
+                                            preview={
+                                                <DesignPreview
+                                                    product={selectedProduct}
+                                                    template={template}
+                                                    selectedOptions={
+                                                        price?.selected ?? []
+                                                    }
+                                                    photoUrl={photoUrl}
+                                                    {...previewText}
+                                                />
+                                            }
+                                        />
+                                        <p className="mt-10 font-display text-xl">
+                                            Other gifts
+                                        </p>
+                                    </div>
+                                )}
                                 <GiftIdeas
                                     categories={categories}
                                     selected={selectedCategory}
@@ -568,118 +663,50 @@ export default function CreateGift({
                             </StepShell>
                         )}
 
-                        {step === 1 && selectedProduct && (
+                        {stepKey === 'website' && selectedProduct && (
                             <StepShell
-                                title="Pick a template"
-                                description="Tap a design to preview it. You'll personalize it in the next step."
+                                title="Choose your tap page design"
+                                description="This little website opens when they tap the NFC or scan the QR code. Open a demo to see it in action — you can switch designs anytime later."
                             >
-                                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                                    {templates.map((item) => (
-                                        <button
-                                            key={item.id}
-                                            type="button"
-                                            onClick={() => {
-                                                setData('template_id', item.id);
-                                                setTemplateSkipped(false);
-                                                setStepError(null);
-                                            }}
-                                            className={cn(
-                                                'group rounded-3xl border-2 bg-card p-2 text-left transition-all',
-                                                data.template_id === item.id
-                                                    ? 'border-rose shadow-[0_12px_30px_-16px_rgb(184_111_131/0.9)]'
-                                                    : 'border-transparent hover:border-rose/40',
-                                            )}
-                                        >
-                                            <div className="relative overflow-hidden rounded-2xl">
-                                                <TemplatePreview
-                                                    layout={item.layout}
-                                                    palette={item.palette}
-                                                    imageUrl={item.preview_url}
-                                                />
-                                                {data.template_id ===
-                                                    item.id && (
-                                                    <span className="absolute top-2 right-2 flex size-7 items-center justify-center rounded-full bg-rose text-white shadow">
-                                                        <Check
-                                                            className="size-4"
-                                                            strokeWidth={3}
-                                                        />
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <p className="mt-2 px-1 font-display">
-                                                {item.name}
-                                            </p>
-                                            <p className="px-1 pb-1 text-xs text-muted-foreground">
-                                                {item.layout_label}
-                                            </p>
-                                        </button>
-                                    ))}
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setData((current) => ({
-                                                ...current,
-                                                template_id: null,
-                                                design_mode: 'assisted',
-                                            }));
-                                            setTemplateSkipped(true);
-                                            setStepError(null);
-                                        }}
-                                        className={cn(
-                                            'flex flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed p-6 text-center transition-all',
-                                            templateSkipped
-                                                ? 'border-rose bg-blush-light/50 dark:bg-rose/10'
-                                                : 'border-plum/20 hover:border-rose/50',
-                                        )}
-                                    >
-                                        <Wand2 className="size-8 text-rose" />
-                                        <span className="font-display text-lg leading-tight">
-                                            Start from scratch
-                                        </span>
-                                        <span className="text-xs text-muted-foreground">
-                                            Describe your idea and our designers
-                                            create something original.
-                                        </span>
-                                    </button>
-                                </div>
-                                {templates.length > 0 && template && (
-                                    <div className="mt-6 grid items-center gap-6 rounded-3xl bg-blush-light/50 p-5 sm:grid-cols-[200px_1fr] dark:bg-muted/40">
-                                        <DesignPreview
-                                            product={selectedProduct}
-                                            template={template}
-                                            selectedOptions={
-                                                price?.selected ?? []
-                                            }
-                                            photoUrl={null}
-                                        />
-                                        <div>
-                                            <p className="text-xs font-semibold tracking-[0.2em] text-rose uppercase">
-                                                Example mockup
-                                            </p>
-                                            <p className="mt-1 font-display text-2xl">
-                                                {template.name}
-                                            </p>
-                                            <p className="mt-1 text-sm text-muted-foreground">
-                                                {template.description}
-                                            </p>
-                                            {template.mockup_url && (
-                                                <img
-                                                    src={template.mockup_url}
-                                                    alt={`${template.name} mockup`}
-                                                    className="mt-3 max-h-40 rounded-xl"
-                                                />
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
+                                <WebsitePicker
+                                    templates={experienceTemplates}
+                                    selected={data.experience_template}
+                                    onSelect={(value) => {
+                                        setData('experience_template', value);
+                                        setStepError(null);
+                                    }}
+                                />
+                                <InputError
+                                    message={errors.experience_template}
+                                    className="mt-2"
+                                />
                             </StepShell>
                         )}
 
-                        {step === 2 && selectedProduct && (
+                        {stepKey === 'customize' && selectedProduct && (
                             <StepShell
                                 title="Add your story"
-                                description="Choose how you'd like to create your design."
+                                description="Add photos, names and a message now — or skip and add them later from your order page."
                             >
+                                <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-dashed border-plum/25 bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+                                    <p className="text-sm text-muted-foreground">
+                                        <span className="font-medium text-foreground">
+                                            Not ready yet?
+                                        </span>{' '}
+                                        You can upload your photos and details
+                                        after you order. We will send your
+                                        design for approval before anything is
+                                        made.
+                                    </p>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="shrink-0 rounded-full"
+                                        onClick={skipPersonalize}
+                                    >
+                                        Skip — I'll add them later
+                                    </Button>
+                                </div>
                                 <div className="grid gap-3 sm:grid-cols-2">
                                     <ModeCard
                                         icon={Brush}
@@ -1002,7 +1029,7 @@ export default function CreateGift({
                             </StepShell>
                         )}
 
-                        {step === 3 && selectedProduct && (
+                        {stepKey === 'specs' && selectedProduct && (
                             <StepShell
                                 title="Size, finish & quantity"
                                 description="Your price updates as you choose."
@@ -1092,121 +1119,66 @@ export default function CreateGift({
                                         className="mt-2"
                                     />
                                 </fieldset>
-                            </StepShell>
-                        )}
-
-                        {step === 4 && selectedProduct && (
-                            <StepShell
-                                title="Preview your design"
-                                description={
-                                    designMode === 'self'
-                                        ? 'This is how your keepsake will look. Approve it to continue.'
-                                        : 'Here is your chosen starting point.'
-                                }
-                            >
-                                <div className="grid items-center gap-8 rounded-[2rem] bg-gradient-to-br from-blush-light via-cream to-cream-dark p-6 sm:p-10 md:grid-cols-[1.1fr_1fr] dark:from-muted dark:via-background dark:to-muted">
-                                    <DesignPreview
-                                        product={selectedProduct}
-                                        template={template}
-                                        selectedOptions={price?.selected ?? []}
-                                        photoUrl={photoUrl}
-                                        {...previewText}
-                                        detailed
-                                        className="mx-auto w-full max-w-sm"
-                                    />
-                                    <div className="space-y-4">
-                                        <p className="font-display text-2xl">
-                                            {selectedProduct.name}
-                                        </p>
-                                        <ul className="space-y-1.5 text-sm">
-                                            {price?.selected.map((option) => (
-                                                <li
-                                                    key={option.id}
-                                                    className="flex gap-2"
-                                                >
-                                                    <Check className="mt-0.5 size-4 shrink-0 text-rose" />
-                                                    <span>
-                                                        <span className="text-muted-foreground">
-                                                            {option.group_label}
-                                                            :
-                                                        </span>{' '}
-                                                        {option.name}
-                                                    </span>
-                                                </li>
-                                            ))}
-                                            <li className="flex gap-2">
-                                                <Check className="mt-0.5 size-4 shrink-0 text-rose" />
-                                                <span>
-                                                    <span className="text-muted-foreground">
-                                                        Quantity:
-                                                    </span>{' '}
-                                                    {data.quantity}
-                                                </span>
-                                            </li>
-                                        </ul>
-                                        {data.photos.length > 1 && (
-                                            <p className="text-xs text-muted-foreground">
-                                                + {data.photos.length - 1} more{' '}
-                                                {data.photos.length === 2
-                                                    ? 'photo'
-                                                    : 'photos'}{' '}
-                                                attached for our designers.
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {designMode === 'self' ? (
-                                    <label
-                                        className={cn(
-                                            'mt-6 flex cursor-pointer gap-4 rounded-2xl border-2 bg-card p-5 transition',
-                                            data.approve_preview
-                                                ? 'border-rose'
-                                                : 'border-border',
-                                        )}
-                                    >
-                                        <Checkbox
-                                            checked={data.approve_preview}
-                                            onCheckedChange={(checked) => {
-                                                setData(
-                                                    'approve_preview',
-                                                    checked === true,
-                                                );
-                                                setStepError(null);
-                                            }}
-                                            className="mt-0.5 size-5"
+                                {needsPreviewApproval && (
+                                    <div className="mt-10 grid items-center gap-6 rounded-[2rem] bg-gradient-to-br from-blush-light via-cream to-cream-dark p-6 sm:grid-cols-[220px_1fr] dark:from-muted dark:via-background dark:to-muted">
+                                        <DesignPreview
+                                            product={selectedProduct}
+                                            template={template}
+                                            selectedOptions={
+                                                price?.selected ?? []
+                                            }
+                                            photoUrl={photoUrl}
+                                            {...previewText}
+                                            className="mx-auto w-full max-w-[220px]"
                                         />
-                                        <span>
-                                            <span className="block font-medium">
-                                                I approve this design preview
+                                        <label
+                                            className={cn(
+                                                'flex cursor-pointer gap-4 rounded-2xl border-2 bg-card p-5 transition',
+                                                data.approve_preview
+                                                    ? 'border-rose'
+                                                    : 'border-border',
+                                            )}
+                                        >
+                                            <Checkbox
+                                                checked={data.approve_preview}
+                                                onCheckedChange={(checked) => {
+                                                    setData(
+                                                        'approve_preview',
+                                                        checked === true,
+                                                    );
+                                                    setStepError(null);
+                                                }}
+                                                className="mt-0.5 size-5"
+                                            />
+                                            <span>
+                                                <span className="block font-medium">
+                                                    I approve this design
+                                                    preview
+                                                </span>
+                                                <span className="mt-1 block text-sm text-muted-foreground">
+                                                    Our studio places your
+                                                    photos and text as
+                                                    previewed. If anything won't
+                                                    print well, we'll send a
+                                                    proof to approve before
+                                                    production.
+                                                </span>
                                             </span>
-                                            <span className="mt-1 block text-sm text-muted-foreground">
-                                                Our studio will place your
-                                                photos and text exactly as
-                                                previewed. If we notice anything
-                                                that won't print well, we'll
-                                                send you a proof to approve
-                                                before production.
-                                            </span>
-                                        </span>
-                                    </label>
-                                ) : (
-                                    <div className="mt-6 flex gap-4 rounded-2xl border border-plum/15 bg-card p-5">
+                                        </label>
+                                    </div>
+                                )}
+                                {!needsPreviewApproval && (
+                                    <div className="mt-10 flex gap-4 rounded-2xl border border-plum/15 bg-card p-5">
                                         <ShieldCheck className="size-6 shrink-0 text-rose" />
-                                        <div className="text-sm">
-                                            <p className="font-medium">
+                                        <p className="text-sm text-muted-foreground">
+                                            <span className="block font-medium text-foreground">
                                                 You'll approve your design
                                                 before we make it
-                                            </p>
-                                            <p className="mt-1 text-muted-foreground">
-                                                After your payment is verified,
-                                                our designers prepare your
-                                                design and post it to your
-                                                account. You can approve it or
-                                                request revisions — production
-                                                starts only after your approval.
-                                            </p>
-                                        </div>
+                                            </span>
+                                            {data.personalize_later
+                                                ? 'After you order, add your photos and details from your order page. We prepare your design and send it for your approval.'
+                                                : 'After your payment is verified, our designers prepare your design and post it to your account for approval.'}
+                                        </p>
                                     </div>
                                 )}
                                 <InputError
@@ -1216,7 +1188,7 @@ export default function CreateGift({
                             </StepShell>
                         )}
 
-                        {step === 5 && (
+                        {stepKey === 'checkout' && (
                             <StepShell
                                 title="Delivery & payment"
                                 description="Almost there! Tell us where to send your gift."
@@ -1481,32 +1453,11 @@ export default function CreateGift({
                                 {stepError}
                             </p>
                         )}
-
-                        {/* Desktop navigation */}
-                        <div className="mt-10 hidden items-center justify-between lg:flex">
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                onClick={() => goTo(step - 1)}
-                                disabled={step === 0}
-                                className="rounded-full"
-                            >
-                                <ArrowLeft className="size-4" /> Back
-                            </Button>
-                            <PrimaryAction
-                                isLast={isLastStep}
-                                processing={form.processing}
-                                onNext={next}
-                                onSubmit={submit}
-                                total={price ? money(price.total) : null}
-                                disabled={step === 0 && !selectedProduct}
-                            />
-                        </div>
                     </div>
 
                     <aside className="hidden lg:block">
                         <div className="sticky top-28 space-y-5">
-                            {selectedProduct && step >= 1 && (
+                            {selectedProduct && stepKey !== 'product' && (
                                 <div className="rounded-3xl bg-gradient-to-br from-blush-light to-cream-dark/70 p-6 dark:from-muted dark:to-background">
                                     <p className="mb-4 text-center text-xs font-semibold tracking-[0.2em] text-rose uppercase">
                                         Live preview
@@ -1536,6 +1487,42 @@ export default function CreateGift({
                                           : null
                                 }
                             />
+                            <div className="flex items-center gap-3">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="size-12 shrink-0 rounded-full"
+                                    onClick={() => goTo(step - 1)}
+                                    disabled={step === 0}
+                                    aria-label="Back"
+                                >
+                                    <ArrowLeft className="size-5" />
+                                </Button>
+                                <div className="flex-1 [&>button]:w-full">
+                                    <PrimaryAction
+                                        isLast={isLastStep}
+                                        processing={form.processing}
+                                        onNext={next}
+                                        onSubmit={submit}
+                                        total={
+                                            price ? money(price.total) : null
+                                        }
+                                        disabled={
+                                            step === 0 && !selectedProduct
+                                        }
+                                    />
+                                </div>
+                            </div>
+                            {stepKey === 'customize' && (
+                                <button
+                                    type="button"
+                                    onClick={skipPersonalize}
+                                    className="w-full text-center text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                                >
+                                    Skip personalizing for now
+                                </button>
+                            )}
                             <p className="flex items-center gap-2 px-2 text-xs text-muted-foreground">
                                 <BadgeCheck className="size-4 text-rose" />{' '}
                                 Nothing is produced until your design is
@@ -1572,7 +1559,7 @@ export default function CreateGift({
                             </>
                         ) : (
                             <p className="text-sm text-muted-foreground">
-                                {WIZARD_STEPS[step].description}
+                                {steps[step]?.description}
                             </p>
                         )}
                     </div>

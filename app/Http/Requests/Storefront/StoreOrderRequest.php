@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Storefront;
 
 use App\Enums\DesignMode;
+use App\Enums\ExperienceTemplate;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Template;
@@ -25,29 +26,32 @@ class StoreOrderRequest extends FormRequest
     {
         $product = $this->product();
         $isSelf = $this->input('design_mode') === DesignMode::SelfCustomized->value;
+        $later = $this->boolean('personalize_later');
 
         return [
             'category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')->where('is_active', true)],
             'product_id' => ['required', 'integer', Rule::exists('products', 'id')->where('is_active', true)],
-            'template_id' => [Rule::requiredIf($isSelf), 'nullable', 'integer', Rule::exists('templates', 'id')->where('is_active', true)],
+            'template_id' => [Rule::requiredIf($isSelf && ! $later), 'nullable', 'integer', Rule::exists('templates', 'id')->where('is_active', true)],
             'design_mode' => ['required', Rule::enum(DesignMode::class)],
             'option_ids' => ['array'],
             'option_ids.*' => ['integer'],
             'quantity' => ['required', 'integer', 'min:'.($product->min_quantity ?? 1), 'max:'.($product->max_quantity ?? 500)],
 
             'personalization' => ['array'],
-            'personalization.names' => [Rule::requiredIf($isSelf), 'nullable', 'string', 'max:120'],
+            'personalization.names' => [Rule::requiredIf($isSelf && ! $later), 'nullable', 'string', 'max:120'],
             'personalization.date' => ['nullable', 'string', 'max:60'],
             'personalization.message' => ['nullable', 'string', 'max:300'],
             'personalization.song_title' => ['nullable', 'string', 'max:80'],
             'personalization.artist' => ['nullable', 'string', 'max:80'],
             'personalization.color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'personalization.design_brief' => [Rule::requiredIf(! $isSelf), 'nullable', 'string', 'max:2000'],
+            'personalization.design_brief' => [Rule::requiredIf(! $isSelf && ! $later), 'nullable', 'string', 'max:2000'],
             'personalization.instructions' => ['nullable', 'string', 'max:2000'],
 
             'photos' => ['array', 'max:'.max(1, $product->max_photos ?? 3)],
             'photos.*' => [File::image()->types(['jpg', 'jpeg', 'png', 'webp'])->max((int) config('taptale.max_upload_kilobytes'))],
-            'approve_preview' => [Rule::excludeIf(! $isSelf), 'accepted'],
+            'approve_preview' => [Rule::excludeIf(! $isSelf || $later), 'accepted'],
+            'personalize_later' => ['boolean'],
+            'experience_template' => ['nullable', Rule::enum(ExperienceTemplate::class)],
 
             'customer_name' => ['required', 'string', 'max:120'],
             'customer_email' => ['required', 'email', 'max:255'],

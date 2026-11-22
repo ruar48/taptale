@@ -1,17 +1,19 @@
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { WIZARD_STEPS } from '@/lib/wizard';
+import type { WizardStep } from '@/lib/wizard';
 
 export function WizardProgress({
+    steps,
     current,
     furthest,
     onSelect,
 }: {
+    steps: WizardStep[];
     current: number;
     furthest: number;
     onSelect: (step: number) => void;
 }) {
-    const percentage = (current / (WIZARD_STEPS.length - 1)) * 100;
+    const percentage = (current / (steps.length - 1)) * 100;
 
     return (
         <div>
@@ -19,10 +21,10 @@ export function WizardProgress({
             <div className="md:hidden">
                 <div className="flex items-baseline justify-between text-sm">
                     <span className="font-medium text-plum dark:text-blush">
-                        Step {current + 1} of {WIZARD_STEPS.length}
+                        Step {current + 1} of {steps.length}
                     </span>
                     <span className="text-muted-foreground">
-                        {WIZARD_STEPS[current].title}
+                        {steps[current].title}
                     </span>
                 </div>
                 <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-plum/10">
@@ -35,7 +37,7 @@ export function WizardProgress({
 
             {/* Desktop: full stepper */}
             <ol className="hidden items-start md:flex">
-                {WIZARD_STEPS.map((step, index) => {
+                {steps.map((step, index) => {
                     const isDone = index < current;
                     const isCurrent = index === current;
                     const isReachable = index <= furthest;

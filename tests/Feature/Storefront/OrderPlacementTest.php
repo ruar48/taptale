@@ -248,3 +248,49 @@ test('orders without NFC do not get a digital experience', function () {
 
     expect(Order::sole()->experience)->toBeNull();
 });
+
+test('personalization can be skipped and added after ordering', function () {
+    $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
+        'design_mode' => DesignMode::SelfCustomized->value,
+        'personalize_later' => true,
+        'personalization' => [],
+        'approve_preview' => false,
+    ]))->assertSessionHasNoErrors();
+
+    $order = Order::sole();
+
+    expect($order->preview_approved_at)->toBeNull()
+        ->and($order->isDesignApproved())->toBeFalse()
+        ->and($order->customization_fee)->toBe(0)
+        ->and($order->activities()->sole()->body)->toContain('Add your photos and details');
+});
+
+test('without skipping, a self-designed order still needs names and approval', function () {
+    $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
+        'personalize_later' => false,
+        'personalization' => [],
+        'approve_preview' => false,
+    ]))->assertSessionHasErrors(['personalization.names', 'approve_preview']);
+});
+
+test('the chosen website design becomes the memory page design', function () {
+    $nfc = ProductOption::factory()->for($this->product)->group(OptionGroup::Nfc)->costing(15000)->create([
+        'enables_digital_experience' => true,
+    ]);
+
+    $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
+        'option_ids' => [$this->small->id, $nfc->id],
+        'experience_template' => 'our_song',
+    ]))->assertSessionHasNoErrors();
+
+    $experience = Order::sole()->experience;
+
+    expect($experience->template->value)->toBe('our_song')
+        ->and($experience->theme)->toBe('midnight');
+});
+
+test('an unknown website design is rejected', function () {
+    $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
+        'experience_template' => 'mystery',
+    ]))->assertSessionHasErrors('experience_template');
+});
