@@ -56,6 +56,11 @@ class PaymentController extends Controller
         ]);
 
         DB::transaction(function () use ($request, $payment, $validated): void {
+            // Two admins clicking "verify" at once: the second waits here,
+            // then finds the payment already reviewed.
+            $payment = Payment::query()->lockForUpdate()->findOrFail($payment->id);
+            $this->ensureSubmitted($payment);
+
             $payment->update([
                 'status' => PaymentStatus::Verified,
                 'reviewed_by' => $request->user()->id,
@@ -119,18 +124,29 @@ class PaymentController extends Controller
             'notes' => ['required', 'string', 'max:1000'],
         ], ['amount.max' => 'A refund cannot exceed the amount paid.']);
 
-        $order->payments()->create([
-            'kind' => PaymentKind::Refund,
-            'status' => PaymentStatus::Verified,
-            'amount' => $this->toCentavos($validated['amount']),
-            'reference_number' => $validated['reference_number'] ?? null,
-            'notes' => $validated['notes'],
-            'reviewed_by' => $request->user()->id,
-            'reviewed_at' => now(),
-            'payment_method_id' => $order->payment_method_id,
-        ]);
+        DB::transaction(function () use ($request, $order, $validated): void {
+            // Two admins refunding at once: lock the order and re-check what
+            // is left to refund, so the total can never exceed what was paid.
+            $order = Order::query()->lockForUpdate()->findOrFail($order->id)->load('payments');
+            $amount = $this->toCentavos($validated['amount']);
 
-        $order->recordActivity(ActivityType::Refunded, "Refund issued: {$validated['notes']}", $request->user());
+            if ($amount > $order->amountPaid()) {
+                throw ValidationException::withMessages(['amount' => 'A refund cannot exceed the amount paid.']);
+            }
+
+            $order->payments()->create([
+                'kind' => PaymentKind::Refund,
+                'status' => PaymentStatus::Verified,
+                'amount' => $amount,
+                'reference_number' => $validated['reference_number'] ?? null,
+                'notes' => $validated['notes'],
+                'reviewed_by' => $request->user()->id,
+                'reviewed_at' => now(),
+                'payment_method_id' => $order->payment_method_id,
+            ]);
+
+            $order->recordActivity(ActivityType::Refunded, "Refund issued: {$validated['notes']}", $request->user());
+        });
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Refund recorded.')]);
 

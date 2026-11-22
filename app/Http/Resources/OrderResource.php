@@ -49,7 +49,8 @@ class OrderResource extends JsonResource
             'amount_paid' => $this->whenLoaded('payments', fn (): int => $this->amountPaid()),
             'balance_due' => $this->whenLoaded('payments', fn (): int => $this->balanceDue()),
             'is_design_approved' => $this->when($this->resource->relationLoaded('latestProof'), fn (): bool => $this->isDesignApproved()),
-            'can_cancel' => $this->status->isCancellableByCustomer(),
+            'can_cancel' => $this->status->isCancellableByCustomer()
+                && (! $this->resource->relationLoaded('payments') || $this->amountPaid() === 0),
             'accepts_payment' => $this->status->acceptsPayment(),
             'customer_name' => $this->customer_name,
             'customer_email' => $this->customer_email,

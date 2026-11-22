@@ -690,6 +690,16 @@ export default function CreateGift({
                 saveCurrentDraft();
                 void savePhotos(data.photos);
 
+                // Problems with the order as a whole (e.g. too many unpaid
+                // orders) have no field to sit under.
+                const orderError = (
+                    serverErrors as Partial<Record<string, string>>
+                ).order;
+
+                if (orderError) {
+                    setStepError(orderError);
+                }
+
                 const firstKey = Object.keys(serverErrors)[0] ?? '';
                 const key = ERROR_STEPS.find(([pattern]) =>
                     pattern.test(firstKey),

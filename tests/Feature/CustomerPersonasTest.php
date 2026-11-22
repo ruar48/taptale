@@ -283,23 +283,35 @@ describe('Key guesser, trying to open pages without the tag', function () {
 });
 
 describe('Promo abuser, trying to drain or bend discounts', function () {
-    test('placing orders with a limited code and cancelling them gives the uses back', function () {
-        $customer = User::factory()->create();
+    test('placing orders with a limited code from two accounts and cancelling them gives the uses back', function () {
+        $accounts = User::factory()->count(2)->create();
         $checkout = personaCheckout();
         $promoCode = PromoCode::factory()->create(['code' => 'FIRST2', 'max_uses' => 2]);
 
-        foreach (range(1, 2) as $attempt) {
-            $this->actingAs($customer)->post(route('orders.store'), [...$checkout, 'promo_code' => 'FIRST2', 'customer_notes' => "Attempt {$attempt}"])->assertSessionHasNoErrors();
+        foreach ($accounts as $account) {
+            $this->actingAs($account)->post(route('orders.store'), [...$checkout, 'promo_code' => 'FIRST2'])->assertSessionHasNoErrors();
         }
 
         expect(Order::count())->toBe(2)
-            ->and($promoCode->fresh()->uses)->toBe(2);
+            ->and($promoCode->fresh()->heldUses())->toBe(2);
 
-        foreach (Order::all() as $order) {
-            $this->actingAs($customer)->post(route('account.orders.cancel', $order))->assertSessionHasNoErrors();
+        foreach (Order::with('user')->get() as $order) {
+            $this->actingAs($order->user)->post(route('account.orders.cancel', $order))->assertSessionHasNoErrors();
         }
 
-        expect($promoCode->fresh()->uses)->toBe(0);
+        expect($promoCode->fresh())
+            ->uses->toBe(0)
+            ->heldUses()->toBe(0);
+    });
+
+    test('one account cannot use the same code twice', function () {
+        $customer = User::factory()->create();
+        $checkout = personaCheckout();
+        PromoCode::factory()->create(['code' => 'ONCE']);
+
+        $this->actingAs($customer)->post(route('orders.store'), [...$checkout, 'promo_code' => 'ONCE', 'customer_notes' => 'First'])->assertSessionHasNoErrors();
+        $this->actingAs($customer)->post(route('orders.store'), [...$checkout, 'promo_code' => 'ONCE', 'customer_notes' => 'Second'])
+            ->assertSessionHasErrors(['promo_code' => 'You have already used this promo code.']);
     });
 
     test('sending his own discount and total is ignored', function () {

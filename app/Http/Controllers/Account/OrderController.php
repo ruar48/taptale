@@ -73,6 +73,14 @@ class OrderController extends Controller
             ]);
         }
 
+        // Once money is in, cancelling means a refund the studio has to
+        // arrange, so it is never done from a button.
+        if ($order->load('payments')->amountPaid() > 0) {
+            throw ValidationException::withMessages([
+                'order' => 'You have already paid part of this order, so it can\'t be cancelled online. Please contact us and we will arrange your refund.',
+            ]);
+        }
+
         $openCheckouts = $order->payments()
             ->where('status', PaymentStatus::Pending)
             ->whereNotNull('gateway_checkout_id')

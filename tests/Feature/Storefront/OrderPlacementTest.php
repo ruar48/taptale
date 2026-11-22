@@ -429,9 +429,41 @@ test('promo codes that cannot be used are rejected without placing the order', f
     'inactive' => [['is_active' => false], 'This promo code is not active.'],
     'expired' => [['ends_at' => now()->subDay()], 'This promo code is not active.'],
     'not started' => [['starts_at' => now()->addDay()], 'This promo code is not active.'],
-    'used up' => [['max_uses' => 3, 'uses' => 3], 'This promo code has been fully used.'],
     'below minimum' => [['min_subtotal' => 50000], 'This promo code needs a subtotal of at least ₱500.00.'],
 ]);
+
+test('a code whose uses are all taken by paid and recent unpaid orders is fully used', function () {
+    $promoCode = PromoCode::factory()->create(['code' => 'FIRST2', 'max_uses' => 2]);
+    Order::factory()->for($promoCode)->status(OrderStatus::InProduction)->create();
+    Order::factory()->for($promoCode)->status(OrderStatus::AwaitingPayment)->create(['created_at' => now()->subHours(2)]);
+
+    $this->actingAs($this->customer)
+        ->post(route('orders.store'), orderPayload($this, ['promo_code' => 'FIRST2']))
+        ->assertSessionHasErrors(['promo_code' => 'This promo code has been fully used.']);
+});
+
+test('an unpaid order stops holding its promo use after the hold window', function () {
+    $promoCode = PromoCode::factory()->create(['code' => 'FIRST1', 'max_uses' => 1]);
+    Order::factory()->for($promoCode)->status(OrderStatus::AwaitingPayment)->create([
+        'created_at' => now()->subHours((int) config('taptale.promo_hold_hours') + 1),
+    ]);
+
+    $this->actingAs($this->customer)
+        ->post(route('orders.store'), orderPayload($this, ['promo_code' => 'FIRST1']))
+        ->assertSessionHasNoErrors();
+
+    expect($promoCode->heldUses())->toBe(1);
+});
+
+test('a customer with too many unpaid orders is asked to pay or cancel one first', function () {
+    config(['taptale.max_unpaid_orders' => 2]);
+    Order::factory()->count(2)->for($this->customer)->status(OrderStatus::AwaitingPayment)->create();
+    Order::factory()->for($this->customer)->status(OrderStatus::Completed)->create();
+
+    $this->actingAs($this->customer)
+        ->post(route('orders.store'), orderPayload($this))
+        ->assertSessionHasErrors(['order' => 'You have 2 orders waiting for payment. Please pay for or cancel one of them before placing another.']);
+});
 
 test('an unknown promo code is rejected', function () {
     $this->actingAs($this->customer)

@@ -250,6 +250,14 @@ class Order extends Model
     }
 
     /**
+     * @return BelongsTo<PromoCode, $this>
+     */
+    public function promoCode(): BelongsTo
+    {
+        return $this->belongsTo(PromoCode::class);
+    }
+
+    /**
      * The customer's review of this order, if they left one.
      *
      * @return HasOne<Testimonial, $this>

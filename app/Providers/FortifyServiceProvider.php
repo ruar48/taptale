@@ -125,7 +125,7 @@ class FortifyServiceProvider extends ServiceProvider
             $network = ThrottleRequestsByNetwork::visitorKey($request);
 
             return [
-                Limit::perMinute(5)->by('account:'.Str::transliterate(Str::lower(is_string($email) ? $email : '')).'|'.$network),
+                Limit::perMinute(5)->by(Str::transliterate(Str::lower(is_string($email) ? $email : '')).'|'.$network),
                 Limit::perMinute(30)->by('network:'.$network),
             ];
         });
