@@ -497,20 +497,23 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
         (details?.synced_lyrics.length ?? 0) > 0 ||
         (details?.plain_lyrics.length ?? 0) > 0;
     const showsLyricsColumn = (loading && !details) || (!!details && hasLyrics);
+    const hasMedia = !!youTubeId || !!embed;
 
     /*
-     * On phones the full-size layout keeps its look: the record sits beside
-     * the lyrics like on desktop, with the controls and video below it. The
-     * two column wrappers become `contents` there so their children can be
-     * placed on one shared grid; from `md` up they are regular columns.
+     * On phones the full-size layout keeps the desktop feel: the record sits
+     * beside the video, the play button beside the lyrics, and the waveform
+     * runs underneath. The two column wrappers become `contents` there so
+     * their children share one grid; from `md` up they are regular columns.
      */
+    const place = (mobile: string) => (compact ? '' : mobile);
+
     return (
         <div
             className={cn(
                 'grid items-center',
                 compact
                     ? 'gap-10'
-                    : 'grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] gap-x-4 gap-y-6 sm:gap-x-8 md:grid-cols-[0.85fr_1.15fr] md:gap-14',
+                    : 'grid-cols-2 gap-x-4 gap-y-6 sm:gap-x-8 md:grid-cols-[0.85fr_1.15fr] md:gap-14',
             )}
         >
             {source === 'preview' && details?.preview_url && (
@@ -530,11 +533,10 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                 )}
             >
                 <div
-                    className={cn(
-                        !compact &&
-                            (showsLyricsColumn
-                                ? 'max-md:col-start-1 max-md:row-start-1'
-                                : 'max-md:col-span-2 max-md:row-start-1 max-md:mx-auto max-md:w-full max-md:max-w-[16rem]'),
+                    className={place(
+                        hasMedia
+                            ? 'max-md:col-start-1 max-md:row-start-1'
+                            : 'max-md:col-span-2 max-md:row-start-1 max-md:mx-auto max-md:w-full max-md:max-w-[16rem]',
                     )}
                 >
                     <Vinyl
@@ -546,9 +548,10 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
 
                 <div
                     className={cn(
-                        compact
-                            ? 'mt-8'
-                            : 'max-md:col-span-2 max-md:row-start-2 md:mt-8',
+                        'mt-8',
+                        place(
+                            'max-md:col-span-2 max-md:row-start-3 max-md:mt-0',
+                        ),
                     )}
                 >
                     <Waveform
@@ -564,54 +567,73 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                             {formatTime(duration)}
                         </span>
                     </div>
-                    <div className="mt-6 flex items-center gap-4">
-                        {canPlay && (
-                            <button
-                                type="button"
-                                onClick={toggle}
-                                className="relative flex size-14 shrink-0 items-center justify-center rounded-full bg-[var(--x-accent)] text-[var(--x-accent-ink)] shadow-lg transition hover:scale-105"
-                                aria-label={
-                                    playing ? 'Pause our song' : 'Play our song'
-                                }
-                            >
-                                {playing ? (
-                                    <Pause
-                                        className="size-6"
-                                        fill="currentColor"
-                                    />
-                                ) : (
-                                    <Play
-                                        className="ml-0.5 size-6"
-                                        fill="currentColor"
-                                    />
-                                )}
-                                {playing && (
-                                    <span className="absolute inset-0 animate-ping rounded-full bg-[var(--x-accent)] opacity-25" />
-                                )}
-                            </button>
-                        )}
-                        <div className="min-w-0 text-left">
-                            <EditableText
-                                block
-                                field="song_title"
-                                value={experience.song_title}
-                                placeholder="Add the song title"
-                                label="Song title"
-                                className="truncate font-display text-2xl sm:text-3xl"
-                            >
-                                {experience.song_title}
-                            </EditableText>
-                            <EditableText
-                                block
-                                field="song_artist"
-                                value={experience.song_artist}
-                                placeholder="Add the artist"
-                                label="Artist"
-                                className="truncate opacity-70"
-                            >
-                                {experience.song_artist}
-                            </EditableText>
-                        </div>
+                </div>
+
+                <div
+                    className={cn(
+                        'mt-6 flex min-w-0 items-center gap-4',
+                        place(
+                            cn(
+                                'max-md:row-start-2 max-md:mt-0 max-md:gap-3',
+                                showsLyricsColumn
+                                    ? 'max-md:col-start-1'
+                                    : 'max-md:col-span-2',
+                            ),
+                        ),
+                    )}
+                >
+                    {canPlay && (
+                        <button
+                            type="button"
+                            onClick={toggle}
+                            className={cn(
+                                'relative flex size-14 shrink-0 items-center justify-center rounded-full bg-[var(--x-accent)] text-[var(--x-accent-ink)] shadow-lg transition hover:scale-105',
+                                place('max-md:size-12'),
+                            )}
+                            aria-label={
+                                playing ? 'Pause our song' : 'Play our song'
+                            }
+                        >
+                            {playing ? (
+                                <Pause className="size-6" fill="currentColor" />
+                            ) : (
+                                <Play
+                                    className="ml-0.5 size-6"
+                                    fill="currentColor"
+                                />
+                            )}
+                            {playing && (
+                                <span className="absolute inset-0 animate-ping rounded-full bg-[var(--x-accent)] opacity-25" />
+                            )}
+                        </button>
+                    )}
+                    <div className="min-w-0 text-left">
+                        <EditableText
+                            block
+                            field="song_title"
+                            value={experience.song_title}
+                            placeholder="Add the song title"
+                            label="Song title"
+                            className={cn(
+                                'truncate font-display text-2xl sm:text-3xl',
+                                place('max-sm:text-xl'),
+                            )}
+                        >
+                            {experience.song_title}
+                        </EditableText>
+                        <EditableText
+                            block
+                            field="song_artist"
+                            value={experience.song_artist}
+                            placeholder="Add the artist"
+                            label="Artist"
+                            className={cn(
+                                'truncate opacity-70',
+                                place('max-sm:text-sm'),
+                            )}
+                        >
+                            {experience.song_artist}
+                        </EditableText>
                     </div>
                 </div>
             </div>
@@ -625,11 +647,11 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                     <div
                         className={cn(
                             'min-w-0',
-                            !compact && 'max-md:col-start-2 max-md:row-start-1',
+                            place('max-md:col-start-2 max-md:row-start-2'),
                         )}
                     >
                         {loading && !details && (
-                            <div className="space-y-3 md:mt-6">
+                            <div className="mt-6 space-y-3">
                                 {[70, 50, 80, 40].map((width) => (
                                     <div
                                         key={width}
@@ -641,16 +663,58 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                         )}
 
                         {details && hasLyrics && (
-                            <div>
-                                <Lyrics
-                                    synced={details.synced_lyrics}
-                                    plain={details.plain_lyrics}
-                                    current={clock.current}
-                                    isSynced={
-                                        fullSong &&
-                                        details.synced_lyrics.length > 0
-                                    }
-                                    compact={compact}
+                            <Lyrics
+                                synced={details.synced_lyrics}
+                                plain={details.plain_lyrics}
+                                current={clock.current}
+                                isSynced={
+                                    fullSong && details.synced_lyrics.length > 0
+                                }
+                                compact={compact}
+                            />
+                        )}
+                    </div>
+                )}
+
+                {hasMedia && (
+                    <div
+                        className={cn(
+                            'mt-6 min-w-0',
+                            place(
+                                'max-md:col-start-2 max-md:row-start-1 max-md:mt-0',
+                            ),
+                        )}
+                    >
+                        {youTubeId && (
+                            <div className="overflow-hidden rounded-2xl bg-black/20 shadow-xl">
+                                {/* YouTube asks for its player to stay visible (about 200px). */}
+                                <div
+                                    ref={youTube.containerRef}
+                                    className={cn(
+                                        'aspect-video min-h-[200px] w-full',
+                                        place(
+                                            'max-md:aspect-square max-md:min-h-0',
+                                        ),
+                                    )}
+                                />
+                            </div>
+                        )}
+
+                        {embed && (
+                            <div
+                                className={cn(
+                                    'overflow-hidden rounded-2xl shadow-xl',
+                                    embed.kind === 'video'
+                                        ? 'aspect-video'
+                                        : 'h-[152px]',
+                                )}
+                            >
+                                <iframe
+                                    src={embed.src}
+                                    title="Our song"
+                                    className="size-full"
+                                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                                    loading="lazy"
                                 />
                             </div>
                         )}
@@ -660,38 +724,9 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                 <div
                     className={cn(
                         'min-w-0',
-                        !compact && 'max-md:col-span-2 max-md:row-start-3',
+                        place('max-md:col-span-2 max-md:row-start-4'),
                     )}
                 >
-                    {youTubeId && (
-                        <div className="mt-6 overflow-hidden rounded-2xl bg-black/20 shadow-xl">
-                            {/* YouTube's terms require its player to stay visible (min 200px). */}
-                            <div
-                                ref={youTube.containerRef}
-                                className="aspect-video min-h-[200px] w-full"
-                            />
-                        </div>
-                    )}
-
-                    {embed && (
-                        <div
-                            className={cn(
-                                'mt-6 overflow-hidden rounded-2xl shadow-xl',
-                                embed.kind === 'video'
-                                    ? 'aspect-video'
-                                    : 'h-[152px]',
-                            )}
-                        >
-                            <iframe
-                                src={embed.src}
-                                title="Our song"
-                                className="size-full"
-                                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                                loading="lazy"
-                            />
-                        </div>
-                    )}
-
                     {!embed && experience.music_url && (
                         <a
                             href={experience.music_url}
