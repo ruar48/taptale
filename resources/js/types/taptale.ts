@@ -16,14 +16,14 @@ export type Category = CategorySummary & {
 };
 
 export type OptionGroupValue =
-    | "size"
-    | "shape"
-    | "material"
-    | "color"
-    | "thickness"
-    | "nfc"
-    | "packaging"
-    | "addon";
+    | 'size'
+    | 'shape'
+    | 'material'
+    | 'color'
+    | 'thickness'
+    | 'nfc'
+    | 'packaging'
+    | 'addon';
 
 export type ProductOption = {
     id: number;
@@ -41,18 +41,18 @@ export type ProductOption = {
 };
 
 export type ArtStyle =
-    | "acrylic"
-    | "nfc"
-    | "qr"
-    | "photo"
-    | "keepsake"
-    | "cd"
-    | "music"
-    | "strip"
-    | "tag"
-    | "wood"
-    | "diecut"
-    | "calendar";
+    | 'acrylic'
+    | 'nfc'
+    | 'qr'
+    | 'photo'
+    | 'keepsake'
+    | 'cd'
+    | 'music'
+    | 'strip'
+    | 'tag'
+    | 'wood'
+    | 'diecut'
+    | 'calendar';
 
 export type Product = {
     id: number;
@@ -83,19 +83,19 @@ export type Product = {
 };
 
 export type TemplateLayout =
-    | "polaroid"
-    | "heart"
-    | "arch"
-    | "celestial"
-    | "floral"
-    | "minimal"
-    | "mini_cd"
-    | "music_player"
-    | "photo_strip"
-    | "tap_tag"
-    | "engraved"
-    | "die_cut"
-    | "calendar";
+    | 'polaroid'
+    | 'heart'
+    | 'arch'
+    | 'celestial'
+    | 'floral'
+    | 'minimal'
+    | 'mini_cd'
+    | 'music_player'
+    | 'photo_strip'
+    | 'tap_tag'
+    | 'engraved'
+    | 'die_cut'
+    | 'calendar';
 
 export type Palette = {
     background: string;
@@ -132,7 +132,7 @@ export type PaymentMethod = {
     sort_order: number;
 };
 
-export type StatusTone = "amber" | "sky" | "rose" | "plum" | "emerald" | "zinc";
+export type StatusTone = 'amber' | 'sky' | 'rose' | 'plum' | 'emerald' | 'zinc';
 
 export type StatusOption = {
     value: string;
@@ -142,7 +142,7 @@ export type StatusOption = {
 
 export type OrderFile = {
     id: number;
-    kind: "photo" | "reference" | "additional";
+    kind: 'photo' | 'reference' | 'additional';
     kind_label: string;
     original_name: string;
     mime_type: string;
@@ -155,7 +155,7 @@ export type OrderFile = {
 export type DesignProof = {
     id: number;
     version: number;
-    status: "awaiting_response" | "approved" | "revision_requested";
+    status: 'awaiting_response' | 'approved' | 'revision_requested';
     status_label: string;
     designer_notes: string | null;
     customer_comment: string | null;
@@ -177,9 +177,9 @@ export type OrderActivity = {
 
 export type Payment = {
     id: number;
-    kind: "payment" | "refund";
+    kind: 'payment' | 'refund';
     kind_label: string;
-    status: "pending" | "submitted" | "verified" | "rejected" | "expired";
+    status: 'pending' | 'submitted' | 'verified' | 'rejected' | 'expired';
     status_label: string;
     amount: number;
     reference_number: string | null;
@@ -198,39 +198,39 @@ export type Payment = {
 };
 
 /** Whether raining photos fall in front of the garden flowers or behind them. */
-export type PhotoRainLayer = "front" | "back";
+export type PhotoRainLayer = 'front' | 'back';
 
 export type ExperienceTemplateKey =
-    | "monthsary"
-    | "birthday"
-    | "love_story"
-    | "little_something"
-    | "digital_bouquet"
-    | "night_garden"
-    | "pink_garden"
-    | "lavender_garden"
-    | "golden_garden"
-    | "red_garden"
-    | "moonlight_garden"
-    | "blue_garden"
-    | "peach_garden"
-    | "mixed_garden"
-    | "rain_teal"
-    | "rain_pink"
-    | "rain_red"
-    | "rain_lavender"
-    | "rain_mixed"
-    | "girlfriends_day"
-    | "valentines"
-    | "apology"
-    | "our_song"
-    | "anniversary"
-    | "wedding"
-    | "save_the_date"
-    | "bestie"
-    | "family"
-    | "graduation"
-    | "classic";
+    | 'monthsary'
+    | 'birthday'
+    | 'love_story'
+    | 'little_something'
+    | 'digital_bouquet'
+    | 'night_garden'
+    | 'pink_garden'
+    | 'lavender_garden'
+    | 'golden_garden'
+    | 'red_garden'
+    | 'moonlight_garden'
+    | 'blue_garden'
+    | 'peach_garden'
+    | 'mixed_garden'
+    | 'rain_teal'
+    | 'rain_pink'
+    | 'rain_red'
+    | 'rain_lavender'
+    | 'rain_mixed'
+    | 'girlfriends_day'
+    | 'valentines'
+    | 'apology'
+    | 'our_song'
+    | 'anniversary'
+    | 'wedding'
+    | 'save_the_date'
+    | 'bestie'
+    | 'family'
+    | 'graduation'
+    | 'classic';
 
 export type ExperienceTemplateOption = {
     value: ExperienceTemplateKey;
@@ -248,7 +248,11 @@ export type ExperienceMoment = {
 };
 
 export type ExperienceSectionType =
-    "timeline" | "film_strip" | "scrapbook" | "album" | "note";
+    | 'timeline'
+    | 'film_strip'
+    | 'scrapbook'
+    | 'album'
+    | 'note';
 
 /** An extra section the owner added between the template's own sections. */
 export type ExperienceCustomSection = {
@@ -297,6 +301,8 @@ export type DigitalExperience = {
     music_url: string | null;
     song_title: string | null;
     song_artist: string | null;
+    song_ornament: 'none' | 'hearts';
+    song_background: 'theme' | 'hearts';
     song_details: SongDetails | null;
     audio_url: string | null;
     photos: { index: number; url: string }[];
@@ -335,7 +341,7 @@ export type Order = {
     status_label: string;
     status_tone: StatusTone;
     stage: number;
-    design_mode: "self" | "assisted";
+    design_mode: 'self' | 'assisted';
     design_mode_label: string;
     product_name: string;
     product_slug?: string | null;
@@ -389,7 +395,10 @@ export type Testimonial = {
 };
 
 export type FinanceEntryTypeValue =
-    "capital" | "expense" | "withdrawal" | "income";
+    | 'capital'
+    | 'expense'
+    | 'withdrawal'
+    | 'income';
 
 export type FinanceEntry = {
     id: number;

@@ -187,6 +187,41 @@ test('only known designs can be applied', function () {
         ->assertSessionHasErrors(['template', 'theme']);
 });
 
+test('the owner styles the song section with hearts', function () {
+    $experience = DigitalExperience::factory()->create();
+
+    expect($experience->fresh())
+        ->song_ornament->toBe('none')
+        ->song_background->toBe('theme');
+
+    $this->actingAs($experience->user)
+        ->patch(route('account.experiences.content', $experience), ['field' => 'song_ornament', 'value' => 'hearts'])
+        ->assertSessionHasNoErrors();
+
+    $this->actingAs($experience->user)
+        ->patch(route('account.experiences.content', $experience), ['field' => 'song_background', 'value' => 'hearts'])
+        ->assertSessionHasNoErrors();
+
+    expect($experience->fresh())
+        ->song_ornament->toBe('hearts')
+        ->song_background->toBe('hearts');
+
+    $this->get(route('experiences.show', $experience))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('experience.song_ornament', 'hearts')
+            ->where('experience.song_background', 'hearts'));
+});
+
+test('only known song section styles are accepted', function () {
+    $experience = DigitalExperience::factory()->create();
+
+    $this->actingAs($experience->user)
+        ->patch(route('account.experiences.content', $experience), ['field' => 'song_background', 'value' => 'neon'])
+        ->assertSessionHasErrors('value');
+
+    expect($experience->fresh()->song_background)->toBe('theme');
+});
+
 test('the owner edits text directly on the page', function () {
     $experience = DigitalExperience::factory()->create(['title' => 'Old title', 'message' => null]);
 

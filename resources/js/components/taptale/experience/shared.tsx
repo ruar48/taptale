@@ -1,12 +1,12 @@
-import { Camera, Heart, Loader2, Music, Pause, Pencil } from "lucide-react";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import { Camera, Heart, Loader2, Music, Pause, Pencil } from 'lucide-react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type {
     ExperiencePreset,
     ExperienceTheme,
-} from "@/components/taptale/experience/config";
-import { cn } from "@/lib/utils";
-import type { DigitalExperience, ExperienceMoment } from "@/types";
+} from '@/components/taptale/experience/config';
+import { cn } from '@/lib/utils';
+import type { DigitalExperience, ExperienceMoment } from '@/types';
 
 /** A photo slot in one of the owner's extra sections. */
 export type PhotoSlot = { section: string; slot: number };
@@ -38,7 +38,7 @@ export function useExperience(): ExperienceContextValue {
 
     if (!context) {
         throw new Error(
-            "useExperience must be used inside an experience page.",
+            'useExperience must be used inside an experience page.',
         );
     }
 
@@ -144,7 +144,7 @@ export function MusicButton() {
             type="button"
             onClick={toggle}
             className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 flex size-14 items-center justify-center rounded-full bg-[var(--x-accent)] text-[var(--x-accent-ink)] shadow-[0_10px_30px_-8px_rgb(0_0_0/0.5)] transition hover:scale-105"
-            aria-label={playing ? "Pause our song" : "Play our song"}
+            aria-label={playing ? 'Pause our song' : 'Play our song'}
         >
             {playing ? (
                 <Pause className="size-6" />
@@ -176,7 +176,7 @@ export function Reveal({
     useEffect(() => {
         const element = ref.current;
 
-        if (!element || typeof IntersectionObserver === "undefined") {
+        if (!element || typeof IntersectionObserver === 'undefined') {
             setVisible(true);
 
             return;
@@ -201,10 +201,10 @@ export function Reveal({
         <div
             ref={ref}
             className={cn(
-                "transition-all duration-1000 ease-out",
+                'transition-all duration-1000 ease-out',
                 visible
-                    ? "translate-y-0 opacity-100"
-                    : "translate-y-8 opacity-0",
+                    ? 'translate-y-0 opacity-100'
+                    : 'translate-y-8 opacity-0',
                 className,
             )}
             style={{ transitionDelay: `${delay}ms` }}
@@ -225,7 +225,7 @@ export function AddPhotoButton({
     moment,
     slot,
     multiple = false,
-    label = "Add photo",
+    label = 'Add photo',
     className,
     children,
 }: {
@@ -245,8 +245,8 @@ export function AddPhotoButton({
     return (
         <label
             className={cn(
-                "cursor-pointer",
-                context.uploading && "pointer-events-none opacity-70",
+                'cursor-pointer',
+                context.uploading && 'pointer-events-none opacity-70',
                 className,
             )}
         >
@@ -263,7 +263,7 @@ export function AddPhotoButton({
                         context.addPhotos(files, moment, slot);
                     }
 
-                    event.target.value = "";
+                    event.target.value = '';
                 }}
                 aria-label={label}
             />
@@ -274,7 +274,7 @@ export function AddPhotoButton({
                     ) : (
                         <Camera className="size-4" />
                     )}
-                    {context.uploading ? "Uploading…" : label}
+                    {context.uploading ? 'Uploading…' : label}
                 </span>
             )}
         </label>
@@ -306,7 +306,7 @@ export function PhotoFill({
                 moment={moment}
                 slot={slot}
                 className={cn(
-                    "group/add relative isolate flex flex-col items-center justify-center gap-2 overflow-hidden border-2 border-dashed border-white/80 text-white transition hover:brightness-105",
+                    'group/add relative isolate flex flex-col items-center justify-center gap-2 overflow-hidden border-2 border-dashed border-white/80 text-white transition hover:brightness-105',
                     className,
                 )}
             >
@@ -314,7 +314,7 @@ export function PhotoFill({
                     className="absolute inset-0 -z-10"
                     style={{
                         background:
-                            "linear-gradient(135deg, color-mix(in oklab, var(--x-accent) 70%, white), color-mix(in oklab, var(--x-accent) 30%, white))",
+                            'linear-gradient(135deg, color-mix(in oklab, var(--x-accent) 70%, white), color-mix(in oklab, var(--x-accent) 30%, white))',
                     }}
                 />
                 <span className="flex size-12 items-center justify-center rounded-full bg-white/90 text-[#B23A62] shadow transition group-hover/add:scale-110">
@@ -325,7 +325,7 @@ export function PhotoFill({
                     )}
                 </span>
                 <span className="rounded-full bg-black/25 px-3 py-1 text-xs font-semibold tracking-wide text-white backdrop-blur-sm">
-                    {context.uploading ? "Uploading…" : "Add photo"}
+                    {context.uploading ? 'Uploading…' : 'Add photo'}
                 </span>
             </AddPhotoButton>
         );
@@ -339,7 +339,7 @@ export function PhotoFill({
         return (
             <span
                 className={cn(
-                    "group/photo relative block overflow-hidden",
+                    'group/photo relative block overflow-hidden',
                     className,
                 )}
                 style={style}
@@ -350,8 +350,8 @@ export function PhotoFill({
                     loading="lazy"
                     onClick={onClick}
                     className={cn(
-                        "size-full rounded-[inherit] object-cover",
-                        onClick && "cursor-zoom-in",
+                        'size-full rounded-[inherit] object-cover',
+                        onClick && 'cursor-zoom-in',
                     )}
                 />
                 <label className="absolute right-2 bottom-2 inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-[#3A2A30] shadow-lg transition sm:opacity-0 sm:group-hover/photo:opacity-100">
@@ -367,7 +367,7 @@ export function PhotoFill({
                                 context.replacePhoto(photoIndex, file);
                             }
 
-                            event.target.value = "";
+                            event.target.value = '';
                         }}
                         aria-label="Change photo"
                     />
@@ -390,8 +390,8 @@ export function PhotoFill({
                 loading="lazy"
                 onClick={onClick}
                 className={cn(
-                    "object-cover",
-                    onClick && "cursor-zoom-in",
+                    'object-cover',
+                    onClick && 'cursor-zoom-in',
                     className,
                 )}
                 style={style}
@@ -401,10 +401,10 @@ export function PhotoFill({
 
     return (
         <div
-            className={cn("flex items-center justify-center", className)}
+            className={cn('flex items-center justify-center', className)}
             style={{
                 background:
-                    "linear-gradient(135deg, color-mix(in oklab, var(--x-accent) 70%, white), color-mix(in oklab, var(--x-accent) 30%, white))",
+                    'linear-gradient(135deg, color-mix(in oklab, var(--x-accent) 70%, white), color-mix(in oklab, var(--x-accent) 30%, white))',
                 ...style,
             }}
         >
@@ -438,7 +438,7 @@ export function Polaroid({
     return (
         <figure
             className={cn(
-                "relative bg-white p-2.5 pb-3 shadow-[0_14px_30px_-12px_rgb(0_0_0/0.45)] transition-transform duration-500 hover:z-10 hover:scale-105 hover:rotate-0",
+                'relative bg-white p-2.5 pb-3 shadow-[0_14px_30px_-12px_rgb(0_0_0/0.45)] transition-transform duration-500 hover:z-10 hover:scale-105 hover:rotate-0',
                 className,
             )}
             style={{ transform: `rotate(${rotate}deg)` }}
@@ -448,7 +448,7 @@ export function Polaroid({
                     className="absolute -top-3 left-1/2 h-6 w-16 -translate-x-1/2 -rotate-3 opacity-85 shadow-sm"
                     style={{
                         background:
-                            "color-mix(in oklab, var(--x-accent) 55%, white)",
+                            'color-mix(in oklab, var(--x-accent) 55%, white)',
                     }}
                 />
             )}
@@ -498,21 +498,25 @@ export function SectionShell({
     className,
     style,
     surface = false,
+    backdrop,
 }: {
     children: ReactNode;
     className?: string;
     style?: CSSProperties;
     surface?: boolean;
+    /** Full-bleed decoration painted behind the section content. */
+    backdrop?: ReactNode;
 }) {
     return (
         <section
             className={cn(
-                "relative overflow-hidden px-5 py-16 sm:px-8 sm:py-24",
-                surface && "bg-[var(--x-surface)]",
+                'relative overflow-hidden px-5 py-16 sm:px-8 sm:py-24',
+                surface && 'bg-[var(--x-surface)]',
                 className,
             )}
             style={style}
         >
+            {backdrop}
             <div className="relative mx-auto max-w-5xl">{children}</div>
         </section>
     );
@@ -536,7 +540,7 @@ export function ScriptHeading({
     return (
         <h2
             className={cn(
-                "font-script text-5xl leading-tight sm:text-6xl",
+                'font-script text-5xl leading-tight sm:text-6xl',
                 className,
             )}
         >
@@ -569,9 +573,9 @@ export function EditableText({
 }) {
     const context = useContext(ExperienceContext);
     const [editing, setEditing] = useState(false);
-    const [draft, setDraft] = useState(value ?? "");
+    const [draft, setDraft] = useState(value ?? '');
     const [saving, setSaving] = useState(false);
-    const Tag = block ? "div" : "span";
+    const Tag = block ? 'div' : 'span';
 
     if (!context?.editable) {
         if (!value) {
@@ -582,7 +586,7 @@ export function EditableText({
     }
 
     const open = () => {
-        setDraft(value ?? "");
+        setDraft(value ?? '');
         setEditing(true);
     };
 
@@ -603,14 +607,14 @@ export function EditableText({
                 tabIndex={0}
                 onClick={open}
                 onKeyDown={(event) => {
-                    if (event.key === "Enter" && !multiline) {
+                    if (event.key === 'Enter' && !multiline) {
                         open();
                     }
                 }}
                 title="Tap to edit"
                 className={cn(
-                    "relative cursor-text rounded-md outline-2 outline-offset-4 outline-current/0 transition outline-dashed hover:outline-current/50",
-                    !value && "italic opacity-60",
+                    'relative cursor-text rounded-md outline-2 outline-offset-4 outline-current/0 transition outline-dashed hover:outline-current/50',
+                    !value && 'italic opacity-60',
                     className,
                 )}
             >
@@ -628,7 +632,7 @@ export function EditableText({
                         onClick={(event) => event.stopPropagation()}
                     >
                         <p className="text-sm font-semibold">
-                            {label ?? "Edit text"}
+                            {label ?? 'Edit text'}
                         </p>
                         {multiline ? (
                             <textarea
@@ -649,7 +653,7 @@ export function EditableText({
                                     setDraft(event.target.value)
                                 }
                                 onKeyDown={(event) =>
-                                    event.key === "Enter" && void save()
+                                    event.key === 'Enter' && void save()
                                 }
                                 placeholder={placeholder}
                                 className="mt-3 w-full rounded-xl border border-[#E4D8CE] p-3 text-[15px] outline-none focus:border-[#B86F83]"

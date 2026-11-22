@@ -13,17 +13,23 @@ import {
     Sparkles,
     Star,
     X,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import type { ReactNode } from "react";
-import { BloomingBouquet } from "@/components/taptale/experience/blooming-bouquet";
-import { NightGarden } from "@/components/taptale/experience/night-garden";
-import { SongPlayer } from "@/components/taptale/experience/song-player";
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
+import { BloomingBouquet } from '@/components/taptale/experience/blooming-bouquet';
+import { NightGarden } from '@/components/taptale/experience/night-garden';
+import { SongPlayer } from '@/components/taptale/experience/song-player';
+import {
+    HEARTS_BACKDROP_STYLE,
+    HeartFlourish,
+    HeartsBackdrop,
+    SongStyleSwitch,
+} from '@/components/taptale/experience/song-section-style';
 import {
     embedFor,
     parseEventDate,
-} from "@/components/taptale/experience/config";
-import type { SectionKey } from "@/components/taptale/experience/config";
+} from '@/components/taptale/experience/config';
+import type { SectionKey } from '@/components/taptale/experience/config';
 import {
     AddPhotoButton,
     EditableText,
@@ -36,13 +42,13 @@ import {
     SectionShell,
     useExperience,
     useExperienceAudio,
-} from "@/components/taptale/experience/shared";
-import { cn } from "@/lib/utils";
+} from '@/components/taptale/experience/shared';
+import { cn } from '@/lib/utils';
 
 export const ROTATIONS = [-6, 4, -3, 7, -5, 3, -7, 5, -2, 6, -4, 2];
 
 function paragraphs(text: string | null | undefined): string[] {
-    return (text ?? "")
+    return (text ?? '')
         .split(/\n{2,}|\r\n\r\n/)
         .map((part) => part.trim())
         .filter(Boolean);
@@ -50,47 +56,47 @@ function paragraphs(text: string | null | undefined): string[] {
 
 export function ExperienceSection({ section }: { section: SectionKey }) {
     switch (section) {
-        case "hero_photo":
+        case 'hero_photo':
             return <HeroPhoto />;
-        case "hero_script":
+        case 'hero_script':
             return <HeroScript />;
-        case "hero_doily":
+        case 'hero_doily':
             return <HeroDoily />;
-        case "bouquet":
+        case 'bouquet':
             return <BloomingBouquet />;
-        case "garden":
+        case 'garden':
             return <GardenSection />;
-        case "note":
+        case 'note':
             return <Note />;
-        case "letter_card":
+        case 'letter_card':
             return <LetterCard />;
-        case "letter_paper":
+        case 'letter_paper':
             return <LetterPaper />;
-        case "polaroid_wall":
+        case 'polaroid_wall':
             return <PolaroidWall />;
-        case "film_strip":
+        case 'film_strip':
             return <FilmStrip />;
-        case "timeline":
+        case 'timeline':
             return <Timeline />;
-        case "gifts":
+        case 'gifts':
             return <Gifts />;
-        case "scrapbook":
+        case 'scrapbook':
             return <Scrapbook />;
-        case "song":
+        case 'song':
             return <SongSection />;
-        case "player":
+        case 'player':
             return <PlayerSection />;
-        case "gallery":
+        case 'gallery':
             return <Gallery />;
-        case "video":
+        case 'video':
             return <VideoSection />;
-        case "quote":
+        case 'quote':
             return <QuoteBanner />;
-        case "countdown":
+        case 'countdown':
             return <Countdown />;
-        case "details":
+        case 'details':
             return <Details />;
-        case "closing":
+        case 'closing':
             return <Closing />;
     }
 }
@@ -100,7 +106,7 @@ function GardenSection() {
 
     return (
         <NightGarden
-            options={preset.garden ?? { variant: "teal", rain: "none" }}
+            options={preset.garden ?? { variant: 'teal', rain: 'none' }}
         />
     );
 }
@@ -121,8 +127,8 @@ function HeroPhoto() {
     return (
         <section
             className={cn(
-                "relative flex min-h-[100svh] items-center justify-center overflow-hidden px-6 text-center",
-                cover && "text-white",
+                'relative flex min-h-[100svh] items-center justify-center overflow-hidden px-6 text-center',
+                cover && 'text-white',
             )}
         >
             {cover && (
@@ -135,7 +141,7 @@ function HeroPhoto() {
                         className="absolute inset-0"
                         style={{
                             background:
-                                "linear-gradient(180deg, rgb(0 0 0 / 0.25), rgb(0 0 0 / 0.45) 60%, var(--x-base))",
+                                'linear-gradient(180deg, rgb(0 0 0 / 0.25), rgb(0 0 0 / 0.45) 60%, var(--x-base))',
                         }}
                     />
                 </>
@@ -234,10 +240,10 @@ function HeroDoily() {
         <section
             className="relative flex min-h-[90svh] items-center justify-center overflow-hidden px-6"
             style={{
-                backgroundColor: "#F7C6D3",
+                backgroundColor: '#F7C6D3',
                 backgroundImage:
-                    "linear-gradient(90deg, rgb(255 255 255 / 0.45) 50%, transparent 50%), linear-gradient(rgb(255 255 255 / 0.45) 50%, transparent 50%)",
-                backgroundSize: "44px 44px",
+                    'linear-gradient(90deg, rgb(255 255 255 / 0.45) 50%, transparent 50%), linear-gradient(rgb(255 255 255 / 0.45) 50%, transparent 50%)',
+                backgroundSize: '44px 44px',
             }}
         >
             <Reveal className="relative">
@@ -295,7 +301,7 @@ function Note() {
                     />
                 </Reveal>
                 <Reveal delay={150}>
-                    <Eyebrow>{preset.labels?.note ?? "A little note"}</Eyebrow>
+                    <Eyebrow>{preset.labels?.note ?? 'A little note'}</Eyebrow>
                     <EditableText
                         block
                         field="recipient_name"
@@ -411,7 +417,7 @@ function LetterPaper() {
                         className="relative mx-auto max-w-xs -rotate-2 bg-[var(--x-paper)] p-6 shadow-[0_20px_40px_-18px_rgb(0_0_0/0.5)]"
                         style={{
                             backgroundImage:
-                                "repeating-linear-gradient(transparent 0 27px, rgb(0 0 0 / 0.06) 27px 28px)",
+                                'repeating-linear-gradient(transparent 0 27px, rgb(0 0 0 / 0.06) 27px 28px)',
                         }}
                     >
                         <Polaroid
@@ -436,8 +442,8 @@ function LetterPaper() {
                         className="relative rotate-1 bg-[var(--x-paper)] px-7 py-8 text-[var(--x-paper-ink)] shadow-[0_20px_40px_-18px_rgb(0_0_0/0.5)] [clip-path:polygon(0_0,calc(100%-36px)_0,100%_36px,100%_100%,0_100%)]"
                         style={{
                             backgroundImage:
-                                "repeating-linear-gradient(transparent 0 31px, rgb(60 90 160 / 0.14) 31px 32px)",
-                            lineHeight: "32px",
+                                'repeating-linear-gradient(transparent 0 31px, rgb(60 90 160 / 0.14) 31px 32px)',
+                            lineHeight: '32px',
                         }}
                     >
                         <span className="absolute top-0 right-0 size-9 bg-[linear-gradient(225deg,transparent_50%,rgb(0_0_0/0.12)_50%)]" />
@@ -504,10 +510,10 @@ export function PolaroidConnector({
     return (
         <svg
             className={cn(
-                "pointer-events-none absolute top-[35%] left-[80%] h-10 w-[calc(40%+1.25rem)]",
-                index % 2 === 1 ? "hidden" : "block",
-                index % 3 === 2 ? "sm:hidden" : "sm:block",
-                index % 4 === 3 ? "lg:hidden" : "lg:block",
+                'pointer-events-none absolute top-[35%] left-[80%] h-10 w-[calc(40%+1.25rem)]',
+                index % 2 === 1 ? 'hidden' : 'block',
+                index % 3 === 2 ? 'sm:hidden' : 'sm:block',
+                index % 4 === 3 ? 'lg:hidden' : 'lg:block',
             )}
             viewBox="0 0 100 40"
             preserveAspectRatio="none"
@@ -516,8 +522,8 @@ export function PolaroidConnector({
             <path
                 d={
                     index % 2 === 0
-                        ? "M0 12 C 30 0, 60 40, 100 22"
-                        : "M0 26 C 35 40, 65 0, 100 16"
+                        ? 'M0 12 C 30 0, 60 40, 100 22'
+                        : 'M0 26 C 35 40, 65 0, 100 16'
                 }
                 fill="none"
                 stroke="currentColor"
@@ -556,7 +562,7 @@ function PolaroidWall() {
     }
 
     const visibleItems = items.slice(0, 12);
-    const defaultTitle = preset.labels?.polaroidWall ?? "Our moments together";
+    const defaultTitle = preset.labels?.polaroidWall ?? 'Our moments together';
 
     return (
         <SectionShell surface>
@@ -605,13 +611,13 @@ function FilmStrip() {
         (_, index) => photoAt(index),
     );
     const sprockets =
-        "repeating-linear-gradient(90deg, transparent 0 10px, #F5F0E8 10px 22px, transparent 22px 34px)";
+        'repeating-linear-gradient(90deg, transparent 0 10px, #F5F0E8 10px 22px, transparent 22px 34px)';
 
     return (
         <SectionShell>
             <Reveal className="text-center">
                 <h2 className="font-display text-3xl font-semibold tracking-wide uppercase">
-                    {preset.labels?.filmStrip ?? "My favorite person"}
+                    {preset.labels?.filmStrip ?? 'My favorite person'}
                 </h2>
             </Reveal>
             <Reveal delay={150}>
@@ -621,7 +627,7 @@ function FilmStrip() {
                             className="absolute inset-x-0 top-2 h-3 opacity-90"
                             style={{
                                 backgroundImage: sprockets,
-                                backgroundSize: "34px 12px",
+                                backgroundSize: '34px 12px',
                                 borderRadius: 2,
                             }}
                         />
@@ -648,7 +654,7 @@ function FilmStrip() {
                             className="absolute inset-x-0 bottom-2 h-3 opacity-90"
                             style={{
                                 backgroundImage: sprockets,
-                                backgroundSize: "34px 12px",
+                                backgroundSize: '34px 12px',
                             }}
                         />
                     </div>
@@ -658,7 +664,7 @@ function FilmStrip() {
                 <p className="font-display text-2xl font-semibold uppercase">
                     {preset.labels?.filmCaption ??
                         experience.quote ??
-                        "I love you so much!"}
+                        'I love you so much!'}
                 </p>
             </Reveal>
         </SectionShell>
@@ -677,7 +683,7 @@ function Timeline() {
             <Reveal className="text-center">
                 <Eyebrow>The moments</Eyebrow>
                 <h2 className="mt-3 font-display text-4xl">
-                    {preset.labels?.timeline ?? "How we happened"}
+                    {preset.labels?.timeline ?? 'How we happened'}
                 </h2>
             </Reveal>
             <div className="relative mt-14">
@@ -692,8 +698,8 @@ function Timeline() {
                             <Reveal
                                 className={cn(
                                     index % 2 === 0
-                                        ? "md:pr-12"
-                                        : "md:order-2 md:pl-12",
+                                        ? 'md:pr-12'
+                                        : 'md:order-2 md:pl-12',
                                 )}
                             >
                                 <Polaroid
@@ -701,18 +707,18 @@ function Timeline() {
                                     moment={index}
                                     rotate={index % 2 === 0 ? -3 : 3}
                                     className={cn(
-                                        "w-56",
-                                        index % 2 === 0 ? "md:ml-auto" : "",
+                                        'w-56',
+                                        index % 2 === 0 ? 'md:ml-auto' : '',
                                     )}
                                 />
                             </Reveal>
                             <Reveal
                                 delay={150}
                                 className={cn(
-                                    "self-center",
+                                    'self-center',
                                     index % 2 === 0
-                                        ? "md:pl-12"
-                                        : "md:order-1 md:pr-12 md:text-right",
+                                        ? 'md:pl-12'
+                                        : 'md:order-1 md:pr-12 md:text-right',
                                 )}
                             >
                                 <EditableText
@@ -757,7 +763,7 @@ function Timeline() {
 
 function Gifts() {
     const { experience, preset } = useExperience();
-    const [open, setOpen] = useState<"flowers" | "letter" | "song" | null>(
+    const [open, setOpen] = useState<'flowers' | 'letter' | 'song' | null>(
         null,
     );
     const hasSong = !!(
@@ -768,21 +774,21 @@ function Gifts() {
 
     const gifts = [
         {
-            key: "flowers" as const,
+            key: 'flowers' as const,
             icon: Flower2,
-            label: "Flowers for you",
+            label: 'Flowers for you',
             show: !!experience.flowers_note,
         },
         {
-            key: "letter" as const,
+            key: 'letter' as const,
             icon: Mail,
-            label: "My love letter",
+            label: 'My love letter',
             show: !!experience.message,
         },
         {
-            key: "song" as const,
+            key: 'song' as const,
             icon: Music,
-            label: "A song for you",
+            label: 'A song for you',
             show: hasSong,
         },
     ].filter((gift) => gift.show);
@@ -850,7 +856,7 @@ function Gifts() {
                         >
                             <X className="size-5" />
                         </button>
-                        {open === "flowers" && (
+                        {open === 'flowers' && (
                             <div className="text-center">
                                 <Bouquet />
                                 <p className="mt-4 font-display text-2xl">
@@ -861,7 +867,7 @@ function Gifts() {
                                 </p>
                             </div>
                         )}
-                        {open === "letter" && (
+                        {open === 'letter' && (
                             <div>
                                 <EditableText
                                     block
@@ -895,7 +901,7 @@ function Gifts() {
                                 </EditableText>
                             </div>
                         )}
-                        {open === "song" && <SongPlayer compact />}
+                        {open === 'song' && <SongPlayer compact />}
                     </div>
                 </div>
             )}
@@ -905,13 +911,13 @@ function Gifts() {
 
 function Bouquet() {
     const petals = [
-        "#FFFFFF",
-        "#FFF4F6",
-        "#FFFFFF",
-        "#FFF0F3",
-        "#FFFFFF",
-        "#FFF7F8",
-        "#FFFFFF",
+        '#FFFFFF',
+        '#FFF4F6',
+        '#FFFFFF',
+        '#FFF0F3',
+        '#FFFFFF',
+        '#FFF7F8',
+        '#FFFFFF',
     ];
 
     return (
@@ -949,7 +955,7 @@ function Bouquet() {
 }
 
 function SongSection() {
-    const { experience, preset } = useExperience();
+    const { experience, preset, editable } = useExperience();
 
     if (
         !experience.music_url &&
@@ -959,16 +965,53 @@ function SongSection() {
         return null;
     }
 
+    const ornament = experience.song_ornament ?? 'none';
+    const background = experience.song_background ?? 'theme';
+    const hasHearts = ornament === 'hearts';
+    const hasHeartsBackdrop = background === 'hearts';
+
     return (
-        <SectionShell surface>
+        <SectionShell
+            surface={!hasHeartsBackdrop}
+            style={hasHeartsBackdrop ? HEARTS_BACKDROP_STYLE : undefined}
+            backdrop={
+                <>
+                    {hasHeartsBackdrop && <HeartsBackdrop />}
+                    {editable && (
+                        <SongStyleSwitch
+                            ornament={ornament}
+                            background={background}
+                        />
+                    )}
+                </>
+            }
+        >
             <Reveal className="mb-10 text-center">
+                {hasHearts && <HeartFlourish className="mb-2" />}
                 <ScriptHeading>
-                    {preset.labels?.song ?? "This song reminds me of you"}
+                    {preset.labels?.song ?? 'This song reminds me of you'}
                 </ScriptHeading>
+                {hasHearts && <HeartFlourish flip className="mt-2" />}
             </Reveal>
             <Reveal delay={150}>
-                <SongPlayer />
+                {/* The player keeps its own layout; the card only frames it. */}
+                <div
+                    className="rounded-[2rem] border p-3 shadow-[0_30px_70px_-35px_rgb(0_0_0/0.75)] backdrop-blur-sm sm:p-8"
+                    style={{
+                        background:
+                            'color-mix(in srgb, var(--x-ink) 5%, transparent)',
+                        borderColor: hasHeartsBackdrop
+                            ? 'color-mix(in srgb, var(--x-accent) 40%, transparent)'
+                            : 'color-mix(in srgb, var(--x-ink) 12%, transparent)',
+                        boxShadow: hasHeartsBackdrop
+                            ? '0 0 45px -12px color-mix(in srgb, var(--x-accent) 55%, transparent)'
+                            : undefined,
+                    }}
+                >
+                    <SongPlayer />
+                </div>
             </Reveal>
+            {hasHearts && <HeartFlourish className="mt-12" />}
         </SectionShell>
     );
 }
@@ -977,8 +1020,8 @@ function PlayerSection() {
     const { experience, photoAt } = useExperience();
     const { available, playing, toggle } = useExperienceAudio();
     const embed = embedFor(experience.music_url);
-    const lines = (experience.message ?? "")
-        .split("\n")
+    const lines = (experience.message ?? '')
+        .split('\n')
         .map((line) => line.trim())
         .filter(Boolean);
 
@@ -1000,12 +1043,12 @@ function PlayerSection() {
                     <div className="mt-5 flex items-start justify-between gap-3">
                         <div className="min-w-0">
                             <p className="truncate text-xl font-bold">
-                                {experience.song_title ?? "Our Song"}
+                                {experience.song_title ?? 'Our Song'}
                             </p>
                             <p className="truncate opacity-75">
                                 {experience.song_artist ??
                                     experience.sender_name ??
-                                    "For you"}
+                                    'For you'}
                             </p>
                         </div>
                         <Heart
@@ -1016,10 +1059,10 @@ function PlayerSection() {
                     <div className="mt-4 h-1 overflow-hidden rounded-full bg-white/20">
                         <div
                             className={cn(
-                                "h-full rounded-full bg-white",
+                                'h-full rounded-full bg-white',
                                 playing
-                                    ? "w-full transition-[width] duration-[180s] ease-linear"
-                                    : "w-[35%]",
+                                    ? 'w-full transition-[width] duration-[180s] ease-linear'
+                                    : 'w-[35%]',
                             )}
                         />
                     </div>
@@ -1030,7 +1073,7 @@ function PlayerSection() {
                             type="button"
                             onClick={available ? toggle : undefined}
                             className="flex size-16 items-center justify-center rounded-full bg-white text-black shadow-lg transition hover:scale-105"
-                            aria-label={playing ? "Pause" : "Play"}
+                            aria-label={playing ? 'Pause' : 'Play'}
                         >
                             {playing ? (
                                 <Pause className="size-7" fill="currentColor" />
@@ -1048,10 +1091,10 @@ function PlayerSection() {
                 {embed && (
                     <div
                         className={cn(
-                            "mt-6 overflow-hidden rounded-2xl shadow-xl",
-                            embed.kind === "video"
-                                ? "aspect-video"
-                                : "h-[152px]",
+                            'mt-6 overflow-hidden rounded-2xl shadow-xl',
+                            embed.kind === 'video'
+                                ? 'aspect-video'
+                                : 'h-[152px]',
                         )}
                     >
                         <iframe
@@ -1070,8 +1113,8 @@ function PlayerSection() {
                                 key={index}
                                 className={
                                     index === 1
-                                        ? "text-2xl font-semibold"
-                                        : "opacity-75"
+                                        ? 'text-2xl font-semibold'
+                                        : 'opacity-75'
                                 }
                             >
                                 {line}
@@ -1095,10 +1138,10 @@ function Scrapbook() {
                 <div
                     className="relative mx-auto max-w-3xl rotate-1 rounded-[2rem] p-6 shadow-[0_30px_60px_-24px_rgb(0_0_0/0.6)] sm:p-10"
                     style={{
-                        backgroundColor: "#FBE3E6",
+                        backgroundColor: '#FBE3E6',
                         backgroundImage:
-                            "linear-gradient(90deg, rgb(208 74 107 / 0.18) 50%, transparent 50%), linear-gradient(rgb(208 74 107 / 0.18) 50%, transparent 50%)",
-                        backgroundSize: "36px 36px",
+                            'linear-gradient(90deg, rgb(208 74 107 / 0.18) 50%, transparent 50%), linear-gradient(rgb(208 74 107 / 0.18) 50%, transparent 50%)',
+                        backgroundSize: '36px 36px',
                     }}
                 >
                     <div className="grid grid-cols-2 gap-5 sm:grid-cols-3">
@@ -1117,7 +1160,7 @@ function Scrapbook() {
                         <Sticker
                             key={index}
                             className="absolute size-10 text-[#D04A6B] drop-shadow"
-                            fill={index === 1 ? "#FFD86B" : "#FFC2D1"}
+                            fill={index === 1 ? '#FFD86B' : '#FFC2D1'}
                             style={{
                                 top: `${[4, 88, 40, 70][index]}%`,
                                 left: `${[90, 4, -3, 96][index]}%`,
@@ -1151,7 +1194,7 @@ function Gallery() {
         <SectionShell>
             <Reveal className="text-center">
                 <ScriptHeading>
-                    {preset.labels?.gallery ?? "Our album"}
+                    {preset.labels?.gallery ?? 'Our album'}
                 </ScriptHeading>
             </Reveal>
             <div className="mt-10 columns-2 gap-4 sm:columns-3 [&>*]:mb-4">
@@ -1231,8 +1274,8 @@ function QuoteBanner() {
         <section
             className="relative overflow-hidden px-6 py-16 text-center"
             style={{
-                background: "var(--x-accent)",
-                color: "var(--x-accent-ink)",
+                background: 'var(--x-accent)',
+                color: 'var(--x-accent-ink)',
             }}
         >
             <Reveal>
@@ -1278,16 +1321,16 @@ function Countdown() {
 
     const remaining = Math.max(0, target.getTime() - now);
     const units = [
-        ["Days", Math.floor(remaining / 86_400_000)],
-        ["Hours", Math.floor((remaining / 3_600_000) % 24)],
-        ["Minutes", Math.floor((remaining / 60_000) % 60)],
-        ["Seconds", Math.floor((remaining / 1000) % 60)],
+        ['Days', Math.floor(remaining / 86_400_000)],
+        ['Hours', Math.floor((remaining / 3_600_000) % 24)],
+        ['Minutes', Math.floor((remaining / 60_000) % 60)],
+        ['Seconds', Math.floor((remaining / 1000) % 60)],
     ] as const;
 
     return (
         <SectionShell surface className="text-center">
             <Reveal>
-                <Eyebrow>{preset.labels?.countdown ?? "Counting down"}</Eyebrow>
+                <Eyebrow>{preset.labels?.countdown ?? 'Counting down'}</Eyebrow>
                 <p className="mt-3 font-display text-3xl">
                     <EditableText
                         field="event_date"
@@ -1304,7 +1347,7 @@ function Countdown() {
                                 className="rounded-2xl bg-[var(--x-paper)] px-2 py-4 text-[var(--x-paper-ink)] shadow-lg"
                             >
                                 <p className="font-display text-3xl font-semibold tabular-nums sm:text-5xl">
-                                    {String(value).padStart(2, "0")}
+                                    {String(value).padStart(2, '0')}
                                 </p>
                                 <p className="mt-1 text-[10px] tracking-[0.25em] uppercase opacity-70 sm:text-xs">
                                     {label}
@@ -1399,7 +1442,7 @@ function Closing({ children }: { children?: ReactNode }) {
             <FloatingHearts count={6} />
             <Reveal className="relative">
                 <p className="font-script text-5xl sm:text-6xl">
-                    {preset.labels?.closing ?? "I love you"}
+                    {preset.labels?.closing ?? 'I love you'}
                 </p>
                 <EditableText
                     block

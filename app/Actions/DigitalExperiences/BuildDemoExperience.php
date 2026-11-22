@@ -45,6 +45,8 @@ class BuildDemoExperience
             'music_url' => 'https://www.youtube.com/watch?v=iKzRIweSBLA',
             'song_title' => 'Perfect',
             'song_artist' => 'Ed Sheeran',
+            'song_ornament' => 'none',
+            'song_background' => 'theme',
             'song_details' => null,
             'audio_url' => null,
             'photos' => [],

@@ -33,6 +33,8 @@ use Illuminate\Support\Str;
  * @property string|null $music_url
  * @property string|null $song_title
  * @property string|null $song_artist
+ * @property string $song_ornament "none" or "hearts": decoration around the song heading
+ * @property string $song_background "theme" or "hearts": backdrop of the song section
  * @property array{title: string, artist: string|null, artwork_url: string|null, preview_url: string|null, track_url: string|null, duration: float|null, synced_lyrics: list<array{time: float, text: string}>, plain_lyrics: list<string>}|null $song_details
  * @property string|null $audio_path
  * @property list<string>|null $photos
@@ -48,7 +50,7 @@ use Illuminate\Support\Str;
 #[RouteKey('code')]
 #[Fillable([
     'template', 'title', 'subtitle', 'recipient_name', 'sender_name', 'message', 'quote', 'flowers_note',
-    'photo_rain_layer', 'event_date', 'video_url', 'music_url', 'song_title', 'song_artist', 'photos', 'moments', 'custom_sections', 'theme',
+    'photo_rain_layer', 'event_date', 'video_url', 'music_url', 'song_title', 'song_artist', 'song_ornament', 'song_background', 'photos', 'moments', 'custom_sections', 'theme',
     'nfc_tag_uid', 'is_published',
 ])]
 class DigitalExperience extends Model
@@ -92,6 +94,8 @@ class DigitalExperience extends Model
         'template' => 'classic',
         'theme' => 'blush',
         'photo_rain_layer' => 'front',
+        'song_ornament' => 'none',
+        'song_background' => 'theme',
         'is_published' => false,
         'view_count' => 0,
     ];

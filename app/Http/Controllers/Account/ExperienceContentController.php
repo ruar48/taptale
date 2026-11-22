@@ -32,6 +32,8 @@ class ExperienceContentController extends Controller
         'event_date' => ['nullable', 'string', 'max:60'],
         'song_title' => ['nullable', 'string', 'max:120'],
         'song_artist' => ['nullable', 'string', 'max:120'],
+        'song_ornament' => ['required', 'string', 'in:none,hearts'],
+        'song_background' => ['required', 'string', 'in:theme,hearts'],
     ];
 
     /**
