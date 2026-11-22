@@ -17,6 +17,7 @@ import {
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { BloomingBouquet } from '@/components/taptale/experience/blooming-bouquet';
+import { NightGarden } from '@/components/taptale/experience/night-garden';
 import {
     embedFor,
     parseEventDate,
@@ -56,6 +57,8 @@ export function ExperienceSection({ section }: { section: SectionKey }) {
             return <HeroDoily />;
         case 'bouquet':
             return <BloomingBouquet />;
+        case 'garden':
+            return <GardenSection />;
         case 'note':
             return <Note />;
         case 'letter_card':
@@ -94,7 +97,11 @@ export function ExperienceSection({ section }: { section: SectionKey }) {
 function GardenSection() {
     const { preset } = useExperience();
 
-    return <NightGarden variant={preset.garden ?? 'teal'} />;
+    return (
+        <NightGarden
+            options={preset.garden ?? { variant: 'teal', rain: 'none' }}
+        />
+    );
 }
 
 function ScrollHint() {

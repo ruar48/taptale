@@ -195,6 +195,9 @@ export type Payment = {
     };
 };
 
+/** Whether raining photos fall in front of the garden flowers or behind them. */
+export type PhotoRainLayer = 'front' | 'back';
+
 export type ExperienceTemplateKey =
     | 'monthsary'
     | 'birthday'
@@ -207,6 +210,14 @@ export type ExperienceTemplateKey =
     | 'golden_garden'
     | 'red_garden'
     | 'moonlight_garden'
+    | 'blue_garden'
+    | 'peach_garden'
+    | 'mixed_garden'
+    | 'rain_teal'
+    | 'rain_pink'
+    | 'rain_red'
+    | 'rain_lavender'
+    | 'rain_mixed'
     | 'girlfriends_day'
     | 'valentines'
     | 'apology'
@@ -245,6 +256,7 @@ export type DigitalExperience = {
     message: string | null;
     quote: string | null;
     flowers_note: string | null;
+    photo_rain_layer: PhotoRainLayer;
     event_date: string | null;
     video_url: string | null;
     music_url: string | null;

@@ -14,6 +14,20 @@ enum ExperienceTemplate: string
     case LoveStory = 'love_story';
     case LittleSomething = 'little_something';
     case DigitalBouquet = 'digital_bouquet';
+    case NightGarden = 'night_garden';
+    case PinkGarden = 'pink_garden';
+    case LavenderGarden = 'lavender_garden';
+    case GoldenGarden = 'golden_garden';
+    case RedGarden = 'red_garden';
+    case MoonlightGarden = 'moonlight_garden';
+    case BlueGarden = 'blue_garden';
+    case PeachGarden = 'peach_garden';
+    case MixedGarden = 'mixed_garden';
+    case RainTeal = 'rain_teal';
+    case RainPink = 'rain_pink';
+    case RainRed = 'rain_red';
+    case RainLavender = 'rain_lavender';
+    case RainMixed = 'rain_mixed';
     case GirlfriendsDay = 'girlfriends_day';
     case Valentines = 'valentines';
     case Apology = 'apology';
@@ -37,6 +51,20 @@ enum ExperienceTemplate: string
             self::LoveStory => 'How We Happened',
             self::LittleSomething => 'A Little Something For You',
             self::DigitalBouquet => 'A Bouquet For You',
+            self::NightGarden => 'Glowing Night Garden',
+            self::PinkGarden => 'Pink Blossom Garden',
+            self::LavenderGarden => 'Lavender Dream Garden',
+            self::GoldenGarden => 'Golden Glow Garden',
+            self::RedGarden => 'Red Bloom Garden',
+            self::MoonlightGarden => 'Moonlight White Garden',
+            self::BlueGarden => 'Blue Starlight Garden',
+            self::PeachGarden => 'Peach Sunset Garden',
+            self::MixedGarden => 'Mixed Bouquet Garden',
+            self::RainTeal => 'Flower Rain · Glow',
+            self::RainPink => 'Flower Rain · Pink',
+            self::RainRed => 'Flower Rain · Red',
+            self::RainLavender => 'Flower Rain · Lavender',
+            self::RainMixed => 'Flower Rain · Mixed',
             self::GirlfriendsDay => "Happy Girlfriend's Day",
             self::Valentines => 'Be My Valentine',
             self::Apology => "I'm Sorry",
@@ -62,6 +90,10 @@ enum ExperienceTemplate: string
             self::LoveStory => '"To my langga" note and a timeline of how you happened, with photos and dates.',
             self::LittleSomething => 'Tap to open: flowers, a love letter and a song — each revealed one by one.',
             self::DigitalBouquet => 'A bouquet that blooms on their screen — stems grow, petals open and fireflies glow around your note. Flowers that never wilt.',
+            self::NightGarden, self::PinkGarden, self::LavenderGarden, self::GoldenGarden, self::RedGarden,
+            self::MoonlightGarden, self::BlueGarden, self::PeachGarden => 'Glowing '.$this->flowerColor().' flowers grow and bloom in a night garden with your note, then a letter, photos and your song.',
+            self::MixedGarden => 'Pink, lavender and golden flowers bloom together in a glowing night garden, then a letter, photos and your song.',
+            self::RainTeal, self::RainPink, self::RainRed, self::RainLavender, self::RainMixed => 'A glowing night garden of '.$this->flowerColor().' flowers, with petals and your photos raining down from the sky.',
             self::GirlfriendsDay => 'A lace doily greeting on gingham, a letter and a scrapbook of your moments.',
             self::Valentines => '"Would you like to see your gift?" — the No button runs away. Then hearts, letter and song.',
             self::Apology => 'A gentle question gate, a heartfelt apology letter and the memories worth fixing it for.',
@@ -88,7 +120,37 @@ enum ExperienceTemplate: string
             self::LittleSomething, self::Apology => 'rose',
             self::Wedding, self::SaveTheDate, self::Family, self::Classic => 'cream',
             self::Graduation => 'plum',
-            self::DigitalBouquet => 'moonlit',
+            self::DigitalBouquet, self::NightGarden, self::RainTeal => 'moonlit',
+            self::PinkGarden, self::LavenderGarden, self::GoldenGarden, self::RedGarden, self::MoonlightGarden,
+            self::BlueGarden, self::PeachGarden, self::MixedGarden, self::RainPink, self::RainRed,
+            self::RainLavender, self::RainMixed => 'midnight',
+        };
+    }
+
+    /**
+     * Whether this is one of the glowing night garden designs.
+     */
+    public function isGarden(): bool
+    {
+        return $this->flowerColor() !== null;
+    }
+
+    /**
+     * Flower color of a night garden design, used in its description.
+     */
+    private function flowerColor(): ?string
+    {
+        return match ($this) {
+            self::NightGarden, self::RainTeal => 'teal',
+            self::PinkGarden, self::RainPink => 'pink',
+            self::LavenderGarden, self::RainLavender => 'lavender',
+            self::GoldenGarden => 'golden',
+            self::RedGarden, self::RainRed => 'red',
+            self::MoonlightGarden => 'white',
+            self::BlueGarden => 'blue',
+            self::PeachGarden => 'peach',
+            self::MixedGarden, self::RainMixed => 'mixed',
+            default => null,
         };
     }
 

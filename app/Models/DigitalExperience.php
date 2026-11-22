@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ExperienceTemplate;
+use App\Enums\PhotoRainLayer;
 use Database\Factories\DigitalExperienceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
@@ -25,6 +26,7 @@ use Illuminate\Support\Str;
  * @property string|null $message
  * @property string|null $quote
  * @property string|null $flowers_note
+ * @property PhotoRainLayer $photo_rain_layer
  * @property string|null $event_date
  * @property string|null $video_url
  * @property string|null $music_url
@@ -43,7 +45,7 @@ use Illuminate\Support\Str;
 #[RouteKey('code')]
 #[Fillable([
     'template', 'title', 'subtitle', 'recipient_name', 'sender_name', 'message', 'quote', 'flowers_note',
-    'event_date', 'video_url', 'music_url', 'song_title', 'song_artist', 'photos', 'moments', 'theme',
+    'photo_rain_layer', 'event_date', 'video_url', 'music_url', 'song_title', 'song_artist', 'photos', 'moments', 'theme',
     'nfc_tag_uid', 'is_published',
 ])]
 class DigitalExperience extends Model
@@ -76,6 +78,7 @@ class DigitalExperience extends Model
     protected $attributes = [
         'template' => 'classic',
         'theme' => 'blush',
+        'photo_rain_layer' => 'front',
         'is_published' => false,
         'view_count' => 0,
     ];
@@ -99,6 +102,7 @@ class DigitalExperience extends Model
     {
         return [
             'template' => ExperienceTemplate::class,
+            'photo_rain_layer' => PhotoRainLayer::class,
             'photos' => 'array',
             'moments' => 'array',
             'is_published' => 'boolean',

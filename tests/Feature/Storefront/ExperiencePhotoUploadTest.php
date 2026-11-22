@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\ExperienceTemplate;
+use App\Enums\PhotoRainLayer;
 use App\Models\DigitalExperience;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -164,6 +165,24 @@ test('the owner edits text directly on the page', function () {
     expect($experience->fresh())
         ->title->toBe('Happy 6th Monthsary')
         ->message->toBe("Hi love,\n\nThank you.");
+});
+
+test('the owner chooses whether raining photos fall in front of or behind the flowers', function () {
+    $experience = DigitalExperience::factory()->create(['template' => 'rain_pink']);
+
+    expect($experience->fresh()->photo_rain_layer)->toBe(PhotoRainLayer::Front);
+
+    $this->actingAs($experience->user)
+        ->patch(route('account.experiences.content', $experience), ['field' => 'photo_rain_layer', 'value' => 'back'])
+        ->assertSessionHasNoErrors();
+
+    expect($experience->fresh()->photo_rain_layer)->toBe(PhotoRainLayer::Back);
+
+    $this->actingAs($experience->user)
+        ->patch(route('account.experiences.content', $experience), ['field' => 'photo_rain_layer', 'value' => 'sideways'])
+        ->assertSessionHasErrors('value');
+
+    expect($experience->fresh()->photo_rain_layer)->toBe(PhotoRainLayer::Back);
 });
 
 test('the owner edits a moment caption on the page', function () {

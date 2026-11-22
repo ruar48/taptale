@@ -172,7 +172,7 @@
     animation-delay: 1.7s;
 }
 .ng-scene .flower__leafs::after {
-    content: "";
+    content: '';
     position: absolute;
     left: 0;
     top: 0;
@@ -232,7 +232,7 @@
     background-color: #fff;
 }
 .ng-scene .flower__white-circle::after {
-    content: "";
+    content: '';
     position: absolute;
     left: 50%;
     top: 45%;
@@ -1244,7 +1244,8 @@
 }
 
 .ng-stage {
-    background: radial-gradient(
+    background:
+        radial-gradient(
             70% 45% at 50% 70%,
             color-mix(in srgb, var(--ng-glow) 10%, transparent),
             transparent 70%
@@ -1261,5 +1262,80 @@
     from {
         opacity: 0;
         transform: translateY(14px);
+    }
+}
+
+/* Flower and photo rain over the garden. */
+.ng-fall {
+    opacity: 0;
+    animation: ng-fall var(--ng-fall-duration, 9s) linear
+        var(--ng-fall-delay, 0s) infinite;
+    will-change: transform;
+}
+
+.ng-petal {
+    border-radius: 80% 0 80% 0;
+    background: linear-gradient(
+        135deg,
+        var(--ng-petal-light),
+        var(--ng-petal-dark)
+    );
+    box-shadow: 0 0 10px color-mix(in srgb, var(--ng-glow) 60%, transparent);
+    opacity: 0.9;
+}
+
+.ng-photo-drop {
+    width: clamp(64px, 14vmin, 120px);
+    padding: 5px 5px 16px;
+    background: #fffdf8;
+    border-radius: 3px;
+    box-shadow:
+        0 10px 25px -8px rgb(0 0 0 / 0.7),
+        0 0 22px color-mix(in srgb, var(--ng-glow) 45%, transparent);
+    cursor: zoom-in;
+}
+
+.ng-photo-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 2px;
+    color: var(--ng-petal-dark);
+    background: linear-gradient(
+        160deg,
+        var(--ng-petal-light),
+        color-mix(in srgb, var(--ng-petal-dark) 35%, white)
+    );
+}
+
+.ng-photo-drop img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 2px;
+}
+
+@keyframes ng-fall {
+    0% {
+        transform: translate(0, -25vh) rotate(var(--ng-tilt, 0deg));
+        opacity: 0;
+    }
+    8% {
+        opacity: 1;
+    }
+    50% {
+        transform: translate(var(--ng-fall-drift, 0px), 45vh)
+            rotate(calc(var(--ng-tilt, 0deg) + var(--ng-fall-spin, 0deg) / 2));
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(calc(var(--ng-fall-drift, 0px) * -0.5), 115vh)
+            rotate(calc(var(--ng-tilt, 0deg) + var(--ng-fall-spin, 0deg)));
+        opacity: 0;
     }
 }

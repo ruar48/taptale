@@ -36,7 +36,10 @@ class BuildDemoExperience
             'sender_name' => $copy['sender'],
             'message' => $copy['message'],
             'quote' => $copy['quote'],
-            'flowers_note' => 'These white tulips make me think of your genuine soul.',
+            'flowers_note' => $template->isGarden()
+                ? 'Real flowers wilt, but these will bloom for you every time you open this.'
+                : 'These white tulips make me think of your genuine soul.',
+            'photo_rain_layer' => 'front',
             'event_date' => $copy['date'],
             'video_url' => null,
             'music_url' => null,
@@ -59,6 +62,10 @@ class BuildDemoExperience
     private function copy(ExperienceTemplate $template): array
     {
         $letter = "Hi love,\n\nIt's kind of amazing how fast time has passed. It doesn't feel that long, but we've already shared so many memories together. From the random conversations to the small moments that might seem simple to others, they all mean a lot to me because I experienced them with you.\n\nThank you for being patient with me, for understanding me, and for staying by my side through everything. I'm really grateful to have you in my life.";
+
+        if ($template->isGarden()) {
+            return ['title' => 'Flowers for you', 'subtitle' => 'Ones that will never wilt', 'recipient' => 'my love', 'sender' => 'yours always', 'message' => $letter, 'quote' => 'I would pick you in every garden.', 'date' => 'Picked just for you'];
+        }
 
         return match ($template) {
             ExperienceTemplate::Monthsary => ['title' => 'Happy 6th Monthsary', 'subtitle' => 'My Love!', 'recipient' => 'my love', 'sender' => 'yours always', 'message' => $letter, 'quote' => 'We are together in every situation.', 'date' => 'Our 6 months together'],

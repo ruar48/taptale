@@ -172,7 +172,23 @@ export function themeStyle(theme: ExperienceTheme): CSSProperties {
 }
 
 export type GardenVariant =
-    'teal' | 'pink' | 'lavender' | 'golden' | 'red' | 'white';
+    | 'teal'
+    | 'pink'
+    | 'lavender'
+    | 'golden'
+    | 'red'
+    | 'white'
+    | 'blue'
+    | 'peach'
+    | 'mixed';
+
+/** What falls from the sky over the night garden. */
+export type GardenRain = 'none' | 'petals' | 'photos' | 'both';
+
+export type GardenOptions = {
+    variant: GardenVariant;
+    rain: GardenRain;
+};
 
 export type GateKind = 'envelope' | 'question' | 'tap' | null;
 
@@ -181,6 +197,7 @@ export type SectionKey =
     | 'hero_script'
     | 'hero_doily'
     | 'bouquet'
+    | 'garden'
     | 'note'
     | 'letter_card'
     | 'letter_paper'
@@ -201,8 +218,8 @@ export type SectionKey =
 export type ExperiencePreset = {
     gate: GateKind;
     sections: SectionKey[];
-    /** Flower colors for the night garden section. */
-    garden?: GardenVariant;
+    /** Flower colors and falling effects for the night garden section. */
+    garden?: GardenOptions;
     labels?: Partial<{
         gate: string;
         gateHint: string;
@@ -219,10 +236,13 @@ export type ExperiencePreset = {
     }>;
 };
 
-function gardenPreset(garden: GardenVariant): ExperiencePreset {
+function gardenPreset(
+    variant: GardenVariant,
+    rain: GardenRain = 'none',
+): ExperiencePreset {
     return {
         gate: 'tap',
-        garden,
+        garden: { variant, rain },
         sections: [
             'garden',
             'letter_paper',
@@ -310,6 +330,14 @@ export const EXPERIENCE_PRESETS: Record<
     golden_garden: gardenPreset('golden'),
     red_garden: gardenPreset('red'),
     moonlight_garden: gardenPreset('white'),
+    blue_garden: gardenPreset('blue'),
+    peach_garden: gardenPreset('peach'),
+    mixed_garden: gardenPreset('mixed'),
+    rain_teal: gardenPreset('teal', 'both'),
+    rain_pink: gardenPreset('pink', 'both'),
+    rain_red: gardenPreset('red', 'both'),
+    rain_lavender: gardenPreset('lavender', 'both'),
+    rain_mixed: gardenPreset('mixed', 'both'),
     girlfriends_day: {
         gate: 'envelope',
         sections: [

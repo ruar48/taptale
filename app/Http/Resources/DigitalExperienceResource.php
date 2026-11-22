@@ -32,6 +32,7 @@ class DigitalExperienceResource extends JsonResource
             'message' => $this->message,
             'quote' => $this->quote,
             'flowers_note' => $this->flowers_note,
+            'photo_rain_layer' => $this->photo_rain_layer->value,
             'event_date' => $this->event_date,
             'video_url' => $this->video_url,
             'music_url' => $this->music_url,

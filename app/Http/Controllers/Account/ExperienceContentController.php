@@ -28,6 +28,7 @@ class ExperienceContentController extends Controller
         'message' => ['nullable', 'string', 'max:5000'],
         'quote' => ['nullable', 'string', 'max:255'],
         'flowers_note' => ['nullable', 'string', 'max:500'],
+        'photo_rain_layer' => ['required', 'string', 'in:front,back'],
         'event_date' => ['nullable', 'string', 'max:60'],
         'song_title' => ['nullable', 'string', 'max:120'],
         'song_artist' => ['nullable', 'string', 'max:120'],
