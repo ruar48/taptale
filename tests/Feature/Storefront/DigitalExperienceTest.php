@@ -101,3 +101,26 @@ test('an admin links an NFC tag to an experience', function () {
 
     expect($experience->fresh()->nfc_tag_uid)->toBe('04:A2:3B:1C');
 });
+
+test('experience photos on object storage redirect to a signed url', function () {
+    config(['taptale.uploads_disk' => 'r2_private']);
+    Storage::fake('r2_private');
+    Storage::disk('r2_private')->put('experiences/1/a.jpg', 'image');
+    Storage::disk('r2_private')->buildTemporaryUrlsUsing(
+        fn (string $path): string => "https://bucket.test/{$path}?signature=abc"
+    );
+    $experience = DigitalExperience::factory()->create(['photos' => ['experiences/1/a.jpg']]);
+
+    $this->get(route('experiences.photo', [$experience, 0]))
+        ->assertRedirect('https://bucket.test/experiences/1/a.jpg?signature=abc');
+});
+
+test('experience photos on a local disk are streamed through the app', function () {
+    Storage::fake('local');
+    Storage::disk('local')->put('experiences/1/a.jpg', 'image');
+    $experience = DigitalExperience::factory()->create(['photos' => ['experiences/1/a.jpg']]);
+
+    $this->get(route('experiences.photo', [$experience, 0]))
+        ->assertOk()
+        ->assertStreamedContent('image');
+});

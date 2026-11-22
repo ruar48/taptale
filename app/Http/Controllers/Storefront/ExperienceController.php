@@ -13,7 +13,7 @@ use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
  * The public NFC / QR destination page: taptale.com/t/{code}, plus the
@@ -78,7 +78,7 @@ class ExperienceController extends Controller
     /**
      * Stream one of the experience photos.
      */
-    public function photo(Request $request, DigitalExperience $experience, int $index): StreamedResponse
+    public function photo(Request $request, DigitalExperience $experience, int $index): SymfonyResponse
     {
         $this->ensureVisible($request, $experience);
 
@@ -86,7 +86,7 @@ class ExperienceController extends Controller
 
         abort_if($path === null, 404);
 
-        return Storage::disk(config('taptale.uploads_disk'))->response($path, headers: [
+        return $this->serveUpload($path, [
             'Cache-Control' => 'private, max-age=3600',
         ]);
     }
@@ -94,16 +94,36 @@ class ExperienceController extends Controller
     /**
      * Stream the uploaded background song.
      */
-    public function audio(Request $request, DigitalExperience $experience): StreamedResponse
+    public function audio(Request $request, DigitalExperience $experience): SymfonyResponse
     {
         $this->ensureVisible($request, $experience);
 
         abort_if($experience->audio_path === null, 404);
 
-        return Storage::disk(config('taptale.uploads_disk'))->response($experience->audio_path, headers: [
+        return $this->serveUpload($experience->audio_path, [
             'Cache-Control' => 'private, max-age=3600',
             'Accept-Ranges' => 'bytes',
         ]);
+    }
+
+    /**
+     * Serve a private upload. Object storage (R2 / S3) gets a redirect to a
+     * short-lived signed URL so the browser downloads straight from the
+     * bucket; local disks are streamed through the app.
+     *
+     * @param  array<string, string>  $headers
+     */
+    private function serveUpload(string $path, array $headers): SymfonyResponse
+    {
+        $diskName = (string) config('taptale.uploads_disk');
+
+        if (config("filesystems.disks.{$diskName}.driver") === 's3') {
+            return redirect()->away(
+                Storage::disk($diskName)->temporaryUrl($path, now()->addHour())
+            )->header('Cache-Control', 'private, max-age=3000');
+        }
+
+        return Storage::disk($diskName)->response($path, headers: $headers);
     }
 
     /**

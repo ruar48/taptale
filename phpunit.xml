@@ -32,5 +32,7 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="TAPTALE_MEDIA_DISK" value="public"/>
+        <env name="TAPTALE_UPLOADS_DISK" value="local"/>
     </php>
 </phpunit>
