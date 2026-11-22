@@ -1,2 +1,9 @@
 User-agent: *
-Disallow:
+Disallow: /admin
+Disallow: /account
+Disallow: /settings
+Disallow: /dashboard
+Disallow: /files/
+Disallow: /t/
+
+Sitemap: https://taptale.online/sitemap.xml

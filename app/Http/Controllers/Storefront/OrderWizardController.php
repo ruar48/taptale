@@ -85,6 +85,10 @@ class OrderWizardController extends Controller
                 'postal_code' => $user->postal_code,
             ],
             'passwordRules' => $user === null ? Password::defaults()->toPasswordRulesString() : null,
+            'seo' => [
+                'title' => 'Order Your Gift',
+                'description' => 'Create a personalized NFC keychain or photo keepsake in a few steps — pick a gift, choose a design and add your photos and message.',
+            ],
         ]);
     }
 

@@ -24,13 +24,21 @@ Route::get('templates', Storefront\TemplateGalleryController::class)->name('temp
 | About and policy pages. Business details come from config('taptale.business').
 */
 Route::name('pages.')->group(function () {
-    Route::inertia('about', 'storefront/pages/about')->name('about');
-    Route::inertia('terms', 'storefront/pages/terms')->name('terms');
-    Route::inertia('privacy', 'storefront/pages/privacy')->name('privacy');
-    Route::inertia('cookies', 'storefront/pages/cookies')->name('cookies');
-    Route::inertia('shipping', 'storefront/pages/shipping')->name('shipping');
-    Route::inertia('returns', 'storefront/pages/returns')->name('returns');
+    Route::inertia('about', 'storefront/pages/about', ['seo' => [
+        'title' => 'Who we are',
+        'description' => 'Taptale makes personalized NFC keychains and photo keepsakes by hand in the Philippines — little gifts that hold a lifetime of memories.',
+    ]])->name('about');
+    Route::inertia('terms', 'storefront/pages/terms', ['seo' => ['title' => 'Terms of service']])->name('terms');
+    Route::inertia('privacy', 'storefront/pages/privacy', ['seo' => ['title' => 'Privacy policy']])->name('privacy');
+    Route::inertia('cookies', 'storefront/pages/cookies', ['seo' => ['title' => 'Cookie policy']])->name('cookies');
+    Route::inertia('shipping', 'storefront/pages/shipping', ['seo' => [
+        'title' => 'Shipping & delivery',
+        'description' => 'How Taptale ships personalized gifts nationwide across the Philippines — production times, delivery fees and tracking.',
+    ]])->name('shipping');
+    Route::inertia('returns', 'storefront/pages/returns', ['seo' => ['title' => 'Returns & refunds']])->name('returns');
 });
+
+Route::get('sitemap.xml', Storefront\SitemapController::class)->name('sitemap');
 
 /*
 | NFC tags and QR codes point here. Kept on the main domain on purpose.

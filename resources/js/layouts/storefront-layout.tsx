@@ -12,6 +12,7 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { BrandLogo } from '@/components/taptale/brand-logo';
 import { CookieNotice } from '@/components/taptale/cookie-notice';
+import { ThemeSwitcher } from '@/components/taptale/theme-switcher';
 import {
     ContactDetails,
     POLICY_LINKS,
@@ -123,6 +124,7 @@ function SiteHeader() {
                 </nav>
 
                 <div className="ml-auto flex items-center gap-2">
+                    <ThemeSwitcher />
                     {user ? (
                         <AccountMenu />
                     ) : (

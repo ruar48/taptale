@@ -10,7 +10,13 @@ export type UseAppearanceReturn = {
 };
 
 const listeners = new Set<() => void>();
-let currentAppearance: Appearance = 'system';
+/**
+ * Light is the brand look, so it is the default until a visitor picks a theme themselves.
+ */
+const DEFAULT_APPEARANCE: Appearance = 'light';
+const CHOSEN_KEY = 'appearance-chosen';
+
+let currentAppearance: Appearance = DEFAULT_APPEARANCE;
 
 const prefersDark = (): boolean => {
     if (typeof window === 'undefined') {
@@ -31,10 +37,12 @@ const setCookie = (name: string, value: string, days = 365): void => {
 
 const getStoredAppearance = (): Appearance => {
     if (typeof window === 'undefined') {
-        return 'system';
+        return DEFAULT_APPEARANCE;
     }
 
-    return (localStorage.getItem('appearance') as Appearance) || 'system';
+    return (
+        (localStorage.getItem('appearance') as Appearance) || DEFAULT_APPEARANCE
+    );
 };
 
 const isDarkMode = (appearance: Appearance): boolean => {
@@ -48,8 +56,13 @@ const applyTheme = (appearance: Appearance): void => {
 
     const isDark = isDarkMode(appearance);
 
+    const colorScheme = isDark ? 'only dark' : 'only light';
+
     document.documentElement.classList.toggle('dark', isDark);
-    document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+    document.documentElement.style.colorScheme = colorScheme;
+    document
+        .querySelector('meta[name="color-scheme"]')
+        ?.setAttribute('content', colorScheme);
 };
 
 const subscribe = (callback: () => void) => {
@@ -75,9 +88,11 @@ export function initializeTheme(): void {
         return;
     }
 
-    if (!localStorage.getItem('appearance')) {
-        localStorage.setItem('appearance', 'system');
-        setCookie('appearance', 'system');
+    // Visitors who never picked a theme (older builds stored "system" automatically)
+    // get the light brand look instead of following their phone's dark mode.
+    if (localStorage.getItem(CHOSEN_KEY) !== '1') {
+        localStorage.setItem('appearance', DEFAULT_APPEARANCE);
+        setCookie('appearance', DEFAULT_APPEARANCE);
     }
 
     currentAppearance = getStoredAppearance();
@@ -91,7 +106,7 @@ export function useAppearance(): UseAppearanceReturn {
     const appearance: Appearance = useSyncExternalStore(
         subscribe,
         () => currentAppearance,
-        () => 'system',
+        () => DEFAULT_APPEARANCE,
     );
 
     const resolvedAppearance: ResolvedAppearance = isDarkMode(appearance)
@@ -103,6 +118,7 @@ export function useAppearance(): UseAppearanceReturn {
 
         // Store in localStorage for client-side persistence...
         localStorage.setItem('appearance', mode);
+        localStorage.setItem(CHOSEN_KEY, '1');
 
         // Store in cookie for SSR...
         setCookie('appearance', mode);

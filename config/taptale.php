@@ -71,4 +71,21 @@ return [
 
     'policies_updated_on' => env('TAPTALE_POLICIES_UPDATED_ON', '2026-11-22'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Search engines & link previews
+    |--------------------------------------------------------------------------
+    |
+    | Defaults for the <meta> tags rendered in app.blade.php. Storefront
+    | controllers pass a "seo" prop to override them per page; pages
+    | without one (accounts, admin, private memory pages) are noindexed.
+    |
+    */
+
+    'seo' => [
+        'description' => 'Personalized NFC keychains, photo keepsakes and memory pages from the Philippines. Turn your photos, videos and messages into a gift they can tap to relive.',
+        'image' => '/image/taptale-og.jpg',
+        'locale' => 'en_PH',
+    ],
+
 ];

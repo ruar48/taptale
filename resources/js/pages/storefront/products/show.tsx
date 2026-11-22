@@ -56,7 +56,7 @@ export default function ProductShow({
                             <img
                                 src={images[activeImage]?.url}
                                 alt={images[activeImage]?.alt ?? product.name}
-                                className="aspect-square w-full object-cover"
+                                className="aspect-square w-full object-contain"
                             />
                         ) : (
                             <ProductArt
@@ -73,7 +73,7 @@ export default function ProductShow({
                                     type="button"
                                     onClick={() => setActiveImage(index)}
                                     className={cn(
-                                        'size-20 shrink-0 overflow-hidden rounded-xl border-2 transition',
+                                        'size-20 shrink-0 overflow-hidden rounded-xl border-2 bg-card transition',
                                         index === activeImage
                                             ? 'border-rose'
                                             : 'border-transparent opacity-70 hover:opacity-100',
@@ -83,7 +83,7 @@ export default function ProductShow({
                                     <img
                                         src={image.url}
                                         alt=""
-                                        className="size-full object-cover"
+                                        className="size-full object-contain"
                                     />
                                 </button>
                             ))}

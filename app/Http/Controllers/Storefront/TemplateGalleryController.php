@@ -22,6 +22,10 @@ class TemplateGalleryController extends Controller
                 Template::active()->with(['categories' => fn ($query) => $query->where('is_active', true)])->get()
             ),
             'categories' => CategoryResource::collection(Category::active()->get()),
+            'seo' => [
+                'title' => 'Keychain Designs',
+                'description' => 'Browse personalized keychain designs for every occasion. Add your photos, names and message — or let our designers adapt one for you.',
+            ],
         ]);
     }
 }

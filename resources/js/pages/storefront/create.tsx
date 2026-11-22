@@ -763,8 +763,8 @@ export default function CreateGift({
                     />
                 </div>
 
-                <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
-                    <div key={step} className="animate-fade-up">
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
+                    <div key={step} className="min-w-0 animate-fade-up">
                         {stepKey === 'product' && (
                             <StepShell
                                 title={

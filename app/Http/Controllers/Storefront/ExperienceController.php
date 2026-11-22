@@ -28,6 +28,10 @@ class ExperienceController extends Controller
     {
         return Inertia::render('storefront/memory-pages', [
             'templates' => ExperienceTemplate::options(),
+            'seo' => [
+                'title' => 'Memory Page Designs',
+                'description' => 'Explore memory page designs — the page your loved one sees when they tap the NFC keychain or scan the QR code. Photos, videos, music and your message.',
+            ],
         ]);
     }
 
@@ -45,6 +49,10 @@ class ExperienceController extends Controller
             'isPreview' => false,
             'isDemo' => true,
             'canEdit' => false,
+            'seo' => [
+                'title' => "{$experienceTemplate->label()} memory page demo",
+                'description' => $experienceTemplate->description(),
+            ],
         ]);
     }
 

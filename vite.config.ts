@@ -13,15 +13,20 @@ export default defineConfig({
             input: ['resources/css/app.css', 'resources/js/app.tsx'],
             refresh: true,
             fonts: [
+                // Only preload the faces used above the fold (body text and the hero
+                // heading); the rest load on demand so they don't compete with the LCP.
                 bunny('Instrument Sans', {
                     weights: [400, 500, 600],
+                    preload: [{ weight: 400, style: 'normal' }],
                 }),
                 bunny('Fraunces', {
                     weights: [400, 500, 600],
                     styles: ['normal', 'italic'],
+                    preload: [{ weight: 500, style: 'normal' }],
                 }),
                 bunny('Great Vibes', {
                     weights: [400],
+                    preload: false,
                 }),
             ],
         }),

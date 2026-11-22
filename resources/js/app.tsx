@@ -1,11 +1,18 @@
 import { createInertiaApp } from '@inertiajs/react';
+import { lazy, Suspense } from 'react';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
-import AppLayout from '@/layouts/app-layout';
-import AuthLayout from '@/layouts/auth-layout';
-import SettingsLayout from '@/layouts/settings/layout';
 import StorefrontLayout from '@/layouts/storefront-layout';
+
+/**
+ * Only the storefront layout ships with the first page load; the dashboard, auth and
+ * settings layouts (and the admin routes they pull in) load on demand so shoppers
+ * never download them.
+ */
+const AppLayout = lazy(() => import('@/layouts/app-layout'));
+const AuthLayout = lazy(() => import('@/layouts/auth-layout'));
+const SettingsLayout = lazy(() => import('@/layouts/settings/layout'));
 
 /**
  * The brand is fixed so tabs never show the framework default ("Laravel")
@@ -33,7 +40,7 @@ void createInertiaApp({
     withApp(app) {
         return (
             <TooltipProvider delayDuration={0}>
-                {app}
+                <Suspense fallback={null}>{app}</Suspense>
                 <Toaster />
             </TooltipProvider>
         );

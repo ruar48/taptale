@@ -32,6 +32,18 @@ type Props = {
     testimonials: Testimonial[];
 };
 
+/**
+ * Kept in sync with the <link rel="preload"> in app.blade.php so the browser fetches
+ * the hero before the JavaScript has even loaded.
+ */
+const HERO_SRCSET = [640, 960, 1280, 1672]
+    .map(
+        (width) =>
+            `/image/taptale-nfc-wedding-couple-hero${width === 1672 ? '' : `-${width}`}.webp ${width}w`,
+    )
+    .join(', ');
+const HERO_SIZES = '(min-width: 1024px) 100vw, calc(100vw - 2rem)';
+
 const STEPS = [
     {
         icon: Heart,
@@ -266,12 +278,13 @@ function Hero() {
     return (
         <section className="relative flex flex-col overflow-hidden bg-blush-light/40 lg:min-h-[640px] lg:justify-center dark:bg-background">
             <img
-                src="/image/taptale-nfc-wedding-couple-hero.webp"
+                src="/image/taptale-nfc-wedding-couple-hero-1280.webp"
+                srcSet={HERO_SRCSET}
+                sizes={HERO_SIZES}
                 alt="Personalized NFC photo keychain with a wedding couple photo beside a pink gift box and a tap-to-relive card"
                 width={1672}
                 height={941}
                 fetchPriority="high"
-                decoding="async"
                 className="order-last mx-4 mb-12 aspect-[16/10] w-[calc(100%-2rem)] rounded-3xl object-cover object-[70%_center] shadow-[0_24px_50px_-24px_rgb(113_61_80/0.45)] sm:mx-6 sm:w-[calc(100%-3rem)] lg:absolute lg:inset-0 lg:order-none lg:m-0 lg:aspect-auto lg:h-full lg:w-full lg:rounded-none lg:object-[75%_center] lg:shadow-none"
             />
             <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-[#fbe9e6]/95 via-[#fbe9e6]/60 to-transparent lg:block lg:w-[65%] dark:from-background dark:via-background/80" />

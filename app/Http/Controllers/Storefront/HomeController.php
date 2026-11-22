@@ -30,6 +30,39 @@ class HomeController extends Controller
                 Template::active()->where('is_featured', true)->with('categories:id,name,slug')->limit(6)->get()
             ),
             'testimonials' => Testimonial::published()->limit(6)->get(['id', 'author_name', 'occasion', 'quote', 'rating']),
+            'seo' => [
+                'title' => 'Personalized NFC & Photo Keepsakes',
+                'schema' => $this->structuredData(),
+            ],
         ]);
+    }
+
+    /**
+     * Organization and WebSite structured data so Google can show the brand in results.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function structuredData(): array
+    {
+        $business = config('taptale.business');
+
+        return [
+            array_filter([
+                '@context' => 'https://schema.org',
+                '@type' => 'Organization',
+                'name' => $business['name'],
+                'url' => url('/'),
+                'logo' => url('/apple-touch-icon.png'),
+                'email' => $business['email'],
+                'telephone' => $business['phone'],
+                'sameAs' => array_values(array_filter([$business['facebook_url'], $business['instagram_url']])) ?: null,
+            ]),
+            [
+                '@context' => 'https://schema.org',
+                '@type' => 'WebSite',
+                'name' => $business['name'],
+                'url' => url('/'),
+            ],
+        ];
     }
 }
