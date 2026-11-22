@@ -1,41 +1,38 @@
 import { Music, Pause, Play } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MouseEvent } from "react";
-import { embedFor } from "@/components/taptale/experience/config";
+import { embedFor, youTubeIdFor } from "@/components/taptale/experience/config";
 import {
     EditableText,
     useExperience,
     useExperienceAudio,
 } from "@/components/taptale/experience/shared";
+import { useYouTubePlayer } from "@/components/taptale/experience/youtube-player";
 import { cn } from "@/lib/utils";
 import { lookup } from "@/routes/songs";
+import type { SongDetails } from "@/types";
 
-type LyricLine = { time: number; text: string };
+type LyricLine = SongDetails["synced_lyrics"][number];
 
-type SongDetails = {
-    title: string;
-    artist: string | null;
-    artwork_url: string | null;
-    preview_url: string | null;
-    track_url: string | null;
-    duration: number | null;
-    synced_lyrics: LyricLine[];
-    plain_lyrics: string[];
-};
+type Clock = { current: number; duration: number };
 
 const BAR_COUNT = 64;
 
 /**
- * Album art, a preview clip and lyrics from the free iTunes Search and
- * LRCLIB APIs, fetched through our own cached endpoint.
+ * Album art, a preview clip and lyrics. Saved on the experience when the
+ * song is added; demos fall back to our cached lookup endpoint.
  */
-function useSongDetails(title: string | null, artist: string | null) {
-    const [details, setDetails] = useState<SongDetails | null>(null);
+function useSongDetails(
+    title: string | null,
+    artist: string | null,
+    saved: SongDetails | null,
+) {
+    const [fetched, setFetched] = useState<SongDetails | null>(null);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (!title) {
-            setDetails(null);
+        if (!title || saved) {
+            setFetched(null);
 
             return;
         }
@@ -53,7 +50,7 @@ function useSongDetails(title: string | null, artist: string | null) {
             },
         )
             .then((response) => (response.ok ? response.json() : null))
-            .then((data: SongDetails | null) => setDetails(data))
+            .then((data: SongDetails | null) => setFetched(data))
             .catch(() => undefined)
             .finally(() => {
                 if (!controller.signal.aborted) {
@@ -62,46 +59,49 @@ function useSongDetails(title: string | null, artist: string | null) {
             });
 
         return () => controller.abort();
-    }, [title, artist]);
+    }, [title, artist, saved]);
 
-    return { details, loading };
+    return { details: saved ?? fetched, loading };
 }
 
 /**
  * Reads playback position every frame while the song plays.
  */
-function usePlaybackClock(
-    getElement: () => HTMLAudioElement | null,
-    playing: boolean,
-) {
-    const [clock, setClock] = useState({ current: 0, duration: 0 });
+function usePlaybackClock(read: () => Clock | null, playing: boolean) {
+    const [clock, setClock] = useState<Clock>({ current: 0, duration: 0 });
 
     useEffect(() => {
         let frame = 0;
 
-        const read = () => {
-            const element = getElement();
+        const tick = () => {
+            const next = read();
 
-            if (element) {
-                setClock({
-                    current: element.currentTime,
-                    duration: Number.isFinite(element.duration)
-                        ? element.duration
-                        : 0,
-                });
+            if (next) {
+                setClock(next);
             }
 
             if (playing) {
-                frame = requestAnimationFrame(read);
+                frame = requestAnimationFrame(tick);
             }
         };
 
-        read();
+        tick();
 
         return () => cancelAnimationFrame(frame);
-    }, [getElement, playing]);
+    }, [read, playing]);
 
     return clock;
+}
+
+function clockFrom(element: HTMLAudioElement | null): Clock | null {
+    if (!element) {
+        return null;
+    }
+
+    return {
+        current: element.currentTime,
+        duration: Number.isFinite(element.duration) ? element.duration : 0,
+    };
 }
 
 /** Deterministic bar heights so each song gets its own waveform shape. */
@@ -142,18 +142,18 @@ function Vinyl({
     artwork: string | null;
 }) {
     return (
-        <div className="relative">
+        <div className="relative pr-[16%]">
             <div
                 className={cn(
-                    "relative aspect-square w-full rounded-full shadow-[0_30px_60px_-20px_rgb(0_0_0/0.8)]",
-                    spinning && "animate-[spin_6s_linear_infinite]",
+                    "relative aspect-square w-full rounded-full shadow-[0_30px_60px_-20px_rgb(0_0_0/0.8)] ring-1 ring-white/5",
+                    spinning && "animate-[spin_5s_linear_infinite]",
                 )}
                 style={{
                     background:
-                        "repeating-radial-gradient(circle, #111 0 2px, #1d1d1d 2px 4px)",
+                        "repeating-radial-gradient(circle, #121212 0 1.5px, #1c1c1c 1.5px 3px)",
                 }}
             >
-                <div className="absolute inset-[30%] overflow-hidden rounded-full bg-[var(--x-accent)] text-[var(--x-accent-ink)]">
+                <div className="absolute inset-[31%] overflow-hidden rounded-full bg-[var(--x-accent)] text-[var(--x-accent-ink)] ring-4 ring-black/40">
                     {artwork ? (
                         <img
                             src={artwork}
@@ -162,25 +162,51 @@ function Vinyl({
                             loading="lazy"
                         />
                     ) : (
-                        <span className="absolute inset-x-2 top-[18%] line-clamp-1 text-center text-[9px] font-semibold tracking-wide uppercase">
+                        <span className="absolute inset-x-3 top-[20%] line-clamp-2 text-center text-[10px] font-semibold tracking-wide uppercase">
                             {label ?? "Our song"}
                         </span>
                     )}
                 </div>
-                <div className="absolute inset-[47.5%] rounded-full bg-[#111] ring-2 ring-white/20" />
-                <div className="absolute inset-0 rounded-full bg-[linear-gradient(135deg,rgb(255_255_255/0.14),transparent_40%,rgb(255_255_255/0.06)_60%,transparent)]" />
+                <div className="absolute inset-[48%] rounded-full bg-[#0d0d0d] ring-1 ring-white/30" />
+                <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_30deg,transparent_0deg,rgb(255_255_255/0.10)_40deg,transparent_90deg,transparent_180deg,rgb(255_255_255/0.07)_220deg,transparent_270deg)]" />
             </div>
-            {/* Tonearm swings onto the record while it plays. */}
-            <div
+
+            {/* Tonearm: rests beside the record, swings onto it while playing. */}
+            <svg
+                viewBox="0 0 60 240"
+                aria-hidden
                 className={cn(
-                    "absolute -top-[4%] -right-[6%] h-[62%] w-[8%] origin-[50%_6%] transition-transform duration-700",
-                    spinning ? "rotate-[22deg]" : "rotate-[2deg]",
+                    "absolute top-[-4%] right-0 w-[22%] origin-[50%_12%] drop-shadow-[0_8px_10px_rgb(0_0_0/0.45)] transition-transform duration-1000 ease-out",
+                    spinning ? "rotate-[24deg]" : "rotate-[4deg]",
                 )}
             >
-                <div className="mx-auto size-[180%] -translate-x-[22%] rounded-full bg-gradient-to-br from-zinc-200 to-zinc-500 shadow-md" />
-                <div className="mx-auto -mt-[40%] h-full w-[28%] rounded-full bg-gradient-to-b from-zinc-200 to-zinc-400" />
-                <div className="mx-auto -mt-[10%] h-[14%] w-[90%] rounded-sm bg-zinc-700" />
-            </div>
+                <defs>
+                    <linearGradient id="tonearm-metal" x1="0" x2="1">
+                        <stop offset="0" stopColor="#f4f4f5" />
+                        <stop offset="1" stopColor="#a1a1aa" />
+                    </linearGradient>
+                </defs>
+                <circle cx="30" cy="28" r="22" fill="#27272a" />
+                <circle cx="30" cy="28" r="15" fill="url(#tonearm-metal)" />
+                <circle cx="30" cy="28" r="5" fill="#3f3f46" />
+                <path
+                    d="M30 28 L30 178 L18 206"
+                    fill="none"
+                    stroke="url(#tonearm-metal)"
+                    strokeWidth="5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <rect
+                    x="6"
+                    y="200"
+                    width="20"
+                    height="30"
+                    rx="3"
+                    transform="rotate(25 16 215)"
+                    fill="#3f3f46"
+                />
+            </svg>
         </div>
     );
 }
@@ -282,10 +308,23 @@ function Lyrics({
         return index;
     }, [synced, current, isSynced]);
 
+    /*
+     * Karaoke wipe: how far through the active line we are, so the colour
+     * sweeps across the words in time with the singing.
+     */
+    let lineProgress = 0;
+
+    if (activeIndex >= 0) {
+        const start = synced[activeIndex].time;
+        const next = synced[activeIndex + 1]?.time ?? start + 4;
+        const singing = Math.max(0.6, Math.min(next - start, 6) * 0.9);
+        lineProgress = Math.min(1, Math.max(0, (current - start) / singing));
+    }
+
     useEffect(() => {
         const container = containerRef.current;
         const line = container?.querySelector<HTMLElement>(
-            `[data-line="${activeIndex}"]`,
+            `[data-line="${Math.max(activeIndex, 0)}"]`,
         );
 
         if (!container || !line) {
@@ -295,7 +334,7 @@ function Lyrics({
         container.scrollTo({
             top:
                 line.offsetTop -
-                container.clientHeight / 2 +
+                container.clientHeight * 0.4 +
                 line.clientHeight / 2,
             behavior: "smooth",
         });
@@ -309,33 +348,54 @@ function Lyrics({
         <div
             ref={containerRef}
             className={cn(
-                "relative overflow-y-auto overscroll-contain px-1 [mask-image:linear-gradient(to_bottom,transparent,black_18%,black_82%,transparent)] [scrollbar-width:none]",
-                compact ? "h-48" : "h-64 sm:h-72",
+                "relative overflow-y-auto overscroll-contain [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+                compact ? "h-52" : "h-72 sm:h-80",
             )}
         >
-            <div className="py-[40%] text-center md:text-left">
-                {lines.map((text, index) => (
-                    <p
-                        key={index}
-                        data-line={index}
-                        className={cn(
-                            "font-display leading-snug transition-all duration-500",
-                            compact
-                                ? "py-1 text-lg"
-                                : "py-1.5 text-xl sm:text-2xl",
-                            !isSynced && "opacity-80",
-                            isSynced &&
-                                (index === activeIndex
-                                    ? "scale-[1.02] font-semibold text-[var(--x-accent)] opacity-100"
-                                    : index < activeIndex
-                                      ? "opacity-35"
-                                      : "opacity-55"),
-                            text === "" && "h-4",
-                        )}
-                    >
-                        {text || "♪"}
-                    </p>
-                ))}
+            <div
+                className={cn(
+                    "text-center md:text-left",
+                    compact ? "py-20" : "py-28 sm:py-32",
+                )}
+            >
+                {lines.map((text, index) => {
+                    const active = isSynced && index === activeIndex;
+                    const fill = Math.round(lineProgress * 100);
+
+                    return (
+                        <p
+                            key={index}
+                            data-line={index}
+                            className={cn(
+                                "origin-left font-display leading-snug transition-[opacity,transform,filter] duration-500 max-md:origin-center",
+                                compact
+                                    ? "py-1 text-lg"
+                                    : "py-2 text-2xl sm:text-[1.7rem]",
+                                !isSynced && "opacity-80",
+                                isSynced &&
+                                    (active
+                                        ? "scale-[1.04] font-semibold opacity-100"
+                                        : index < activeIndex
+                                          ? "opacity-30"
+                                          : index - activeIndex <= 2
+                                            ? "opacity-55"
+                                            : "opacity-35 blur-[0.5px]"),
+                            )}
+                            style={
+                                active
+                                    ? {
+                                          backgroundImage: `linear-gradient(90deg, var(--x-accent) ${fill}%, color-mix(in srgb, var(--x-ink) 55%, transparent) ${fill}%)`,
+                                          WebkitBackgroundClip: "text",
+                                          backgroundClip: "text",
+                                          color: "transparent",
+                                      }
+                                    : undefined
+                            }
+                        >
+                            {text || "♪ ♪ ♪"}
+                        </p>
+                    );
+                })}
             </div>
         </div>
     );
@@ -351,25 +411,57 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
     const { details, loading } = useSongDetails(
         experience.song_title,
         experience.song_artist,
+        experience.song_details,
     );
-    const embed = embedFor(experience.music_url);
 
     const previewRef = useRef<HTMLAudioElement>(null);
     const [previewPlaying, setPreviewPlaying] = useState(false);
 
-    // Prefer the customer's uploaded song; fall back to the 30-second preview.
-    const usingPreview = !pageAudio.available && !!details?.preview_url;
-    const playing = usingPreview ? previewPlaying : pageAudio.playing;
-    const canPlay = pageAudio.available || usingPreview;
+    /*
+     * Source priority: the customer's uploaded song, then the official
+     * YouTube video (full song), then the 30-second iTunes preview.
+     */
+    const youTubeId = pageAudio.available
+        ? null
+        : youTubeIdFor(experience.music_url);
+    const youTube = useYouTubePlayer(youTubeId);
+    const source: "upload" | "youtube" | "preview" | "none" =
+        pageAudio.available
+            ? "upload"
+            : youTubeId
+              ? "youtube"
+              : details?.preview_url
+                ? "preview"
+                : "none";
+    const embed = source === "youtube" ? null : embedFor(experience.music_url);
+
+    const playing =
+        source === "upload"
+            ? pageAudio.playing
+            : source === "youtube"
+              ? youTube.playing
+              : previewPlaying;
+    const canPlay =
+        source === "upload" ||
+        source === "preview" ||
+        (source === "youtube" && youTube.ready);
+    const fullSong = source === "upload" || source === "youtube";
 
     const pageElement = pageAudio.getElement;
-    const getElement = useCallback(
-        () => (usingPreview ? previewRef.current : pageElement()),
-        [usingPreview, pageElement],
+    const youTubeClock = youTube.readClock;
+    const readClock = useCallback(
+        () =>
+            source === "youtube"
+                ? youTubeClock()
+                : clockFrom(
+                      source === "upload" ? pageElement() : previewRef.current,
+                  ),
+        [source, pageElement, youTubeClock],
     );
 
-    const clock = usePlaybackClock(getElement, playing);
-    const duration = clock.duration || details?.duration || 0;
+    const clock = usePlaybackClock(readClock, playing);
+    const duration =
+        clock.duration || (fullSong ? (details?.duration ?? 0) : 0);
     const progress = duration > 0 ? clock.current / duration : 0;
 
     const bars = useMemo(
@@ -381,8 +473,14 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
     );
 
     const toggle = () => {
-        if (!usingPreview) {
+        if (source === "upload") {
             pageAudio.toggle();
+
+            return;
+        }
+
+        if (source === "youtube") {
+            youTube.toggle();
 
             return;
         }
@@ -405,7 +503,14 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
     };
 
     const seek = (fraction: number) => {
-        const element = getElement();
+        if (source === "youtube") {
+            youTube.seek(fraction * duration);
+
+            return;
+        }
+
+        const element =
+            source === "upload" ? pageElement() : previewRef.current;
 
         if (element && Number.isFinite(element.duration)) {
             element.currentTime = fraction * element.duration;
@@ -423,7 +528,7 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                 !compact && "md:grid-cols-[0.85fr_1.15fr] md:gap-14",
             )}
         >
-            {usingPreview && details?.preview_url && (
+            {source === "preview" && details?.preview_url && (
                 <audio
                     ref={previewRef}
                     src={details.preview_url}
@@ -435,7 +540,7 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
             <div
                 className={cn(
                     "mx-auto w-full",
-                    compact ? "max-w-[12rem]" : "max-w-[18rem] sm:max-w-xs",
+                    compact ? "max-w-[14rem]" : "max-w-[20rem] sm:max-w-sm",
                 )}
             >
                 <Vinyl
@@ -503,7 +608,7 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                     <div className="mt-1 flex justify-between text-xs tabular-nums opacity-60">
                         <span>{formatTime(clock.current)}</span>
                         <span>
-                            {usingPreview && "Preview · "}
+                            {source === "preview" && "Preview · "}
                             {formatTime(duration)}
                         </span>
                     </div>
@@ -528,11 +633,19 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                             plain={details.plain_lyrics}
                             current={clock.current}
                             isSynced={
-                                !usingPreview &&
-                                pageAudio.available &&
-                                details.synced_lyrics.length > 0
+                                fullSong && details.synced_lyrics.length > 0
                             }
                             compact={compact}
+                        />
+                    </div>
+                )}
+
+                {youTubeId && (
+                    <div className="mt-6 overflow-hidden rounded-2xl bg-black/20 shadow-xl">
+                        {/* YouTube's terms require its player to stay visible (min 200px). */}
+                        <div
+                            ref={youTube.containerRef}
+                            className="aspect-video min-h-[200px] w-full"
                         />
                     </div>
                 )}

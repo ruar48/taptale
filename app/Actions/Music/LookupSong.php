@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 /**
  * Looks up a song on two free, keyless public APIs: the iTunes Search API
  * (album artwork and a 30-second preview) and LRCLIB (time-synced lyrics).
- * Results are cached so each song is only fetched once a week.
+ * Results are cached for a week (misses for an hour, in case a service was down).
  */
 class LookupSong
 {
@@ -31,7 +31,13 @@ class LookupSong
     {
         $cacheKey = 'song-lookup:'.md5(Str::lower(trim($title).'|'.trim((string) $artist)));
 
-        return Cache::remember($cacheKey, now()->addWeek(), function () use ($title, $artist): array {
+        $cached = Cache::get($cacheKey);
+
+        if (is_array($cached)) {
+            return $cached;
+        }
+
+        $details = (function () use ($title, $artist): array {
             $track = $this->findTrack($title, $artist);
             $lyrics = $this->findLyrics(
                 $track['title'] ?? $title,
@@ -49,7 +55,14 @@ class LookupSong
                 'synced_lyrics' => $this->parseLrc($lyrics['syncedLyrics'] ?? null),
                 'plain_lyrics' => $this->splitLines($lyrics['plainLyrics'] ?? null),
             ];
-        });
+        })();
+
+        $found = $details['preview_url'] !== null || $details['synced_lyrics'] !== [] || $details['plain_lyrics'] !== [];
+
+        // Misses are retried sooner, in case the music services were down.
+        Cache::put($cacheKey, $details, $found ? now()->addWeek() : now()->addHour());
+
+        return $details;
     }
 
     /**

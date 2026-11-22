@@ -496,6 +496,36 @@ export function presetFor(key: string): ExperiencePreset {
 }
 
 /**
+ * The video ID from a YouTube or YouTube Music link, if it is one.
+ */
+export function youTubeIdFor(url: string | null | undefined): string | null {
+    if (!url) {
+        return null;
+    }
+
+    try {
+        const parsed = new URL(url);
+        const host = parsed.hostname.replace(/^www\.|^m\./, "");
+
+        if (host === "youtu.be") {
+            return parsed.pathname.split("/").filter(Boolean)[0] ?? null;
+        }
+
+        if (host === "youtube.com" || host === "music.youtube.com") {
+            return (
+                parsed.searchParams.get("v") ??
+                parsed.pathname.match(/\/(shorts|embed|live)\/([\w-]+)/)?.[2] ??
+                null
+            );
+        }
+    } catch {
+        return null;
+    }
+
+    return null;
+}
+
+/**
  * Convert a YouTube, Vimeo or Spotify share link into an embeddable URL.
  */
 export function embedFor(

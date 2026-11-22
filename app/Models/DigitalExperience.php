@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ExperienceTemplate;
 use App\Enums\PhotoRainLayer;
+use App\Jobs\FetchSongDetails;
 use Database\Factories\DigitalExperienceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
@@ -32,6 +33,7 @@ use Illuminate\Support\Str;
  * @property string|null $music_url
  * @property string|null $song_title
  * @property string|null $song_artist
+ * @property array{title: string, artist: string|null, artwork_url: string|null, preview_url: string|null, track_url: string|null, duration: float|null, synced_lyrics: list<array{time: float, text: string}>, plain_lyrics: list<string>}|null $song_details
  * @property string|null $audio_path
  * @property list<string>|null $photos
  * @property list<array{date?: string|null, title?: string|null, caption?: string|null, photo?: int|null}>|null $moments
@@ -91,6 +93,13 @@ class DigitalExperience extends Model
         static::creating(function (DigitalExperience $experience): void {
             $experience->code ??= static::generateCode();
         });
+
+        static::saved(function (DigitalExperience $experience): void {
+            if ($experience->wasChanged(['song_title', 'song_artist'])
+                || ($experience->wasRecentlyCreated && filled($experience->song_title))) {
+                FetchSongDetails::dispatchAfterResponse($experience);
+            }
+        });
     }
 
     /**
@@ -105,6 +114,7 @@ class DigitalExperience extends Model
             'photo_rain_layer' => PhotoRainLayer::class,
             'photos' => 'array',
             'moments' => 'array',
+            'song_details' => 'array',
             'is_published' => 'boolean',
             'view_count' => 'integer',
         ];

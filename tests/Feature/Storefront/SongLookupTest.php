@@ -1,5 +1,8 @@
 <?php
 
+use App\Jobs\FetchSongDetails;
+use App\Models\DigitalExperience;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 
 test('it returns artwork, a preview and synced lyrics for a song', function () {
@@ -49,4 +52,32 @@ test('it still responds when the music services are unavailable', function () {
 
 test('a song title is required', function () {
     $this->getJson(route('songs.lookup'))->assertJsonValidationErrors('title');
+});
+
+test('song details are fetched after the response when the song changes', function () {
+    Bus::fake();
+    $experience = DigitalExperience::factory()->create();
+
+    $experience->update(['song_title' => 'Perfect', 'song_artist' => 'Ed Sheeran']);
+
+    Bus::assertDispatchedAfterResponse(FetchSongDetails::class, fn (FetchSongDetails $job) => $job->experience->is($experience));
+});
+
+test('fetching song details saves the lyrics on the experience', function () {
+    Http::fake([
+        'itunes.apple.com/*' => Http::response(['results' => []]),
+        'lrclib.net/api/get*' => Http::response([
+            'syncedLyrics' => '[00:12.50] I found a love',
+            'plainLyrics' => 'I found a love',
+        ]),
+    ]);
+    $experience = DigitalExperience::factory()->create([
+        'song_title' => 'Perfect',
+        'song_artist' => 'Ed Sheeran',
+    ]);
+
+    FetchSongDetails::dispatchSync($experience);
+
+    expect($experience->fresh()->song_details['synced_lyrics'])
+        ->toBe([['time' => 12.5, 'text' => 'I found a love']]);
 });
