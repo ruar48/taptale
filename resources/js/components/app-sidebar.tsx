@@ -5,6 +5,7 @@ import {
     LayoutGrid,
     LayoutTemplate,
     Package,
+    PiggyBank,
     ReceiptText,
     Sparkles,
     Store,
@@ -30,6 +31,7 @@ import { index as accountOrders } from '@/routes/account/orders';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import { index as categoriesIndex } from '@/routes/admin/categories';
 import { index as customersIndex } from '@/routes/admin/customers';
+import { index as financeIndex } from '@/routes/admin/finance';
 import { index as ordersIndex } from '@/routes/admin/orders';
 import { index as paymentMethodsIndex } from '@/routes/admin/payment-methods';
 import { index as paymentsIndex } from '@/routes/admin/payments';
@@ -49,6 +51,7 @@ const adminOperationsItems: NavItem[] = [
     { title: 'Orders', href: ordersIndex(), icon: ReceiptText },
     { title: 'Payments', href: paymentsIndex(), icon: Wallet },
     { title: 'Customers', href: customersIndex(), icon: Users },
+    { title: 'Finance', href: financeIndex(), icon: PiggyBank },
 ];
 
 const adminCatalogItems: NavItem[] = [

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Storefront;
 
 use App\Actions\Orders\PlaceOrder;
+use App\Actions\Payments\StartPayMongoCheckout;
+use App\Actions\Payments\StartPayMongoQrPh;
 use App\Enums\ExperienceTemplate;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Storefront\StoreOrderRequest;
@@ -14,10 +16,11 @@ use App\Models\Category;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Template;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class OrderWizardController extends Controller
 {
@@ -76,13 +79,35 @@ class OrderWizardController extends Controller
     /**
      * Place the personalized order.
      */
-    public function store(StoreOrderRequest $request, PlaceOrder $placeOrder): RedirectResponse
-    {
+    public function store(
+        StoreOrderRequest $request,
+        PlaceOrder $placeOrder,
+        StartPayMongoCheckout $startCheckout,
+        StartPayMongoQrPh $startQrPh,
+    ): SymfonyResponse {
         $order = $placeOrder->handle(
             $request->user(),
             $request->validated(),
             array_values($request->file('photos', [])),
         );
+
+        $method = $order->paymentMethod;
+
+        if ($method !== null && $method->isPayMongo()) {
+            try {
+                if ($method->usesTaptaleQr()) {
+                    $startQrPh->handle($order, $method);
+
+                    return to_route('account.orders.qrph.show', $order);
+                }
+
+                return Inertia::location($startCheckout->handle($order, $method));
+            } catch (ValidationException $exception) {
+                Inertia::flash('toast', ['type' => 'warning', 'message' => __('Your order :reference is saved, but online payment could not start. Tap "Pay securely" below to try again.', ['reference' => $order->reference])]);
+
+                return to_route('account.orders.show', $order);
+            }
+        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Thank you! Your order :reference has been placed.', ['reference' => $order->reference])]);
 

@@ -28,6 +28,23 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    /*
+    | PayMongo hosted checkout. Keys come from the PayMongo dashboard
+    | (Developers → API keys / Webhooks) and must never reach the browser.
+    | "payment_method_types" must only list methods activated on the account.
+    | "webhook_tolerance" is the maximum age, in seconds, of a signed webhook.
+    */
+    'paymongo' => [
+        'secret_key' => env('PAYMONGO_SECRET_KEY'),
+        'webhook_secret' => env('PAYMONGO_WEBHOOK_SECRET'),
+        'payment_method_types' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('PAYMONGO_PAYMENT_METHOD_TYPES', 'qrph')),
+        ))),
+        'webhook_tolerance' => (int) env('PAYMONGO_WEBHOOK_TOLERANCE', 300),
+        'qr_expiry_seconds' => (int) env('PAYMONGO_QR_EXPIRY_SECONDS', 900),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

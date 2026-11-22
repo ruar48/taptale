@@ -11,6 +11,12 @@ import {
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { BrandLogo } from '@/components/taptale/brand-logo';
+import { CookieNotice } from '@/components/taptale/cookie-notice';
+import {
+    ContactDetails,
+    POLICY_LINKS,
+    useBusiness,
+} from '@/components/taptale/legal-page';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -36,6 +42,7 @@ import {
     show as categoryShow,
 } from '@/routes/categories';
 import { create as startOrder } from '@/routes/orders';
+import { cookies, privacy, terms } from '@/routes/pages';
 import { templates as memoryPages } from '@/routes/experiences';
 import { index as templatesIndex } from '@/routes/templates';
 
@@ -49,6 +56,7 @@ export default function StorefrontLayout({
             <SiteHeader />
             <main className="flex-1">{children}</main>
             <SiteFooter />
+            <CookieNotice />
         </div>
     );
 }
@@ -341,11 +349,12 @@ function AccountMenu() {
 
 function SiteFooter() {
     const { navCategories } = usePage().props;
+    const business = useBusiness();
 
     return (
         <footer className="relative overflow-hidden bg-charcoal text-cream">
             <div className="absolute -top-32 -right-24 size-96 rounded-full bg-plum/40 blur-3xl" />
-            <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr] lg:px-8">
+            <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:grid-cols-2 sm:px-6 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:px-8">
                 <div className="max-w-sm">
                     <BrandLogo inverted />
                     <p className="mt-4 font-display text-2xl text-blush italic">
@@ -356,6 +365,31 @@ function SiteFooter() {
                         with the memories you never want to lose. Handmade with
                         love in the Philippines.
                     </p>
+                    <ContactDetails className="mt-5 text-sm text-cream/75 [&_a]:hover:text-white [&_svg]:text-blush" />
+                    {(business.facebook_url || business.instagram_url) && (
+                        <div className="mt-4 flex gap-4 text-sm text-cream/75">
+                            {business.facebook_url && (
+                                <a
+                                    href={business.facebook_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="hover:text-white"
+                                >
+                                    Facebook
+                                </a>
+                            )}
+                            {business.instagram_url && (
+                                <a
+                                    href={business.instagram_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="hover:text-white"
+                                >
+                                    Instagram
+                                </a>
+                            )}
+                        </div>
+                    )}
                 </div>
                 <div>
                     <p className="mb-4 text-xs font-semibold tracking-[0.2em] text-blush uppercase">
@@ -421,11 +455,42 @@ function SiteFooter() {
                         </li>
                     </ul>
                 </div>
+                <div>
+                    <p className="mb-4 text-xs font-semibold tracking-[0.2em] text-blush uppercase">
+                        Help & legal
+                    </p>
+                    <ul className="grid gap-2 text-sm text-cream/75">
+                        {POLICY_LINKS.map((link) => (
+                            <li key={link.href}>
+                                <Link
+                                    href={link.href}
+                                    className="hover:text-white"
+                                >
+                                    {link.title}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
             </div>
             <div className="relative border-t border-white/10">
-                <p className="mx-auto max-w-7xl px-4 py-5 text-xs text-cream/50 sm:px-6 lg:px-8">
-                    © {new Date().getFullYear()} Taptale. Made to be remembered.
-                </p>
+                <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-5 text-xs text-cream/50 sm:px-6 lg:px-8">
+                    <p>
+                        © {new Date().getFullYear()} {business.name}. Made to be
+                        remembered.
+                    </p>
+                    <nav aria-label="Legal" className="flex gap-4">
+                        <Link href={terms()} className="hover:text-white">
+                            Terms
+                        </Link>
+                        <Link href={privacy()} className="hover:text-white">
+                            Privacy
+                        </Link>
+                        <Link href={cookies()} className="hover:text-white">
+                            Cookies
+                        </Link>
+                    </nav>
+                </div>
             </div>
         </footer>
     );

@@ -12,6 +12,7 @@ use App\Models\ProductOption;
 use App\Models\Template;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
@@ -287,6 +288,38 @@ test('the chosen website design becomes the memory page design', function () {
 
     expect($experience->template->value)->toBe('our_song')
         ->and($experience->theme)->toBe('midnight');
+});
+
+test('choosing a PayMongo method sends the customer straight to secure checkout', function () {
+    config(['services.paymongo.secret_key' => 'sk_test_secret']);
+    $payMongo = PaymentMethod::factory()->create(['driver' => 'paymongo']);
+    Http::preventStrayRequests();
+    Http::fake(['https://api.paymongo.com/v1/checkout_sessions' => Http::response([
+        'data' => ['id' => 'cs_new', 'attributes' => ['checkout_url' => 'https://checkout.paymongo.com/cs_new']],
+    ])]);
+
+    $this->actingAs($this->customer)
+        ->post(route('orders.store'), orderPayload($this, ['payment_method_id' => $payMongo->id]))
+        ->assertRedirect('https://checkout.paymongo.com/cs_new');
+
+    expect(Order::sole()->payments()->sole()->gateway_checkout_id)->toBe('cs_new');
+});
+
+test('choosing a Taptale QR method shows the QR payment page after ordering', function () {
+    config(['services.paymongo.secret_key' => 'sk_test_secret']);
+    $qrMethod = PaymentMethod::factory()->create(['driver' => 'paymongo_qrph']);
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://api.paymongo.com/v1/payment_intents' => Http::response(['data' => ['id' => 'pi_new', 'attributes' => ['client_key' => 'pi_new_key']]]),
+        'https://api.paymongo.com/v1/payment_methods' => Http::response(['data' => ['id' => 'pm_qr']]),
+        'https://api.paymongo.com/v1/payment_intents/pi_new/attach' => Http::response(['data' => ['id' => 'pi_new', 'attributes' => [
+            'next_action' => ['code' => ['image_url' => 'data:image/png;base64,iVBORw0KGgo=']],
+        ]]]),
+    ]);
+
+    $this->actingAs($this->customer)
+        ->post(route('orders.store'), orderPayload($this, ['payment_method_id' => $qrMethod->id]))
+        ->assertRedirect(route('account.orders.qrph.show', Order::sole()));
 });
 
 test('an unknown website design is rejected', function () {

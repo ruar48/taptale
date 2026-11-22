@@ -1418,9 +1418,21 @@ export default function CreateGift({
                                             className="mt-2"
                                         />
                                         <p className="mt-3 text-xs text-muted-foreground">
-                                            You'll see the account details and
-                                            upload your receipt on your order
-                                            page right after placing the order.
+                                            {(
+                                                {
+                                                    paymongo:
+                                                        "After placing your order you'll go straight to PayMongo's secure checkout — we never see your card or wallet details.",
+                                                    paymongo_qrph:
+                                                        "After placing your order you'll get a QR code to scan with GCash, Maya or any bank app.",
+                                                } as Record<string, string>
+                                            )[
+                                                paymentMethods.find(
+                                                    (method) =>
+                                                        method.id ===
+                                                        data.payment_method_id,
+                                                )?.driver ?? ''
+                                            ] ??
+                                                "You'll see the account details and upload your receipt on your order page right after placing the order."}
                                         </p>
                                     </section>
 

@@ -5,15 +5,20 @@ import {
     ExternalLink,
     FileText,
     Loader2,
+    Lock,
     MessageSquareText,
     Nfc,
+    QrCode,
+    ShieldCheck,
     Truck,
     Upload,
 } from 'lucide-react';
 import { useState } from 'react';
 import DesignProofController from '@/actions/App/Http/Controllers/Account/DesignProofController';
 import OrderController from '@/actions/App/Http/Controllers/Account/OrderController';
+import OnlinePaymentController from '@/actions/App/Http/Controllers/Account/OnlinePaymentController';
 import OrderFileController from '@/actions/App/Http/Controllers/Account/OrderFileController';
+import QrPhPaymentController from '@/actions/App/Http/Controllers/Account/QrPhPaymentController';
 import PaymentController from '@/actions/App/Http/Controllers/Account/PaymentController';
 import InputError from '@/components/input-error';
 import { FileDropzone } from '@/components/taptale/file-dropzone';
@@ -469,6 +474,11 @@ function PaymentForm({ order, paymentMethods, maxUploadKilobytes }: Props) {
     const method = paymentMethods.find(
         (item) => item.id === form.data.payment_method_id,
     );
+    const isOnline =
+        method?.driver === 'paymongo' || method?.driver === 'paymongo_qrph';
+    const hasOpenCheckout =
+        order.payments?.some((payment) => payment.status === 'pending') ??
+        false;
     const [, copy] = useClipboard();
 
     return (
@@ -521,7 +531,7 @@ function PaymentForm({ order, paymentMethods, maxUploadKilobytes }: Props) {
                         </div>
                         <InputError message={form.errors.payment_method_id} />
                     </div>
-                    {method && (
+                    {method && !isOnline && (
                         <div className="rounded-xl bg-muted/60 p-4 text-sm">
                             {method.account_name && (
                                 <p className="text-muted-foreground">
@@ -557,77 +567,164 @@ function PaymentForm({ order, paymentMethods, maxUploadKilobytes }: Props) {
                         </div>
                     )}
                 </div>
-                <div className="space-y-4">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="grid gap-2">
-                            <Label htmlFor="amount">Amount paid</Label>
-                            <Input
-                                id="amount"
-                                type="number"
-                                step="0.01"
-                                min="1"
-                                inputMode="decimal"
-                                value={form.data.amount}
-                                onChange={(event) =>
-                                    form.setData('amount', event.target.value)
-                                }
-                            />
-                            <InputError message={form.errors.amount} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="reference_number">
-                                Reference no.
-                            </Label>
-                            <Input
-                                id="reference_number"
-                                value={form.data.reference_number}
-                                onChange={(event) =>
-                                    form.setData(
-                                        'reference_number',
-                                        event.target.value,
-                                    )
-                                }
-                                placeholder="From your receipt"
-                            />
-                            <InputError
-                                message={form.errors.reference_number}
-                            />
-                        </div>
-                    </div>
-                    <div className="grid gap-2">
-                        <Label>Receipt screenshot</Label>
-                        <FileDropzone
-                            id="proof"
-                            files={form.data.proof ? [form.data.proof] : []}
-                            onChange={(files) =>
-                                form.setData('proof', files[0] ?? null)
-                            }
-                            maxFiles={1}
-                            maxKilobytes={maxUploadKilobytes}
-                            accept="image/jpeg,image/png,image/webp,application/pdf"
-                            label="Upload receipt"
-                            hint="Screenshot or photo of your payment confirmation"
-                            error={form.errors.proof}
-                        />
-                    </div>
-                    <InputError
-                        message={
-                            (form.errors as Record<string, string>).payment
-                        }
+                {isOnline && method ? (
+                    <OnlineCheckout
+                        key={method.id}
+                        order={order}
+                        paymentMethodId={method.id}
+                        isTaptaleQr={method.driver === 'paymongo_qrph'}
+                        hasOpenCheckout={hasOpenCheckout}
                     />
-                    <Button
-                        type="submit"
-                        disabled={form.processing}
-                        className="h-11 w-full rounded-full"
-                    >
-                        {form.processing && (
-                            <Loader2 className="size-4 animate-spin" />
-                        )}
-                        Submit payment for verification
-                    </Button>
-                </div>
+                ) : (
+                    <div className="space-y-4">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="grid gap-2">
+                                <Label htmlFor="amount">Amount paid</Label>
+                                <Input
+                                    id="amount"
+                                    type="number"
+                                    step="0.01"
+                                    min="1"
+                                    inputMode="decimal"
+                                    value={form.data.amount}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'amount',
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                                <InputError message={form.errors.amount} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="reference_number">
+                                    Reference no.
+                                </Label>
+                                <Input
+                                    id="reference_number"
+                                    value={form.data.reference_number}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'reference_number',
+                                            event.target.value,
+                                        )
+                                    }
+                                    placeholder="From your receipt"
+                                />
+                                <InputError
+                                    message={form.errors.reference_number}
+                                />
+                            </div>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Receipt screenshot</Label>
+                            <FileDropzone
+                                id="proof"
+                                files={form.data.proof ? [form.data.proof] : []}
+                                onChange={(files) =>
+                                    form.setData('proof', files[0] ?? null)
+                                }
+                                maxFiles={1}
+                                maxKilobytes={maxUploadKilobytes}
+                                accept="image/jpeg,image/png,image/webp,application/pdf"
+                                label="Upload receipt"
+                                hint="Screenshot or photo of your payment confirmation"
+                                error={form.errors.proof}
+                            />
+                        </div>
+                        <InputError
+                            message={
+                                (form.errors as Record<string, string>).payment
+                            }
+                        />
+                        <Button
+                            type="submit"
+                            disabled={form.processing}
+                            className="h-11 w-full rounded-full"
+                        >
+                            {form.processing && (
+                                <Loader2 className="size-4 animate-spin" />
+                            )}
+                            Submit payment for verification
+                        </Button>
+                    </div>
+                )}
             </form>
         </section>
+    );
+}
+
+function OnlineCheckout({
+    order,
+    paymentMethodId,
+    isTaptaleQr,
+    hasOpenCheckout,
+}: {
+    order: Order;
+    paymentMethodId: number;
+    isTaptaleQr: boolean;
+    hasOpenCheckout: boolean;
+}) {
+    const money = useMoney();
+    const form = useForm({ payment_method_id: paymentMethodId });
+    const errors = form.errors as Record<string, string>;
+
+    return (
+        <div className="space-y-4">
+            <div className="flex gap-3 rounded-xl bg-muted/60 p-4 text-sm">
+                <ShieldCheck className="size-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <div>
+                    <p className="font-medium text-foreground">
+                        {isTaptaleQr
+                            ? 'Scan a QR Ph code — secured by PayMongo'
+                            : 'Secure checkout by PayMongo'}
+                    </p>
+                    <p className="mt-1 text-muted-foreground">
+                        {isTaptaleQr
+                            ? 'Scan with GCash, Maya or any bank app. Your order updates automatically once the payment goes through.'
+                            : "You'll pay on PayMongo's encrypted page — we never see your card or wallet details. Your order updates automatically once the payment goes through."}
+                    </p>
+                </div>
+            </div>
+            <InputError message={errors.payment_method_id ?? errors.payment} />
+            <Button
+                type="button"
+                disabled={form.processing}
+                className="h-11 w-full rounded-full"
+                onClick={() =>
+                    form.post(
+                        isTaptaleQr
+                            ? QrPhPaymentController.store.url(order.reference)
+                            : OnlinePaymentController.store.url(
+                                  order.reference,
+                              ),
+                        { preserveScroll: true },
+                    )
+                }
+            >
+                {form.processing ? (
+                    <Loader2 className="size-4 animate-spin" />
+                ) : isTaptaleQr ? (
+                    <QrCode className="size-4" />
+                ) : (
+                    <Lock className="size-4" />
+                )}
+                {isTaptaleQr ? 'Show QR code for' : 'Pay'}{' '}
+                {money(order.balance_due ?? order.total)}
+                {isTaptaleQr ? '' : ' securely'}
+            </Button>
+            {hasOpenCheckout && !isTaptaleQr && (
+                <p className="text-center text-sm text-muted-foreground">
+                    Already paid?{' '}
+                    <Link
+                        href={OnlinePaymentController.complete(order.reference)}
+                        className="font-medium text-foreground underline underline-offset-4"
+                    >
+                        Check payment status
+                    </Link>
+                </p>
+            )}
+        </div>
     );
 }
 

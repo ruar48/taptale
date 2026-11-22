@@ -19,6 +19,11 @@ use Illuminate\Support\Carbon;
  * @property PaymentStatus $status
  * @property int $amount
  * @property string|null $reference_number
+ * @property string|null $gateway_checkout_id
+ * @property string|null $gateway_payment_id
+ * @property string|null $checkout_url
+ * @property string|null $qr_code
+ * @property Carbon|null $expires_at
  * @property string|null $proof_disk
  * @property string|null $proof_path
  * @property string|null $notes
@@ -30,7 +35,8 @@ use Illuminate\Support\Carbon;
  */
 #[Fillable([
     'payment_method_id', 'kind', 'status', 'amount', 'reference_number', 'proof_disk', 'proof_path',
-    'notes', 'reviewed_by', 'reviewed_at', 'review_notes',
+    'notes', 'reviewed_by', 'reviewed_at', 'review_notes', 'gateway_checkout_id', 'gateway_payment_id', 'checkout_url',
+    'qr_code', 'expires_at',
 ])]
 class Payment extends Model
 {
@@ -49,6 +55,7 @@ class Payment extends Model
             'status' => PaymentStatus::class,
             'amount' => 'integer',
             'reviewed_at' => 'datetime',
+            'expires_at' => 'datetime',
         ];
     }
 

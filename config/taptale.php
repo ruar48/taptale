@@ -48,4 +48,27 @@ return [
 
     'max_upload_kilobytes' => (int) env('TAPTALE_MAX_UPLOAD_KB', 10240),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Business details
+    |--------------------------------------------------------------------------
+    |
+    | Shown on the About, policy and legal pages and in the site footer.
+    | Leave a value empty to hide it. "policies_updated_on" is the
+    | "Last updated" date printed on the legal pages; change it whenever
+    | the policy wording changes.
+    |
+    */
+
+    'business' => [
+        'name' => env('TAPTALE_BUSINESS_NAME', 'Taptale'),
+        'email' => env('TAPTALE_CONTACT_EMAIL', env('MAIL_FROM_ADDRESS')),
+        'phone' => env('TAPTALE_CONTACT_PHONE'),
+        'address' => env('TAPTALE_BUSINESS_ADDRESS'),
+        'facebook_url' => env('TAPTALE_FACEBOOK_URL'),
+        'instagram_url' => env('TAPTALE_INSTAGRAM_URL'),
+    ],
+
+    'policies_updated_on' => env('TAPTALE_POLICIES_UPDATED_ON', '2026-11-22'),
+
 ];

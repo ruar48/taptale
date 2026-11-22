@@ -37,7 +37,7 @@ export function StatusBadge({
 export function paymentTone(status: string): StatusTone {
     return status === 'verified'
         ? 'emerald'
-        : status === 'rejected'
+        : status === 'rejected' || status === 'expired'
           ? 'zinc'
           : 'amber';
 }

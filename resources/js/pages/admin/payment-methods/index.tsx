@@ -19,12 +19,26 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { index } from '@/routes/admin/payment-methods';
 import type { PaymentMethod } from '@/types';
 
+const DRIVER_LABELS: Record<string, string> = {
+    manual: 'Manual — customer uploads a receipt',
+    paymongo: 'PayMongo — hosted checkout page',
+    paymongo_qrph: 'PayMongo QR Ph — Taptale-branded QR page',
+};
+
 export default function AdminPaymentMethods({
     paymentMethods,
+    drivers,
 }: {
     paymentMethods: PaymentMethod[];
     drivers: string[];
@@ -130,6 +144,7 @@ export default function AdminPaymentMethods({
                         <MethodForm
                             key={editing?.id ?? 'new'}
                             method={editing}
+                            drivers={drivers}
                             onDone={() => setEditing(undefined)}
                         />
                     )}
@@ -145,9 +160,11 @@ AdminPaymentMethods.layout = {
 
 function MethodForm({
     method,
+    drivers,
     onDone,
 }: {
     method: PaymentMethod | null;
+    drivers: string[];
     onDone: () => void;
 }) {
     const form = useForm({
@@ -230,6 +247,33 @@ function MethodForm({
                     />
                 </FormField>
             </div>
+            <FormField
+                label="How customers pay"
+                error={form.errors.driver}
+                hint={
+                    form.data.driver === 'paymongo'
+                        ? 'Customers pay on PayMongo’s hosted page and the order is confirmed automatically. Account fields are not needed.'
+                        : form.data.driver === 'paymongo_qrph'
+                          ? 'Customers scan a QR Ph code on Taptale’s own branded page and the order is confirmed automatically. Account fields are not needed.'
+                          : undefined
+                }
+            >
+                <Select
+                    value={form.data.driver}
+                    onValueChange={(value) => form.setData('driver', value)}
+                >
+                    <SelectTrigger>
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {drivers.map((driver) => (
+                            <SelectItem key={driver} value={driver}>
+                                {DRIVER_LABELS[driver] ?? driver}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </FormField>
             <FormField label="Instructions" error={form.errors.instructions}>
                 <Textarea
                     value={form.data.instructions}

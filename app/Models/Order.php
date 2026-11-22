@@ -240,6 +240,32 @@ class Order extends Model
     }
 
     /**
+     * After a payment is verified, move an order that was waiting on payment
+     * forward: back to "Awaiting Payment" while a balance remains, otherwise
+     * on to design (or straight to production when the design is approved).
+     *
+     * @throws ValidationException
+     */
+    public function advanceAfterPayment(?User $actor = null): void
+    {
+        $this->load(['payments', 'latestProof']);
+
+        $isAwaitingPayment = in_array($this->status, [OrderStatus::PendingOrder, OrderStatus::AwaitingPayment, OrderStatus::PaymentVerification], true);
+
+        if (! $isAwaitingPayment) {
+            return;
+        }
+
+        if ($this->balanceDue() > 0) {
+            $this->moveTo(OrderStatus::AwaitingPayment, $actor, 'A balance is still due.');
+
+            return;
+        }
+
+        $this->moveTo($this->isDesignApproved() ? OrderStatus::DesignApproved : OrderStatus::PendingDesign, $actor);
+    }
+
+    /**
      * Recalculate the total after a fee or adjustment change.
      */
     public function recalculateTotal(): void

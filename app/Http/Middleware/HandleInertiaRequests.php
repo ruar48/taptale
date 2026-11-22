@@ -47,6 +47,10 @@ class HandleInertiaRequests extends Middleware
             'storefront' => [
                 'currencySymbol' => config('taptale.currency_symbol'),
                 'tagline' => 'Every tap tells a story.',
+                'deliveryFee' => (int) config('taptale.delivery_fee'),
+                'freeDeliveryThreshold' => (int) config('taptale.free_delivery_threshold'),
+                'business' => config('taptale.business'),
+                'policiesUpdatedOn' => config('taptale.policies_updated_on'),
             ],
             'navCategories' => Inertia::once(fn () => Category::active()->get(['id', 'name', 'slug', 'accent_color'])),
         ];

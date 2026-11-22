@@ -63,26 +63,11 @@ class PaymentController extends Controller
                 'review_notes' => $validated['review_notes'] ?? null,
             ]);
 
-            $order = $payment->order->load(['payments', 'latestProof']);
+            $order = $payment->order;
 
             $order->recordActivity(ActivityType::PaymentVerified, 'Payment verified. Thank you!', $request->user());
 
-            $awaitingPayment = in_array($order->status, [OrderStatus::PendingOrder, OrderStatus::AwaitingPayment, OrderStatus::PaymentVerification], true);
-
-            if (! $awaitingPayment) {
-                return;
-            }
-
-            if ($order->balanceDue() > 0) {
-                $order->moveTo(OrderStatus::AwaitingPayment, $request->user(), 'A balance is still due.');
-
-                return;
-            }
-
-            $order->moveTo(
-                $order->isDesignApproved() ? OrderStatus::DesignApproved : OrderStatus::PendingDesign,
-                $request->user(),
-            );
+            $order->advanceAfterPayment($request->user());
         });
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Payment verified.')]);

@@ -4,6 +4,8 @@ use App\Http\Controllers\Account;
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\PrivateFileController;
 use App\Http\Controllers\Storefront;
+use App\Http\Controllers\Webhooks;
+use App\Http\Middleware\VerifyPayMongoSignature;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,6 +19,18 @@ Route::get('gifts', [Storefront\CategoryController::class, 'index'])->name('cate
 Route::get('gifts/{category}', [Storefront\CategoryController::class, 'show'])->name('categories.show');
 Route::get('products/{product}', [Storefront\ProductController::class, 'show'])->name('products.show');
 Route::get('templates', Storefront\TemplateGalleryController::class)->name('templates.index');
+
+/*
+| About and policy pages. Business details come from config('taptale.business').
+*/
+Route::name('pages.')->group(function () {
+    Route::inertia('about', 'storefront/pages/about')->name('about');
+    Route::inertia('terms', 'storefront/pages/terms')->name('terms');
+    Route::inertia('privacy', 'storefront/pages/privacy')->name('privacy');
+    Route::inertia('cookies', 'storefront/pages/cookies')->name('cookies');
+    Route::inertia('shipping', 'storefront/pages/shipping')->name('shipping');
+    Route::inertia('returns', 'storefront/pages/returns')->name('returns');
+});
 
 /*
 | NFC tags and QR codes point here. Kept on the main domain on purpose.
@@ -41,6 +55,14 @@ Route::middleware('auth')->group(function () {
         ->name('orders.store');
 });
 
+/*
+| PayMongo server-to-server events. Excluded from CSRF (bootstrap/app.php);
+| every request must carry a valid PayMongo signature instead.
+*/
+Route::post('webhooks/paymongo', Webhooks\PayMongoWebhookController::class)
+    ->middleware(['throttle:120,1', VerifyPayMongoSignature::class])
+    ->name('webhooks.paymongo');
+
 Route::middleware('auth')->group(function () {
     Route::get('files/orders/{orderFile}', [PrivateFileController::class, 'orderFile'])->name('files.order');
     Route::get('files/proofs/{proof}', [PrivateFileController::class, 'proof'])->name('files.proof');
@@ -62,6 +84,18 @@ Route::middleware('auth')->group(function () {
         Route::post('orders/{order}/cancel', [Account\OrderController::class, 'cancel'])->name('orders.cancel');
         Route::post('orders/{order}/files', [Account\OrderFileController::class, 'store'])->name('orders.files.store');
         Route::post('orders/{order}/payments', [Account\PaymentController::class, 'store'])->name('orders.payments.store');
+        Route::post('orders/{order}/checkout', [Account\OnlinePaymentController::class, 'store'])
+            ->middleware('throttle:6,1')
+            ->name('orders.checkout');
+        Route::get('orders/{order}/checkout/complete', [Account\OnlinePaymentController::class, 'complete'])
+            ->middleware('throttle:20,1')
+            ->name('orders.checkout.complete');
+        Route::post('orders/{order}/qrph', [Account\QrPhPaymentController::class, 'store'])
+            ->middleware('throttle:6,1')
+            ->name('orders.qrph.store');
+        Route::get('orders/{order}/qrph', [Account\QrPhPaymentController::class, 'show'])
+            ->middleware('throttle:40,1')
+            ->name('orders.qrph.show');
         Route::post('orders/{order}/proofs/{proof}/approve', [Account\DesignProofController::class, 'approve'])->name('orders.proofs.approve');
         Route::post('orders/{order}/proofs/{proof}/revision', [Account\DesignProofController::class, 'requestRevision'])->name('orders.proofs.revision');
 
@@ -118,6 +152,8 @@ Route::middleware(['auth', 'verified', 'can:admin'])->prefix('admin')->name('adm
     Route::resource('payment-methods', Admin\PaymentMethodController::class)
         ->parameters(['payment-methods' => 'paymentMethod'])
         ->except(['create', 'show', 'edit']);
+
+    Route::resource('finance', Admin\FinanceController::class)->except(['create', 'show', 'edit']);
 
     Route::get('customers', [Admin\CustomerController::class, 'index'])->name('customers.index');
     Route::get('customers/{customer}', [Admin\CustomerController::class, 'show'])->name('customers.show');

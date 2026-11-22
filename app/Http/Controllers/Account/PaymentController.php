@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Account;
 
+use App\Actions\Payments\ClosePayMongoCheckout;
 use App\Enums\ActivityType;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentKind;
 use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Payment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -21,7 +23,7 @@ class PaymentController extends Controller
     /**
      * Submit proof of a manual payment for verification.
      */
-    public function store(Request $request, Order $order): RedirectResponse
+    public function store(Request $request, Order $order, ClosePayMongoCheckout $closeCheckout): RedirectResponse
     {
         Gate::authorize('update', $order);
 
@@ -36,7 +38,7 @@ class PaymentController extends Controller
         }
 
         $validated = $request->validate([
-            'payment_method_id' => ['required', 'integer', Rule::exists('payment_methods', 'id')->where('is_active', true)],
+            'payment_method_id' => ['required', 'integer', Rule::exists('payment_methods', 'id')->where('is_active', true)->where('driver', 'manual')],
             'amount' => ['required', 'numeric', 'min:1', 'max:'.($order->balanceDue() / 100)],
             'reference_number' => ['required', 'string', 'max:100'],
             'proof' => ['required', File::types(['jpg', 'jpeg', 'png', 'webp', 'pdf'])->max((int) config('taptale.max_upload_kilobytes'))],
@@ -45,6 +47,16 @@ class PaymentController extends Controller
             'amount.max' => 'The amount cannot be more than the balance due.',
             'proof.required' => 'Please upload a screenshot or photo of your payment receipt.',
         ]);
+
+        $openCheckouts = $order->payments->filter(
+            fn (Payment $payment): bool => $payment->status === PaymentStatus::Pending && $payment->gateway_checkout_id !== null,
+        );
+
+        foreach ($openCheckouts as $payment) {
+            if (! $closeCheckout->handle($payment)) {
+                throw ValidationException::withMessages(['payment' => 'Your online payment for this order just went through. Refresh the page to see it.']);
+            }
+        }
 
         $disk = (string) config('taptale.uploads_disk');
 

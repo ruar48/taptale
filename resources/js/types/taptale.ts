@@ -177,7 +177,7 @@ export type Payment = {
     id: number;
     kind: 'payment' | 'refund';
     kind_label: string;
-    status: 'submitted' | 'verified' | 'rejected';
+    status: 'pending' | 'submitted' | 'verified' | 'rejected' | 'expired';
     status_label: string;
     amount: number;
     reference_number: string | null;
@@ -330,6 +330,54 @@ export type Testimonial = {
     occasion: string | null;
     quote: string;
     rating: number;
+};
+
+export type FinanceEntryTypeValue =
+    | 'capital'
+    | 'expense'
+    | 'withdrawal'
+    | 'income';
+
+export type FinanceEntry = {
+    id: number;
+    type: FinanceEntryTypeValue;
+    type_label: string;
+    category: string | null;
+    category_label: string | null;
+    amount: number;
+    description: string;
+    occurred_on: string;
+    notes: string | null;
+    recorded_by?: string | null;
+};
+
+export type FinanceSummary = {
+    overview: {
+        capital: number;
+        withdrawals: number;
+        sales: number;
+        other_income: number;
+        expenses: number;
+        net_profit: number;
+        cash_on_hand: number;
+        recovered_percent: number | null;
+        left_to_recover: number;
+    };
+    period: {
+        sales: number;
+        other_income: number;
+        income: number;
+        expenses: number;
+        net_profit: number;
+        margin_percent: number | null;
+    };
+    trend: {
+        month: string;
+        income: number;
+        expenses: number;
+        net_profit: number;
+    }[];
+    expense_breakdown: { category: string; label: string; amount: number }[];
 };
 
 export type PaginationLink = {

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Account;
 
+use App\Actions\Payments\ClosePayMongoCheckout;
 use App\Enums\ActivityType;
 use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderResource;
 use App\Http\Resources\PaymentMethodResource;
@@ -60,7 +62,7 @@ class OrderController extends Controller
     /**
      * Cancel an order that has not been paid yet.
      */
-    public function cancel(Request $request, Order $order): RedirectResponse
+    public function cancel(Request $request, Order $order, ClosePayMongoCheckout $closeCheckout): RedirectResponse
     {
         Gate::authorize('update', $order);
 
@@ -68,6 +70,19 @@ class OrderController extends Controller
             throw ValidationException::withMessages([
                 'order' => 'This order can no longer be cancelled online. Please contact us for help.',
             ]);
+        }
+
+        $openCheckouts = $order->payments()
+            ->where('status', PaymentStatus::Pending)
+            ->whereNotNull('gateway_checkout_id')
+            ->get();
+
+        foreach ($openCheckouts as $payment) {
+            if (! $closeCheckout->handle($payment)) {
+                throw ValidationException::withMessages([
+                    'order' => 'Your online payment for this order just went through, so it can no longer be cancelled online. Please contact us for help.',
+                ]);
+            }
         }
 
         $order->update(['status' => OrderStatus::Cancelled]);

@@ -31,12 +31,30 @@ class PaymentMethod extends Model
     use HasFactory;
 
     /**
-     * Payment drivers. "manual" methods are verified by an administrator;
-     * additional drivers can be registered when a gateway is integrated.
+     * Payment drivers. "manual" methods are verified by an administrator.
+     * "paymongo" sends the customer to PayMongo's hosted checkout, while
+     * "paymongo_qrph" shows a PayMongo QR Ph code on a Taptale-branded page.
+     * Both are confirmed automatically once PayMongo reports them paid.
      *
      * @var list<string>
      */
-    public const DRIVERS = ['manual'];
+    public const DRIVERS = ['manual', 'paymongo', 'paymongo_qrph'];
+
+    /**
+     * Whether customers pay this method online through PayMongo.
+     */
+    public function isPayMongo(): bool
+    {
+        return in_array($this->driver, ['paymongo', 'paymongo_qrph'], true);
+    }
+
+    /**
+     * Whether customers scan a QR Ph code on Taptale's own payment page.
+     */
+    public function usesTaptaleQr(): bool
+    {
+        return $this->driver === 'paymongo_qrph';
+    }
 
     /**
      * Get the attributes that should be cast.
