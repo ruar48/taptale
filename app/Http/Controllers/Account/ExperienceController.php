@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,6 +30,12 @@ class ExperienceController extends Controller
             'theme' => ['required', Rule::in(DigitalExperience::THEMES)],
         ]);
 
+        if ($validated['template'] !== $experience->template->value && $experience->isTemplateLocked()) {
+            throw ValidationException::withMessages([
+                'template' => __('Your keepsake has been released, so its page design can no longer be changed.'),
+            ]);
+        }
+
         $experience->update($validated);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Design updated.')]);
@@ -43,7 +50,7 @@ class ExperienceController extends Controller
     {
         Gate::authorize('update', $experience);
 
-        $experience->load('order:id,reference,product_name');
+        $experience->load('order:id,reference,product_name,status');
 
         return Inertia::render('account/experiences/edit', [
             'experience' => new DigitalExperienceResource($experience),
@@ -52,6 +59,7 @@ class ExperienceController extends Controller
                 'product_name' => $experience->order->product_name,
             ],
             'templates' => ExperienceTemplate::options(),
+            'isTemplateLocked' => $experience->isTemplateLocked(),
             'themes' => DigitalExperience::THEMES,
             'maxPhotos' => DigitalExperience::MAX_PHOTOS,
             'maxMoments' => DigitalExperience::MAX_MOMENTS,

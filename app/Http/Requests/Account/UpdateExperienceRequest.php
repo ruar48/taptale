@@ -69,6 +69,13 @@ class UpdateExperienceRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
+                $experience = $this->experience();
+
+                if ($this->input('template') !== $experience->template->value && $experience->isTemplateLocked()) {
+                    $validator->errors()->add('template', 'Your keepsake has been released, so its page design can no longer be changed.');
+                }
+            },
+            function (Validator $validator): void {
                 $current = count($this->experience()->photos ?? []);
                 $removing = count(array_unique((array) $this->input('remove_photos', [])));
                 $adding = count((array) $this->file('new_photos', []));

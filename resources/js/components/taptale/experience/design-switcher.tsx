@@ -1,19 +1,20 @@
-import { router } from "@inertiajs/react";
-import { Check, Loader2, Palette, X } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
-import ExperienceController from "@/actions/App/Http/Controllers/Account/ExperienceController";
+import { router } from '@inertiajs/react';
+import { Check, Loader2, Palette, X } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import ExperienceController from '@/actions/App/Http/Controllers/Account/ExperienceController';
 import {
     EXPERIENCE_THEMES,
     themeFor,
     themeStyle,
-} from "@/components/taptale/experience/config";
-import { cn } from "@/lib/utils";
-import type { DigitalExperience, ExperienceTemplateOption } from "@/types";
+} from '@/components/taptale/experience/config';
+import { cn } from '@/lib/utils';
+import type { DigitalExperience, ExperienceTemplateOption } from '@/types';
 
 export type DesignOptions = {
     templates: ExperienceTemplateOption[];
     themes: string[];
+    isTemplateLocked?: boolean;
 };
 
 /**
@@ -42,7 +43,7 @@ export function DesignSwitcher({
                 onError: (errors) =>
                     toast.error(
                         Object.values(errors)[0] ??
-                            "The design could not be changed.",
+                            'The design could not be changed.',
                     ),
             },
         );
@@ -73,8 +74,9 @@ export function DesignSwitcher({
                                     Choose your page design
                                 </h2>
                                 <p className="mt-1 text-sm text-[#776D75]">
-                                    Tap a design to apply it. Your photos and
-                                    words stay the same.
+                                    {options.isTemplateLocked
+                                        ? 'Your keepsake has been released, so its design is set — you can still change the color theme.'
+                                        : 'Tap a design to apply it. Your photos and words stay the same.'}
                                 </p>
                             </div>
                             <button
@@ -97,7 +99,11 @@ export function DesignSwitcher({
                                     <button
                                         key={option.value}
                                         type="button"
-                                        disabled={saving !== null}
+                                        disabled={
+                                            saving !== null ||
+                                            (options.isTemplateLocked &&
+                                                !selected)
+                                        }
                                         onClick={() =>
                                             save(
                                                 option.value,
@@ -106,10 +112,10 @@ export function DesignSwitcher({
                                             )
                                         }
                                         className={cn(
-                                            "overflow-hidden rounded-2xl border-2 text-left transition disabled:opacity-60",
+                                            'overflow-hidden rounded-2xl border-2 text-left transition disabled:opacity-60',
                                             selected
-                                                ? "border-[#B86F83] shadow-md"
-                                                : "border-transparent hover:border-[#B86F83]/40",
+                                                ? 'border-[#B86F83] shadow-md'
+                                                : 'border-transparent hover:border-[#B86F83]/40',
                                         )}
                                     >
                                         <span
@@ -169,10 +175,10 @@ export function DesignSwitcher({
                                                 )
                                             }
                                             className={cn(
-                                                "flex items-center gap-2 rounded-full border-2 py-1 pr-3 pl-1 text-sm transition disabled:opacity-60",
+                                                'flex items-center gap-2 rounded-full border-2 py-1 pr-3 pl-1 text-sm transition disabled:opacity-60',
                                                 experience.theme === theme
-                                                    ? "border-[#B86F83]"
-                                                    : "border-[#EBE1D8] hover:border-[#B86F83]/40",
+                                                    ? 'border-[#B86F83]'
+                                                    : 'border-[#EBE1D8] hover:border-[#B86F83]/40',
                                             )}
                                         >
                                             <span

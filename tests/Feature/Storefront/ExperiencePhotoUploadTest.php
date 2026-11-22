@@ -1,8 +1,10 @@
 <?php
 
 use App\Enums\ExperienceTemplate;
+use App\Enums\OrderStatus;
 use App\Enums\PhotoRainLayer;
 use App\Models\DigitalExperience;
+use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -141,6 +143,40 @@ test('visitors get no design options and cannot change the design', function () 
         ->assertForbidden();
 
     expect($experience->fresh()->template->value)->toBe('classic');
+});
+
+test('the page design can no longer be switched once the keepsake is released', function (OrderStatus $status) {
+    $experience = DigitalExperience::factory()
+        ->for(Order::factory()->state(['status' => $status]))
+        ->create(['template' => 'classic', 'theme' => 'blush']);
+
+    $this->actingAs($experience->user)
+        ->get(route('experiences.show', $experience))
+        ->assertInertia(fn (Assert $page) => $page->where('designOptions.isTemplateLocked', true));
+
+    $this->actingAs($experience->user)
+        ->put(route('account.experiences.design', $experience), ['template' => 'valentines', 'theme' => 'crimson'])
+        ->assertSessionHasErrors('template');
+
+    $this->actingAs($experience->user)
+        ->put(route('account.experiences.design', $experience), ['template' => 'classic', 'theme' => 'crimson'])
+        ->assertSessionHasNoErrors();
+
+    expect($experience->fresh())
+        ->template->toBe(ExperienceTemplate::Classic)
+        ->theme->toBe('crimson');
+})->with([OrderStatus::Shipped, OrderStatus::Completed]);
+
+test('the page design can still be switched while the keepsake is being made', function () {
+    $experience = DigitalExperience::factory()
+        ->for(Order::factory()->state(['status' => OrderStatus::InProduction]))
+        ->create(['template' => 'classic']);
+
+    $this->actingAs($experience->user)
+        ->put(route('account.experiences.design', $experience), ['template' => 'valentines', 'theme' => 'crimson'])
+        ->assertSessionHasNoErrors();
+
+    expect($experience->fresh()->template)->toBe(ExperienceTemplate::Valentines);
 });
 
 test('only known designs can be applied', function () {

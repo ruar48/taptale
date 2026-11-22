@@ -47,6 +47,7 @@ type Props = {
     maxPhotos: number;
     maxMoments: number;
     maxUploadKilobytes: number;
+    isTemplateLocked: boolean;
 };
 
 type MomentInput = {
@@ -88,6 +89,7 @@ export default function EditExperience({
     maxPhotos,
     maxMoments,
     maxUploadKilobytes,
+    isTemplateLocked,
 }: Props) {
     setLayoutProps({
         breadcrumbs: [
@@ -225,7 +227,11 @@ export default function EditExperience({
 
                 <Panel
                     title="1. Choose a design"
-                    description="Switch anytime — your words and photos carry over. Open a demo to see each design in action."
+                    description={
+                        isTemplateLocked
+                            ? 'Your keepsake has been released, so its design is set. You can still change the color theme and everything on the page.'
+                            : 'Switch anytime until your keepsake ships — your words and photos carry over. Open a demo to see each design in action.'
+                    }
                 >
                     <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
                         {templates.map((option) => {
@@ -244,7 +250,8 @@ export default function EditExperience({
                                     <button
                                         type="button"
                                         onClick={() => chooseTemplate(option)}
-                                        className="block w-full text-left"
+                                        disabled={isTemplateLocked && !selected}
+                                        className="block w-full text-left disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         <div
                                             className="relative flex h-24 items-center justify-center px-2 text-center"

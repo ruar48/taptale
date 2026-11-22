@@ -9,13 +9,17 @@ use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Template;
 use App\Models\Testimonial;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
 class CatalogSeeder extends Seeder
 {
     /**
-     * Seed the Taptale storefront catalog.
+     * Seed the Taptale storefront catalog. Safe to run on a live database:
+     * records that already exist (matched by slug or code) are never changed,
+     * so only new definitions added here get inserted.
      */
     public function run(): void
     {
@@ -48,7 +52,7 @@ class CatalogSeeder extends Seeder
         $categories = [];
 
         foreach ($definitions as $index => [$name, $tagline, $color, $icon]) {
-            $categories[$name] = Category::updateOrCreate(['slug' => Str::slug($name)], [
+            $categories[$name] = Category::firstOrCreate(['slug' => Str::slug($name)], [
                 'name' => $name,
                 'tagline' => $tagline,
                 'description' => $tagline.' Choose a product, pick a template, and add the photos and words that make it yours.',
@@ -268,7 +272,7 @@ class CatalogSeeder extends Seeder
         $products = [];
 
         foreach (array_values($definitions) as $index => $definition) {
-            $product = Product::updateOrCreate(['slug' => Str::slug($definition['name'])], [
+            $product = Product::firstOrCreate(['slug' => Str::slug($definition['name'])], [
                 'name' => $definition['name'],
                 'short_description' => $definition['short'],
                 'description' => $definition['short']."\n\nEvery piece is printed and assembled by hand in our studio. Upload your photos, add your names and message, and we'll make sure it looks just right before anything goes into production.",
@@ -287,7 +291,11 @@ class CatalogSeeder extends Seeder
                 'sort_order' => $index,
             ]);
 
-            $product->options()->delete();
+            $products[$product->slug] = $product;
+
+            if (! $product->wasRecentlyCreated) {
+                continue;
+            }
 
             foreach ($definition['options'] as $position => $option) {
                 [$group, $name, $price] = $option;
@@ -303,8 +311,6 @@ class CatalogSeeder extends Seeder
                     'is_active' => true,
                 ]);
             }
-
-            $products[$product->slug] = $product;
         }
 
         return $products;
@@ -379,10 +385,28 @@ class CatalogSeeder extends Seeder
         ];
 
         foreach ($map as $categoryName => $slugs) {
-            $categories[$categoryName]->products()->sync(
-                collect($slugs)->map(fn (string $slug): int => $products[$slug]->id)->all()
-            );
+            $category = $categories[$categoryName];
+
+            $this->linkNewRecords($category, $category->products(), collect($slugs)->map(fn (string $slug): Product => $products[$slug])->all());
         }
+    }
+
+    /**
+     * Link the owner to the given records, skipping pairs that both existed
+     * before this run. Re-seeding a live catalog then only links new records
+     * and leaves links the studio added or removed by hand alone.
+     *
+     * @param  BelongsToMany<covariant Model, covariant Model>  $relation
+     * @param  list<Model>  $related
+     */
+    private function linkNewRecords(Model $owner, BelongsToMany $relation, array $related): void
+    {
+        $relation->syncWithoutDetaching(
+            collect($related)
+                ->filter(fn (Model $record): bool => $owner->wasRecentlyCreated || $record->wasRecentlyCreated)
+                ->map(fn (Model $record): int => $record->getKey())
+                ->all()
+        );
     }
 
     /**
@@ -441,7 +465,7 @@ class CatalogSeeder extends Seeder
         ];
 
         foreach ($definitions as $index => [$name, $layout, [$background, $ink, $accent], $categoryNames, $featured, $productSlugs]) {
-            $template = Template::updateOrCreate(['slug' => Str::slug($name)], [
+            $template = Template::firstOrCreate(['slug' => Str::slug($name)], [
                 'name' => $name,
                 'description' => $layout->label().' layout in a '.Str::lower($name).' mood.',
                 'layout' => $layout,
@@ -451,13 +475,9 @@ class CatalogSeeder extends Seeder
                 'sort_order' => $index,
             ]);
 
-            $template->categories()->sync(
-                collect($categoryNames)->map(fn (string $categoryName): int => $categories[$categoryName]->id)->all()
-            );
+            $this->linkNewRecords($template, $template->categories(), collect($categoryNames)->map(fn (string $categoryName): Category => $categories[$categoryName])->all());
 
-            $template->products()->sync(
-                collect($productSlugs)->map(fn (string $slug): int => $products[$slug]->id)->all()
-            );
+            $this->linkNewRecords($template, $template->products(), collect($productSlugs)->map(fn (string $slug): Product => $products[$slug])->all());
         }
     }
 
@@ -470,7 +490,7 @@ class CatalogSeeder extends Seeder
         ];
 
         foreach ($methods as $index => [$name, $code, $accountName, $accountNumber, $instructions]) {
-            PaymentMethod::updateOrCreate(['code' => $code], [
+            PaymentMethod::firstOrCreate(['code' => $code], [
                 'name' => $name,
                 'driver' => 'manual',
                 'account_name' => $accountName,
@@ -492,7 +512,7 @@ class CatalogSeeder extends Seeder
         ];
 
         foreach ($testimonials as $index => [$author, $occasion, $quote]) {
-            Testimonial::updateOrCreate(['author_name' => $author], [
+            Testimonial::firstOrCreate(['author_name' => $author], [
                 'occasion' => $occasion,
                 'quote' => $quote,
                 'rating' => 5,

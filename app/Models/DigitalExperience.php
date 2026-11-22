@@ -161,6 +161,14 @@ class DigitalExperience extends Model
     }
 
     /**
+     * Whether the page template is fixed because the keepsake was released.
+     */
+    public function isTemplateLocked(): bool
+    {
+        return $this->order?->status->locksPageTemplate() ?? false;
+    }
+
+    /**
      * The public URL encoded in the QR code and written to NFC tags.
      */
     public function publicUrl(): string

@@ -91,6 +91,15 @@ enum OrderStatus: string
     }
 
     /**
+     * Whether the keepsake has been released to the customer, after which
+     * its memory page design (template) can no longer be switched.
+     */
+    public function locksPageTemplate(): bool
+    {
+        return in_array($this, [self::Shipped, self::Completed], true);
+    }
+
+    /**
      * Whether the customer may still cancel the order themselves.
      */
     public function isCancellableByCustomer(): bool

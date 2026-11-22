@@ -1,6 +1,8 @@
 <?php
 
+use App\Enums\OrderStatus;
 use App\Models\DigitalExperience;
+use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -64,6 +66,28 @@ test('the owner updates their experience and photos', function () {
         ->photos->toHaveCount(2);
 
     Storage::disk('local')->assertExists($experience->photos[0]);
+});
+
+test('the editor keeps the page design once the keepsake has shipped', function () {
+    $experience = DigitalExperience::factory()
+        ->for(Order::factory()->state(['status' => OrderStatus::Shipped]))
+        ->create(['template' => 'classic', 'title' => 'Us']);
+
+    $this->actingAs($experience->user)
+        ->get(route('account.experiences.edit', $experience))
+        ->assertInertia(fn (Assert $page) => $page->where('isTemplateLocked', true));
+
+    $this->actingAs($experience->user)
+        ->put(route('account.experiences.update', $experience), ['template' => 'love_story', 'title' => 'Us', 'theme' => 'blush'])
+        ->assertSessionHasErrors('template');
+
+    $this->actingAs($experience->user)
+        ->put(route('account.experiences.update', $experience), ['template' => 'classic', 'title' => 'Still us', 'theme' => 'blush'])
+        ->assertSessionHasNoErrors();
+
+    expect($experience->fresh())
+        ->template->value->toBe('classic')
+        ->title->toBe('Still us');
 });
 
 test('experience links must be secure URLs', function () {

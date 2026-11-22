@@ -118,7 +118,37 @@ class PlaceOrder
             $this->storeOrderFile->handle($order, $photo, $kind, $customer);
         }
 
+        $this->addPhotosToExperience($order, $photos);
+
         return $order;
+    }
+
+    /**
+     * Put the photos added while ordering on the memory page as well, so the
+     * tap page is ready the moment the keepsake arrives.
+     *
+     * @param  list<UploadedFile>  $photos
+     */
+    private function addPhotosToExperience(Order $order, array $photos): void
+    {
+        $experience = $order->experience;
+
+        if ($experience === null || $photos === []) {
+            return;
+        }
+
+        $disk = (string) config('taptale.uploads_disk');
+        $paths = [];
+
+        foreach (array_slice($photos, 0, DigitalExperience::MAX_PHOTOS) as $photo) {
+            $stored = $photo->store("experiences/{$experience->id}", $disk);
+
+            if ($stored !== false) {
+                $paths[] = $stored;
+            }
+        }
+
+        $experience->update(['photos' => $paths]);
     }
 
     /**

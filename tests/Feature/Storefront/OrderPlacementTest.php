@@ -331,6 +331,25 @@ test('the chosen website design becomes the memory page design', function () {
         ->and($experience->theme)->toBe('midnight');
 });
 
+test('photos added while ordering also fill the memory page', function () {
+    $nfc = ProductOption::factory()->for($this->product)->group(OptionGroup::Nfc)->costing(15000)->create([
+        'enables_digital_experience' => true,
+    ]);
+
+    $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
+        'option_ids' => [$this->small->id, $nfc->id],
+        'experience_template' => 'love_story',
+        'personalize_later' => true,
+        'approve_preview' => false,
+        'photos' => [UploadedFile::fake()->image('1.jpg'), UploadedFile::fake()->image('2.jpg')],
+    ]))->assertSessionHasNoErrors();
+
+    $experience = Order::sole()->experience;
+
+    expect($experience->photos)->toHaveCount(2);
+    Storage::disk('local')->assertExists($experience->photos);
+});
+
 test('choosing a PayMongo method sends the customer straight to secure checkout', function () {
     config(['services.paymongo.secret_key' => 'sk_test_secret']);
     $payMongo = PaymentMethod::factory()->create(['driver' => 'paymongo']);

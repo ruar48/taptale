@@ -79,6 +79,7 @@ class ExperienceController extends Controller
             'designOptions' => $canEdit ? [
                 'templates' => ExperienceTemplate::options(),
                 'themes' => DigitalExperience::THEMES,
+                'isTemplateLocked' => $experience->isTemplateLocked(),
             ] : null,
         ]);
     }

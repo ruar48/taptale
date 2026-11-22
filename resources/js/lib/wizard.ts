@@ -11,11 +11,6 @@ export const WIZARD_STEPS = [
         title: 'Website',
         description: 'Pick your tap page design',
     },
-    {
-        key: 'customize',
-        title: 'Personalize',
-        description: 'Add your story (optional)',
-    },
     { key: 'specs', title: 'Details', description: 'Size, finish & quantity' },
     { key: 'checkout', title: 'Checkout', description: 'Delivery & payment' },
 ] as const;
