@@ -20,7 +20,7 @@ class SongLookupController extends Controller
         ]);
 
         return response()->json(
-            $lookupSong->handle($validated['title'], $validated['artist'] ?? null),
+            $lookupSong->handle($validated['title'], $validated['artist'] ?? null, forVisitor: true),
         );
     }
 }

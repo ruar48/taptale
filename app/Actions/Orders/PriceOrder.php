@@ -6,6 +6,8 @@ use App\Enums\DesignMode;
 use App\Enums\OptionGroup;
 use App\Models\Product;
 use App\Models\ProductOption;
+use App\Models\PromoCode;
+use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
@@ -22,6 +24,7 @@ class PriceOrder
      *     subtotal: int,
      *     customization_fee: int,
      *     delivery_fee: int,
+     *     discount: int,
      *     total: int,
      *     selected_options: list<array{id: int, group: string, group_label: string, name: string, price_modifier: int}>,
      *     enables_digital_experience: bool
@@ -29,7 +32,7 @@ class PriceOrder
      *
      * @throws ValidationException
      */
-    public function handle(Product $product, array $optionIds, int $quantity, DesignMode $designMode): array
+    public function handle(Product $product, array $optionIds, int $quantity, DesignMode $designMode, ?PromoCode $promoCode = null, ?User $customer = null): array
     {
         $available = $product->activeOptions()->get();
         $selected = $this->resolveSelection($available, $optionIds);
@@ -38,13 +41,15 @@ class PriceOrder
         $subtotal = $unitPrice * $quantity;
         $customizationFee = $designMode === DesignMode::TaptaleDesigned ? $product->design_fee : 0;
         $deliveryFee = $this->deliveryFee($subtotal);
+        $discount = $promoCode !== null ? $this->discount($promoCode, $subtotal, $customer) : 0;
 
         return [
             'unit_price' => $unitPrice,
             'subtotal' => $subtotal,
             'customization_fee' => $customizationFee,
             'delivery_fee' => $deliveryFee,
-            'total' => $subtotal + $customizationFee + $deliveryFee,
+            'discount' => $discount,
+            'total' => $subtotal - $discount + $customizationFee + $deliveryFee,
             'selected_options' => array_values($selected->map(fn (ProductOption $option): array => [
                 'id' => $option->id,
                 'group' => $option->group->value,
@@ -69,6 +74,23 @@ class PriceOrder
         }
 
         return (int) config('taptale.delivery_fee');
+    }
+
+    /**
+     * Discount a promo code gives on the items subtotal. Fees and delivery
+     * are never discounted.
+     *
+     * @throws ValidationException
+     */
+    private function discount(PromoCode $promoCode, int $subtotal, ?User $customer): int
+    {
+        $reason = $promoCode->rejectionReason($subtotal, $customer);
+
+        if ($reason !== null) {
+            throw ValidationException::withMessages(['promo_code' => $reason]);
+        }
+
+        return $promoCode->discountFor($subtotal);
     }
 
     /**

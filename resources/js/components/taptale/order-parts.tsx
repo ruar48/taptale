@@ -8,6 +8,7 @@ import {
     Package,
     Paintbrush,
     RefreshCcw,
+    Star,
     Truck,
     XCircle,
 } from 'lucide-react';
@@ -101,6 +102,7 @@ const ACTIVITY_ICONS: Record<string, typeof Package> = {
     design_approved: BadgeCheck,
     files_uploaded: FileImage,
     cancelled: XCircle,
+    review_submitted: Star,
 };
 
 export function OrderTimeline({
@@ -180,6 +182,7 @@ function titleFor(type: string): string {
             design_approved: 'Design approved',
             files_uploaded: 'Files uploaded',
             cancelled: 'Order cancelled',
+            review_submitted: 'Review submitted',
         }[type] ?? 'Update'
     );
 }
@@ -193,6 +196,16 @@ export function OrderPriceBreakdown({ order }: { order: Order }) {
                 label={`${money(order.unit_price)} × ${order.quantity}`}
                 value={money(order.subtotal)}
             />
+            {order.discount > 0 && (
+                <Line
+                    label={
+                        order.promo_code
+                            ? `Promo · ${order.promo_code}`
+                            : 'Promo discount'
+                    }
+                    value={`−${money(order.discount)}`}
+                />
+            )}
             {order.customization_fee > 0 && (
                 <Line
                     label="Design service"

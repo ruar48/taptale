@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers\Account;
 
+use App\Actions\DigitalExperiences\StoreExperiencePhoto;
 use App\Enums\ExperienceTemplate;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\UpdateExperienceRequest;
 use App\Http\Resources\DigitalExperienceResource;
 use App\Models\DigitalExperience;
+use App\Models\ExperienceReply;
+use App\Models\ExperienceView;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -18,6 +22,8 @@ use Inertia\Response;
 
 class ExperienceController extends Controller
 {
+    public function __construct(private StoreExperiencePhoto $storePhoto) {}
+
     /**
      * Switch the page design (template and color theme) from the page itself.
      */
@@ -50,7 +56,10 @@ class ExperienceController extends Controller
     {
         Gate::authorize('update', $experience);
 
-        $experience->load('order:id,reference,product_name,status');
+        $experience->load([
+            'order:id,reference,product_name,status',
+            'replies' => fn (HasMany $query) => $query->limit(50),
+        ]);
 
         return Inertia::render('account/experiences/edit', [
             'experience' => new DigitalExperienceResource($experience),
@@ -58,6 +67,23 @@ class ExperienceController extends Controller
                 'reference' => $experience->order->reference,
                 'product_name' => $experience->order->product_name,
             ],
+            'stats' => [
+                'views' => $experience->view_count,
+                'hearts' => $experience->heart_count,
+                'views_this_week' => $experience->views()->where('created_at', '>=', now()->subDays(7))->count(),
+                'recent_views' => $experience->views()->latest()->latest('id')->limit(8)->get(['id', 'device', 'created_at'])
+                    ->map(fn (ExperienceView $view): array => [
+                        'id' => $view->id,
+                        'device' => $view->device,
+                        'created_at' => $view->created_at->toIso8601String(),
+                    ]),
+            ],
+            'replies' => $experience->replies->map(fn (ExperienceReply $reply): array => [
+                'id' => $reply->id,
+                'name' => $reply->name,
+                'message' => $reply->message,
+                'created_at' => $reply->created_at?->toIso8601String(),
+            ]),
             'templates' => ExperienceTemplate::options(),
             'isTemplateLocked' => $experience->isTemplateLocked(),
             'themes' => DigitalExperience::THEMES,
@@ -110,6 +136,9 @@ class ExperienceController extends Controller
      */
     private function syncPhotos(UpdateExperienceRequest $request, DigitalExperience $experience, string $diskName): array
     {
+        // Upload first: if a new photo cannot be read, nothing is deleted.
+        $newPaths = $this->storePhoto->handleMany($experience, $request->file('new_photos', []), 'new_photos');
+
         $removing = array_map('intval', $request->validated('remove_photos', []));
         $photos = [];
         $indexMap = [];
@@ -125,15 +154,7 @@ class ExperienceController extends Controller
             $photos[] = $path;
         }
 
-        foreach ($request->file('new_photos', []) as $photo) {
-            $stored = $photo->store("experiences/{$experience->id}", $diskName);
-
-            if ($stored !== false) {
-                $photos[] = $stored;
-            }
-        }
-
-        return [$photos, $indexMap];
+        return [[...$photos, ...$newPaths], $indexMap];
     }
 
     /**

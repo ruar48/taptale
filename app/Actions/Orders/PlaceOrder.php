@@ -2,6 +2,7 @@
 
 namespace App\Actions\Orders;
 
+use App\Actions\DigitalExperiences\StoreExperiencePhoto;
 use App\Enums\ActivityType;
 use App\Enums\DesignMode;
 use App\Enums\ExperienceTemplate;
@@ -11,16 +12,19 @@ use App\Models\Category;
 use App\Models\DigitalExperience;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\PromoCode;
 use App\Models\Template;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PlaceOrder
 {
     public function __construct(
         private PriceOrder $priceOrder,
         private StoreOrderFile $storeOrderFile,
+        private StoreExperiencePhoto $storeExperiencePhoto,
     ) {}
 
     /**
@@ -40,9 +44,14 @@ class PlaceOrder
         $personalizeLater = ! empty($data['personalize_later']);
         $quantity = (int) $data['quantity'];
 
-        $pricing = $this->priceOrder->handle($product, $data['option_ids'] ?? [], $quantity, $designMode);
+        $promoCode = $this->resolvePromoCode($data['promo_code'] ?? null);
+        $pricing = $this->priceOrder->handle($product, $data['option_ids'] ?? [], $quantity, $designMode, $promoCode, $customer);
 
-        $order = DB::transaction(function () use ($customer, $data, $category, $product, $template, $designMode, $personalizeLater, $quantity, $pricing): Order {
+        $order = DB::transaction(function () use ($customer, $data, $category, $product, $template, $designMode, $personalizeLater, $quantity, $pricing, $promoCode): Order {
+            if ($promoCode !== null) {
+                $this->redeem($promoCode, $customer);
+            }
+
             $order = $customer->orders()->create([
                 'status' => OrderStatus::AwaitingPayment,
                 'category_id' => $category?->id,
@@ -59,6 +68,9 @@ class PlaceOrder
                 'subtotal' => $pricing['subtotal'],
                 'customization_fee' => $pricing['customization_fee'],
                 'delivery_fee' => $pricing['delivery_fee'],
+                'promo_code_id' => $promoCode?->id,
+                'promo_code' => $promoCode?->code,
+                'discount' => $pricing['discount'],
                 'total' => $pricing['total'],
                 'customer_name' => $data['customer_name'],
                 'customer_email' => $data['customer_email'],
@@ -68,6 +80,8 @@ class PlaceOrder
                 'province' => $data['province'],
                 'postal_code' => $data['postal_code'],
                 'customer_notes' => $data['customer_notes'] ?? null,
+                'is_gift' => ! empty($data['is_gift']),
+                'gift_message' => ! empty($data['is_gift']) && filled($data['gift_message'] ?? null) ? trim((string) $data['gift_message']) : null,
                 'payment_method_id' => $data['payment_method_id'],
             ]);
 
@@ -109,6 +123,12 @@ class PlaceOrder
                 ]);
             }
 
+            // Nothing to pay (a 100% promo with free delivery): there is no
+            // payment to wait for, so the order moves straight on.
+            if ($order->total === 0) {
+                $order->advanceAfterPayment();
+            }
+
             return $order;
         });
 
@@ -121,6 +141,43 @@ class PlaceOrder
         $this->addPhotosToExperience($order, $photos);
 
         return $order;
+    }
+
+    /**
+     * The promo code the customer entered, if any.
+     *
+     * @throws ValidationException
+     */
+    private function resolvePromoCode(mixed $code): ?PromoCode
+    {
+        if (! is_string($code) || trim($code) === '') {
+            return null;
+        }
+
+        return PromoCode::findByCode($code)
+            ?? throw ValidationException::withMessages(['promo_code' => 'This promo code does not exist.']);
+    }
+
+    /**
+     * Take one use of the code, re-checking its limits under a row lock so
+     * two simultaneous checkouts cannot both take the last use, and one
+     * customer cannot use the code twice by submitting twice at once.
+     *
+     * @throws ValidationException
+     */
+    private function redeem(PromoCode $promoCode, User $customer): void
+    {
+        $locked = PromoCode::query()->lockForUpdate()->findOrFail($promoCode->id);
+
+        if ($locked->wasUsedBy($customer)) {
+            throw ValidationException::withMessages(['promo_code' => 'You have already used this promo code.']);
+        }
+
+        if ($locked->max_uses !== null && $locked->heldUses() >= $locked->max_uses) {
+            throw ValidationException::withMessages(['promo_code' => 'This promo code has been fully used.']);
+        }
+
+        $locked->increment('uses');
     }
 
     /**
@@ -137,11 +194,10 @@ class PlaceOrder
             return;
         }
 
-        $disk = (string) config('taptale.uploads_disk');
         $paths = [];
 
         foreach (array_slice($photos, 0, DigitalExperience::MAX_PHOTOS) as $photo) {
-            $stored = $photo->store("experiences/{$experience->id}", $disk);
+            $stored = $this->storeExperiencePhoto->handle($experience, $photo);
 
             if ($stored !== false) {
                 $paths[] = $stored;

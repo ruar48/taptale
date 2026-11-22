@@ -3,6 +3,7 @@
 use App\Enums\ExpenseCategory;
 use App\Enums\FinanceEntryType;
 use App\Enums\PaymentKind;
+use App\Enums\PaymentStatus;
 use App\Models\FinanceEntry;
 use App\Models\Payment;
 use App\Models\User;
@@ -127,4 +128,24 @@ test('the selected period limits profit and the ledger but not the overview', fu
             ->where('entries.data.0.occurred_on', '2026-10-31')
             ->where('summary.trend.10', ['month' => '2026-10', 'income' => 70_000, 'expenses' => 40_000, 'net_profit' => 30_000])
         );
+});
+
+test('the monthly trend nets refunds, dates payments by verification and leaves out capital', function () {
+    $this->travelTo(now()->setDate(2026, 11, 15));
+
+    Payment::factory()->verified()->create(['amount' => 90_000, 'reviewed_at' => '2026-09-05 10:00:00']);
+    Payment::factory()->verified()->create(['amount' => 15_000, 'kind' => PaymentKind::Refund, 'reviewed_at' => '2026-09-20 10:00:00']);
+    Payment::factory()->verified()->create(['amount' => 25_000, 'created_at' => '2026-07-28 10:00:00', 'reviewed_at' => '2026-08-02 10:00:00']);
+    Payment::factory()->create(['amount' => 40_000, 'status' => PaymentStatus::Verified, 'created_at' => '2026-08-10 10:00:00']);
+    FinanceEntry::factory()->income()->create(['amount' => 30_000, 'occurred_on' => '2026-09-12']);
+    FinanceEntry::factory()->create(['amount' => 20_000, 'occurred_on' => '2026-09-14']);
+    FinanceEntry::factory()->capital()->create(['amount' => 500_000, 'occurred_on' => '2026-09-01']);
+
+    $response = $this->actingAs($this->admin)->get(route('admin.finance.index'));
+
+    $response->assertInertia(fn (Assert $page) => $page
+        ->where('summary.trend.7', ['month' => '2026-07', 'income' => 0, 'expenses' => 0, 'net_profit' => 0])
+        ->where('summary.trend.8', ['month' => '2026-08', 'income' => 65_000, 'expenses' => 0, 'net_profit' => 65_000])
+        ->where('summary.trend.9', ['month' => '2026-09', 'income' => 105_000, 'expenses' => 20_000, 'net_profit' => 85_000])
+    );
 });

@@ -4,8 +4,11 @@ namespace App\Models;
 
 use App\Enums\ExpenseCategory;
 use App\Enums\FinanceEntryType;
+use App\Enums\FinancePeriod;
 use Database\Factories\FinanceEntryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -46,6 +49,23 @@ class FinanceEntry extends Model
             'amount' => 'integer',
             'occurred_on' => 'date',
         ];
+    }
+
+    /**
+     * Entries in the given period, optionally of one type.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function filtered(Builder $query, FinancePeriod $period, ?FinanceEntryType $type = null): void
+    {
+        $start = $period->start();
+        $end = $period->end();
+
+        $query
+            ->when($type, fn (Builder $query) => $query->where('type', $type))
+            ->when($start, fn (Builder $query) => $query->where('occurred_on', '>=', $start->toDateString()))
+            ->when($end, fn (Builder $query) => $query->where('occurred_on', '<=', $end->toDateTimeString()));
     }
 
     /**

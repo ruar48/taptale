@@ -11,9 +11,40 @@ export type PriceBreakdown = {
     subtotal: number;
     customizationFee: number;
     deliveryFee: number;
+    discount: number;
     total: number;
     selected: ProductOption[];
 };
+
+/** A promo code the server confirmed in the wizard. */
+export type AppliedPromo = {
+    code: string;
+    description: string | null;
+    discount_type: 'percent' | 'fixed';
+    /** Percent (1-100) or centavos, depending on the type. */
+    discount_value: number;
+    min_subtotal: number;
+};
+
+/**
+ * Mirrors App\Models\PromoCode::discountFor(): a discount on the items
+ * subtotal only, never more than the subtotal.
+ */
+export function promoDiscount(
+    promo: AppliedPromo | null,
+    subtotal: number,
+): number {
+    if (!promo || subtotal < promo.min_subtotal) {
+        return 0;
+    }
+
+    const discount =
+        promo.discount_type === 'percent'
+            ? Math.floor((subtotal * Math.min(100, promo.discount_value)) / 100)
+            : promo.discount_value;
+
+    return Math.max(0, Math.min(subtotal, discount));
+}
 
 /**
  * Mirrors App\Actions\Orders\PriceOrder so customers see live prices.
@@ -25,6 +56,7 @@ export function calculatePrice(
     quantity: number,
     designMode: DesignMode | null,
     config: PricingConfig,
+    promo: AppliedPromo | null = null,
 ): PriceBreakdown {
     const selected = (product.options ?? []).filter((option) =>
         optionIds.includes(option.id),
@@ -43,12 +75,15 @@ export function calculatePrice(
             ? 0
             : config.delivery_fee;
 
+    const discount = promoDiscount(promo, subtotal);
+
     return {
         unitPrice,
         subtotal,
         customizationFee,
         deliveryFee,
-        total: subtotal + customizationFee + deliveryFee,
+        discount,
+        total: subtotal - discount + customizationFee + deliveryFee,
         selected,
     };
 }

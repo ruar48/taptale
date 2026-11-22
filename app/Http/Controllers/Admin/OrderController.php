@@ -8,7 +8,6 @@ use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -29,11 +28,7 @@ class OrderController extends Controller
 
         $orders = Order::query()
             ->with('product:id,slug,art_style')
-            ->when($status, fn (Builder $query) => $query->where('status', $status))
-            ->when($search !== '', fn (Builder $query) => $query->where(fn (Builder $inner) => $inner
-                ->where('reference', 'like', "%{$search}%")
-                ->orWhere('customer_name', 'like', "%{$search}%")
-                ->orWhere('customer_email', 'like', "%{$search}%")))
+            ->filtered($status, $search)
             ->latest()
             ->latest('id')
             ->paginate(20)
@@ -63,12 +58,23 @@ class OrderController extends Controller
             'latestProof',
             'payments.method',
             'experience',
+            'review',
             'activities.user:id,name',
         ]);
 
         return Inertia::render('admin/orders/show', [
             'order' => new OrderResource($order),
             'statuses' => OrderStatus::options(),
+        ]);
+    }
+
+    /**
+     * A printable packing slip. Gift orders leave every price off.
+     */
+    public function packingSlip(Order $order): Response
+    {
+        return Inertia::render('admin/orders/packing-slip', [
+            'order' => new OrderResource($order),
         ]);
     }
 
@@ -97,6 +103,7 @@ class OrderController extends Controller
         $validated = $request->validate([
             'courier' => ['nullable', 'string', 'max:120'],
             'tracking_number' => ['nullable', 'string', 'max:120'],
+            'tracking_url' => ['nullable', 'url:http,https', 'max:500'],
         ]);
 
         $order->update($validated);

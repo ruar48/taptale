@@ -4,6 +4,7 @@ namespace App\Http\Requests\Storefront;
 
 use App\Enums\DesignMode;
 use App\Enums\ExperienceTemplate;
+use App\Enums\OrderStatus;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Template;
@@ -61,6 +62,9 @@ class StoreOrderRequest extends FormRequest
             'province' => ['required', 'string', 'max:120'],
             'postal_code' => ['required', 'string', 'max:16'],
             'customer_notes' => ['nullable', 'string', 'max:2000'],
+            'is_gift' => ['boolean'],
+            'gift_message' => ['nullable', 'string', 'max:300'],
+            'promo_code' => ['nullable', 'string', 'max:40'],
             'payment_method_id' => ['required', 'integer', Rule::exists('payment_methods', 'id')->where('is_active', true)],
             'save_details' => ['boolean'],
         ];
@@ -77,6 +81,16 @@ class StoreOrderRequest extends FormRequest
             function (Validator $validator): void {
                 if (! $this->user()->hasVerifiedEmail()) {
                     $validator->errors()->add('email_verification', 'Please confirm your email address before placing your order.');
+                }
+            },
+            function (Validator $validator): void {
+                $limit = (int) config('taptale.max_unpaid_orders');
+                $unpaid = $this->user()->orders()
+                    ->whereIn('status', [OrderStatus::PendingOrder, OrderStatus::AwaitingPayment])
+                    ->count();
+
+                if ($limit > 0 && $unpaid >= $limit) {
+                    $validator->errors()->add('order', "You have {$unpaid} orders waiting for payment. Please pay for or cancel one of them before placing another.");
                 }
             },
             function (Validator $validator): void {
@@ -138,6 +152,7 @@ class StoreOrderRequest extends FormRequest
         return [
             'photos.*' => 'photo',
             'payment_method_id' => 'payment method',
+            'gift_message' => 'gift message',
             'personalization.message' => 'message',
             'personalization.date' => 'date',
             'personalization.song_title' => 'song title',

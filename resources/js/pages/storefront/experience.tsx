@@ -14,6 +14,7 @@ import {
     CustomSection,
 } from "@/components/taptale/experience/custom-sections";
 import { Gate } from "@/components/taptale/experience/gates";
+import { RecipientActions } from "@/components/taptale/experience/recipient-actions";
 import { ExperienceSection } from "@/components/taptale/experience/sections";
 import {
     AddPhotoButton,
@@ -35,12 +36,16 @@ export default function Experience({
     isPreview,
     isDemo = false,
     canEdit = false,
+    isRecipient = false,
+    hasHearted = false,
     designOptions = null,
 }: {
     experience: DigitalExperience;
     isPreview: boolean;
     isDemo?: boolean;
     canEdit?: boolean;
+    isRecipient?: boolean;
+    hasHearted?: boolean;
     designOptions?: DesignOptions | null;
 }) {
     const theme = themeFor(experience.theme);
@@ -286,6 +291,14 @@ export default function Experience({
                     </footer>
 
                     <MusicButton />
+
+                    {isRecipient && opened && (
+                        <RecipientActions
+                            code={experience.code}
+                            senderName={experience.sender_name}
+                            hasHearted={hasHearted}
+                        />
+                    )}
 
                     {lightbox && (
                         <div

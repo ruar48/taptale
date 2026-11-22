@@ -33,14 +33,16 @@ class DesignProofController extends Controller
             'responded_at' => now(),
         ]);
 
-        $order->update(['status' => OrderStatus::DesignApproved]);
+        $this->moveUnlessAwaitingPayment($order, OrderStatus::DesignApproved);
         $order->recordActivity(
             ActivityType::DesignApproved,
             trim("Design v{$proof->version} approved. ".($validated['comment'] ?? '')),
             $request->user(),
         );
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Design approved! We will start production soon.')]);
+        Inertia::flash('toast', ['type' => 'success', 'message' => $order->status->isPaymentStage()
+            ? __('Design approved! We will start production once your payment is complete.')
+            : __('Design approved! We will start production soon.')]);
 
         return back();
     }
@@ -62,7 +64,7 @@ class DesignProofController extends Controller
             'responded_at' => now(),
         ]);
 
-        $order->update(['status' => OrderStatus::RevisionRequested]);
+        $this->moveUnlessAwaitingPayment($order, OrderStatus::RevisionRequested);
         $order->recordActivity(
             ActivityType::RevisionRequested,
             "Revision requested for design v{$proof->version}: {$validated['comment']}",
@@ -72,6 +74,18 @@ class DesignProofController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Thanks! Our designers will revise your design.')]);
 
         return back();
+    }
+
+    /**
+     * Responding to a design must never skip payment: an unpaid order stays
+     * in its payment status (the response is kept on the proof) and moves
+     * on to the right design status once the payment is verified.
+     */
+    private function moveUnlessAwaitingPayment(Order $order, OrderStatus $status): void
+    {
+        if (! $order->status->isPaymentStage()) {
+            $order->update(['status' => $status]);
+        }
     }
 
     /**

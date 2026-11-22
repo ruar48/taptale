@@ -2,14 +2,18 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     CreditCard,
     FolderHeart,
+    Hammer,
     LayoutGrid,
     LayoutTemplate,
     Package,
     PiggyBank,
     ReceiptText,
+    ScrollText,
     Sparkles,
+    Star,
     Store,
     Tags,
+    TicketPercent,
     Users,
     Wallet,
 } from 'lucide-react';
@@ -28,7 +32,11 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard, home } from '@/routes';
 import { index as accountOrders } from '@/routes/account/orders';
-import { dashboard as adminDashboard } from '@/routes/admin';
+import {
+    auditLog as adminAuditLog,
+    dashboard as adminDashboard,
+    production as adminProduction,
+} from '@/routes/admin';
 import { index as categoriesIndex } from '@/routes/admin/categories';
 import { index as customersIndex } from '@/routes/admin/customers';
 import { index as financeIndex } from '@/routes/admin/finance';
@@ -36,6 +44,8 @@ import { index as ordersIndex } from '@/routes/admin/orders';
 import { index as paymentMethodsIndex } from '@/routes/admin/payment-methods';
 import { index as paymentsIndex } from '@/routes/admin/payments';
 import { index as productsIndex } from '@/routes/admin/products';
+import { index as promoCodesIndex } from '@/routes/admin/promo-codes';
+import { index as reviewsIndex } from '@/routes/admin/reviews';
 import { index as templatesIndex } from '@/routes/admin/templates';
 import { create as startOrder } from '@/routes/orders';
 import type { NavItem } from '@/types';
@@ -49,8 +59,10 @@ const customerNavItems: NavItem[] = [
 const adminOperationsItems: NavItem[] = [
     { title: 'Dashboard', href: adminDashboard(), icon: LayoutGrid },
     { title: 'Orders', href: ordersIndex(), icon: ReceiptText },
+    { title: 'Production', href: adminProduction(), icon: Hammer },
     { title: 'Payments', href: paymentsIndex(), icon: Wallet },
     { title: 'Customers', href: customersIndex(), icon: Users },
+    { title: 'Reviews', href: reviewsIndex(), icon: Star },
     { title: 'Finance', href: financeIndex(), icon: PiggyBank },
 ];
 
@@ -58,7 +70,9 @@ const adminCatalogItems: NavItem[] = [
     { title: 'Products', href: productsIndex(), icon: FolderHeart },
     { title: 'Categories', href: categoriesIndex(), icon: Tags },
     { title: 'Templates', href: templatesIndex(), icon: LayoutTemplate },
+    { title: 'Promo codes', href: promoCodesIndex(), icon: TicketPercent },
     { title: 'Payment methods', href: paymentMethodsIndex(), icon: CreditCard },
+    { title: 'Audit log', href: adminAuditLog(), icon: ScrollText },
 ];
 
 const footerNavItems: NavItem[] = [

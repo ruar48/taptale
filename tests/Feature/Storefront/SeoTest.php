@@ -22,6 +22,7 @@ test('a product page renders its meta tags and price for search engines', functi
 
 test('private memory pages are kept out of search engines', function () {
     $experience = DigitalExperience::factory()->create();
+    tapTag($experience);
 
     $this->get(route('experiences.show', $experience))
         ->assertOk()

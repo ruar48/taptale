@@ -31,13 +31,11 @@ class OrderWizardController extends Controller
      */
     public function create(Request $request): Response
     {
-        $category = $request->filled('category')
-            ? Category::active()->where('slug', $request->string('category'))->first()
-            : null;
+        $categorySlug = $this->queryText($request, 'category');
+        $productSlug = $this->queryText($request, 'product');
 
-        $product = $request->filled('product')
-            ? Product::active()->where('slug', $request->string('product'))->first()
-            : null;
+        $category = $categorySlug !== null ? Category::active()->where('slug', $categorySlug)->first() : null;
+        $product = $productSlug !== null ? Product::active()->where('slug', $productSlug)->first() : null;
 
         if ($category !== null && $product !== null && ! $product->categories()->whereKey($category->id)->exists()) {
             $category = null;
@@ -68,7 +66,7 @@ class OrderWizardController extends Controller
                 ? TemplateResource::collection(Template::active()->availableFor($category, $product)->get())
                 : [],
             'experienceTemplates' => ExperienceTemplate::options(),
-            'initialTemplate' => $request->string('template')->toString() ?: null,
+            'initialTemplate' => $this->queryText($request, 'template'),
             'paymentMethods' => PaymentMethodResource::collection(PaymentMethod::active()->get()),
             'pricing' => [
                 'delivery_fee' => (int) config('taptale.delivery_fee'),
@@ -109,7 +107,7 @@ class OrderWizardController extends Controller
 
         $method = $order->paymentMethod;
 
-        if ($method !== null && $method->isPayMongo()) {
+        if ($method !== null && $method->isPayMongo() && $order->total > 0) {
             try {
                 if ($method->usesTaptaleQr()) {
                     $startQrPh->handle($order, $method);
@@ -128,5 +126,16 @@ class OrderWizardController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Thank you! Your order :reference has been placed.', ['reference' => $order->reference])]);
 
         return to_route('account.orders.show', $order);
+    }
+
+    /**
+     * A plain text query value, or null. Links get shared and mangled, and
+     * "?category[]=x" must open the wizard rather than crash it.
+     */
+    private function queryText(Request $request, string $key): ?string
+    {
+        $value = $request->query($key);
+
+        return is_string($value) && $value !== '' ? $value : null;
     }
 }

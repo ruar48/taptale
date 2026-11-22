@@ -11,6 +11,7 @@ export function OrderSummary({
     price,
     pricing,
     designModeLabel,
+    promoCode = null,
 }: {
     category: Category | null;
     product: Product | null;
@@ -19,6 +20,7 @@ export function OrderSummary({
     price: PriceBreakdown | null;
     pricing: PricingConfig;
     designModeLabel: string | null;
+    promoCode?: string | null;
 }) {
     const money = useMoney();
 
@@ -68,6 +70,16 @@ export function OrderSummary({
                             </dt>
                             <dd>{money(price.subtotal)}</dd>
                         </div>
+                        {price.discount > 0 && (
+                            <div className="flex justify-between">
+                                <dt className="text-muted-foreground">
+                                    Promo{promoCode ? ` · ${promoCode}` : ''}
+                                </dt>
+                                <dd className="text-emerald-600">
+                                    −{money(price.discount)}
+                                </dd>
+                            </div>
+                        )}
                         {price.customizationFee > 0 && (
                             <div className="flex justify-between">
                                 <dt className="text-muted-foreground">

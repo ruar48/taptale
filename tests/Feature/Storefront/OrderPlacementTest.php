@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\ProductOption;
+use App\Models\PromoCode;
 use App\Models\Template;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -386,4 +387,85 @@ test('an unknown website design is rejected', function () {
     $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
         'experience_template' => 'mystery',
     ]))->assertSessionHasErrors('experience_template');
+});
+
+test('a promo code takes its discount off the items subtotal and counts one use', function () {
+    $promoCode = PromoCode::factory()->create(['code' => 'LOVE10', 'discount_value' => 10]);
+
+    $this->actingAs($this->customer)
+        ->post(route('orders.store'), orderPayload($this, ['promo_code' => ' love10 ']))
+        ->assertSessionHasNoErrors();
+
+    expect(Order::sole())
+        ->subtotal->toBe(44000)
+        ->discount->toBe(4400)
+        ->promo_code->toBe('LOVE10')
+        ->promo_code_id->toBe($promoCode->id)
+        ->total->toBe(44000 - 4400 + 15000)
+        ->and($promoCode->fresh()->uses)->toBe(1);
+});
+
+test('a fixed promo code never discounts more than the items', function () {
+    PromoCode::factory()->fixed(1_000_000)->create(['code' => 'BIG']);
+
+    $this->actingAs($this->customer)
+        ->post(route('orders.store'), orderPayload($this, ['promo_code' => 'BIG']))
+        ->assertSessionHasNoErrors();
+
+    expect(Order::sole())
+        ->discount->toBe(44000)
+        ->total->toBe(15000);
+});
+
+test('promo codes that cannot be used are rejected without placing the order', function (array $state, string $message) {
+    PromoCode::factory()->create(['code' => 'NOPE', ...$state]);
+
+    $this->actingAs($this->customer)
+        ->post(route('orders.store'), orderPayload($this, ['promo_code' => 'NOPE']))
+        ->assertSessionHasErrors(['promo_code' => $message]);
+
+    expect(Order::count())->toBe(0);
+})->with([
+    'inactive' => [['is_active' => false], 'This promo code is not active.'],
+    'expired' => [['ends_at' => now()->subDay()], 'This promo code is not active.'],
+    'not started' => [['starts_at' => now()->addDay()], 'This promo code is not active.'],
+    'used up' => [['max_uses' => 3, 'uses' => 3], 'This promo code has been fully used.'],
+    'below minimum' => [['min_subtotal' => 50000], 'This promo code needs a subtotal of at least ₱500.00.'],
+]);
+
+test('an unknown promo code is rejected', function () {
+    $this->actingAs($this->customer)
+        ->post(route('orders.store'), orderPayload($this, ['promo_code' => 'MADEUP']))
+        ->assertSessionHasErrors(['promo_code' => 'This promo code does not exist.']);
+});
+
+test('the wizard checks a promo code before the order is placed', function () {
+    PromoCode::factory()->create(['code' => 'LOVE10', 'discount_value' => 10, 'min_subtotal' => 30000]);
+
+    $this->getJson(route('promo-codes.check', ['code' => 'love10', 'subtotal' => 44000]))
+        ->assertOk()
+        ->assertJson(['code' => 'LOVE10', 'discount_type' => 'percent', 'discount_value' => 10, 'min_subtotal' => 30000]);
+
+    $this->getJson(route('promo-codes.check', ['code' => 'love10', 'subtotal' => 1000]))
+        ->assertJsonValidationErrors(['code' => 'This promo code needs a subtotal of at least ₱300.00.']);
+});
+
+test('a gift order keeps its gift message for the packing slip', function () {
+    $this->actingAs($this->customer)
+        ->post(route('orders.store'), orderPayload($this, ['is_gift' => true, 'gift_message' => '  Happy anniversary!  ']))
+        ->assertSessionHasNoErrors();
+
+    expect(Order::sole())
+        ->is_gift->toBeTrue()
+        ->gift_message->toBe('Happy anniversary!');
+});
+
+test('a gift message is dropped when the order is not a gift', function () {
+    $this->actingAs($this->customer)
+        ->post(route('orders.store'), orderPayload($this, ['is_gift' => false, 'gift_message' => 'Hi']))
+        ->assertSessionHasNoErrors();
+
+    expect(Order::sole())
+        ->is_gift->toBeFalse()
+        ->gift_message->toBeNull();
 });

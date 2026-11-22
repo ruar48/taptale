@@ -8,17 +8,71 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
-test('a published experience is public and counts views', function () {
+test('tapping the tag opens the page at a clean URL and counts one view per session', function () {
     $experience = DigitalExperience::factory()->create(['view_count' => 0]);
 
-    $this->get("/t/{$experience->code}")
+    tapTag($experience)->assertRedirect(route('experiences.show', $experience));
+
+    $this->get(route('experiences.show', $experience))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('storefront/experience')
             ->where('experience.title', $experience->title)
-            ->where('isPreview', false));
+            ->where('experience.public_url', null)
+            ->where('experience.qr_url', null)
+            ->where('isPreview', false)
+            ->where('isRecipient', true));
 
-    expect($experience->fresh()->view_count)->toBe(1);
+    tapTag($experience);
+
+    expect($experience->fresh()->view_count)->toBe(1)
+        ->and($experience->views()->count())->toBe(1);
+});
+
+test('the page cannot be opened without the key from its tag or QR code', function () {
+    Storage::fake('local');
+    Storage::disk('local')->put('experiences/1/a.jpg', 'image');
+    $experience = DigitalExperience::factory()->create(['photos' => ['experiences/1/a.jpg'], 'view_count' => 0]);
+
+    $this->get(route('experiences.show', $experience))->assertNotFound();
+    $this->get(route('experiences.show', ['experience' => $experience, 'k' => 'not-the-key']))->assertNotFound();
+    $this->get(route('experiences.photo', [$experience, 0]))->assertNotFound();
+
+    expect($experience->fresh()->view_count)->toBe(0);
+});
+
+test('a page scheduled to open later shows only a countdown to visitors', function () {
+    Storage::fake('local');
+    Storage::disk('local')->put('experiences/1/a.jpg', 'image');
+    $experience = DigitalExperience::factory()->create([
+        'photos' => ['experiences/1/a.jpg'],
+        'unlocks_at' => now()->addDays(3),
+    ]);
+
+    tapTag($experience);
+
+    $this->get(route('experiences.show', $experience))
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('storefront/experience-locked')
+            ->where('unlocksAt', $experience->unlocks_at->toIso8601String())
+            ->missing('experience'));
+    $this->get(route('experiences.photo', [$experience, 0]))->assertNotFound();
+
+    $this->travel(4)->days();
+    tapTag($experience);
+
+    $this->get(route('experiences.show', $experience))
+        ->assertInertia(fn (Assert $page) => $page->component('storefront/experience'));
+});
+
+test('the owner sees a scheduled page before it opens', function () {
+    $experience = DigitalExperience::factory()->create(['unlocks_at' => now()->addDays(3)]);
+
+    $this->actingAs($experience->user)
+        ->get(route('experiences.show', $experience))
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('storefront/experience')
+            ->where('experience.public_url', $experience->publicUrl()));
 });
 
 test('an unpublished experience is only visible to its owner', function () {
@@ -33,13 +87,22 @@ test('an unpublished experience is only visible to its owner', function () {
         ->assertInertia(fn (Assert $page) => $page->where('isPreview', true));
 });
 
-test('the QR code encodes the experience URL as an SVG', function () {
+test('the owner downloads the QR code as an SVG', function () {
     $experience = DigitalExperience::factory()->create();
 
-    $response = $this->get(route('experiences.qr', $experience));
+    $response = $this->actingAs($experience->user)->get(route('experiences.qr', $experience));
 
     $response->assertOk()->assertHeader('Content-Type', 'image/svg+xml');
     expect($response->getContent())->toStartWith('<svg');
+});
+
+test('visitors cannot fetch the QR code, which carries the access key', function () {
+    $experience = DigitalExperience::factory()->create();
+
+    tapTag($experience);
+
+    $this->get(route('experiences.qr', $experience))->assertNotFound();
+    $this->actingAs(User::factory()->create())->get(route('experiences.qr', $experience))->assertNotFound();
 });
 
 test('the owner updates their experience and photos', function () {
@@ -134,6 +197,7 @@ test('experience photos on object storage redirect to a signed url', function ()
         fn (string $path): string => "https://bucket.test/{$path}?signature=abc"
     );
     $experience = DigitalExperience::factory()->create(['photos' => ['experiences/1/a.jpg']]);
+    tapTag($experience);
 
     $this->get(route('experiences.photo', [$experience, 0]))
         ->assertRedirect('https://bucket.test/experiences/1/a.jpg?signature=abc');
@@ -143,6 +207,7 @@ test('experience photos on a local disk are streamed through the app', function 
     Storage::fake('local');
     Storage::disk('local')->put('experiences/1/a.jpg', 'image');
     $experience = DigitalExperience::factory()->create(['photos' => ['experiences/1/a.jpg']]);
+    tapTag($experience);
 
     $this->get(route('experiences.photo', [$experience, 0]))
         ->assertOk()

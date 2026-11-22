@@ -50,6 +50,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Order abuse limits
+    |--------------------------------------------------------------------------
+    |
+    | "max_unpaid_orders": how many orders a customer may have waiting for
+    | payment at once, so one account cannot flood the shop (storage, admin
+    | email, the order list) with orders it never pays. "promo_hold_hours":
+    | how long an unpaid order keeps its promo code use reserved before the
+    | use is free for other customers again.
+    |
+    */
+
+    'max_unpaid_orders' => (int) env('TAPTALE_MAX_UNPAID_ORDERS', 3),
+
+    'promo_hold_hours' => (int) env('TAPTALE_PROMO_HOLD_HOURS', 48),
+
+    /*
+    |--------------------------------------------------------------------------
     | Business details
     |--------------------------------------------------------------------------
     |
@@ -70,6 +87,38 @@ return [
     ],
 
     'policies_updated_on' => env('TAPTALE_POLICIES_UPDATED_ON', '2026-11-22'),
+
+    /*
+    | Calendar dates the team enters (promo code start and end days) are
+    | read in this time zone.
+    */
+
+    'timezone' => env('TAPTALE_TIMEZONE', 'Asia/Manila'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Email notifications
+    |--------------------------------------------------------------------------
+    |
+    | Queue connection used to send order and memory page emails. "deferred"
+    | sends them right after the response, so no queue worker is needed on
+    | shared hosting. Switch to "database" once a worker runs.
+    |
+    */
+
+    'notifications_connection' => env('TAPTALE_NOTIFICATIONS_CONNECTION', 'deferred'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Admin security
+    |--------------------------------------------------------------------------
+    |
+    | When on, administrators must turn on two-factor authentication before
+    | they can open the admin dashboard.
+    |
+    */
+
+    'admin_requires_two_factor' => (bool) env('TAPTALE_ADMIN_REQUIRES_TWO_FACTOR', true),
 
     /*
     |--------------------------------------------------------------------------

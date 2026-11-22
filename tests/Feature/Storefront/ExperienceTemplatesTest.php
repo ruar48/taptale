@@ -111,6 +111,7 @@ test('the uploaded song plays on the published page and stays private when unpub
     Storage::disk('local')->assertExists($experience->audio_path);
 
     auth()->logout();
+    tapTag($experience);
     $this->get(route('experiences.audio', $experience))->assertOk();
 
     $experience->update(['is_published' => false]);

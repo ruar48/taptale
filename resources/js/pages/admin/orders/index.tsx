@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
+import { Download } from 'lucide-react';
 import {
     AdminPage,
     PageHeader,
@@ -10,7 +11,12 @@ import { StatusBadge } from '@/components/taptale/status-badge';
 import { useMoney } from '@/hooks/use-money';
 import { formatDate } from '@/lib/money';
 import { cn } from '@/lib/utils';
-import { index, show } from '@/routes/admin/orders';
+import { Button } from '@/components/ui/button';
+import {
+    exportMethod as exportOrders,
+    index,
+    show,
+} from '@/routes/admin/orders';
 import type { Order, Paginated, StatusOption } from '@/types';
 
 type Props = {
@@ -39,6 +45,20 @@ export default function AdminOrders({
                 <PageHeader
                     title="Orders"
                     description="Every personalized order, from payment to delivery."
+                    actions={
+                        <Button asChild variant="outline">
+                            <a
+                                href={exportOrders.url({
+                                    query: {
+                                        status: filters.status ?? undefined,
+                                        search: filters.search || undefined,
+                                    },
+                                })}
+                            >
+                                <Download className="size-4" /> Export CSV
+                            </a>
+                        </Button>
+                    }
                 />
 
                 <div className="-mx-4 flex scrollbar-none gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">

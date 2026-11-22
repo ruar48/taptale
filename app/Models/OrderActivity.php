@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Enums\ActivityType;
 use App\Enums\OrderStatus;
+use App\Observers\OrderActivityObserver;
 use Database\Factories\OrderActivityFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  */
 #[Fillable(['user_id', 'type', 'status', 'body', 'is_internal'])]
+#[ObservedBy(OrderActivityObserver::class)]
 class OrderActivity extends Model
 {
     /** @use HasFactory<OrderActivityFactory> */

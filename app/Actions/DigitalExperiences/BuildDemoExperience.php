@@ -54,7 +54,9 @@ class BuildDemoExperience
             'custom_sections' => [],
             'nfc_tag_uid' => null,
             'is_published' => true,
+            'unlocks_at' => null,
             'view_count' => 0,
+            'heart_count' => 0,
             'public_url' => route('experiences.demo', $template->value),
             'qr_url' => null,
         ];

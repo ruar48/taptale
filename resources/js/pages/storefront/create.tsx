@@ -23,6 +23,7 @@ import { ProductArt } from '@/components/taptale/product-art';
 import { DesignPreview } from '@/components/taptale/wizard/design-preview';
 import { OptionPicker } from '@/components/taptale/wizard/option-picker';
 import { OrderSummary } from '@/components/taptale/wizard/order-summary';
+import { PromoCodeField } from '@/components/taptale/wizard/promo-code-field';
 import { ProductShowcase } from '@/components/taptale/wizard/product-showcase';
 import { WebsitePicker } from '@/components/taptale/wizard/website-picker';
 import { WizardProgress } from '@/components/taptale/wizard/wizard-progress';
@@ -34,6 +35,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useMoney } from '@/hooks/use-money';
 import { calculatePrice, defaultOptionIds, groupOptions } from '@/lib/pricing';
+import type { AppliedPromo } from '@/lib/pricing';
 import type { PricingConfig } from '@/lib/pricing';
 import { cn } from '@/lib/utils';
 import { stepsFor } from '@/lib/wizard';
@@ -104,6 +106,8 @@ type WizardForm = {
     province: string;
     postal_code: string;
     customer_notes: string;
+    is_gift: boolean;
+    gift_message: string;
     payment_method_id: number | null;
     save_details: boolean;
 };
@@ -203,9 +207,12 @@ export default function CreateGift({
         province: customer?.province ?? '',
         postal_code: customer?.postal_code ?? '',
         customer_notes: '',
+        is_gift: false,
+        gift_message: '',
         payment_method_id: paymentMethods[0]?.id ?? null,
         save_details: !customer?.phone,
     });
+    const [promo, setPromo] = useState<AppliedPromo | null>(null);
 
     const { data, setData, errors } = form;
 
@@ -430,9 +437,17 @@ export default function CreateGift({
                       data.quantity,
                       designMode,
                       pricing,
+                      promo,
                   )
                 : null,
-        [selectedProduct, data.option_ids, data.quantity, designMode, pricing],
+        [
+            selectedProduct,
+            data.option_ids,
+            data.quantity,
+            designMode,
+            pricing,
+            promo,
+        ],
     );
 
     const photoUrls = useMemo(
@@ -662,6 +677,7 @@ export default function CreateGift({
             design_mode: designMode,
             personalize_later: true,
             approve_preview: false,
+            promo_code: promo?.code ?? '',
         }));
 
         // Cleared up front: a PayMongo order leaves the site straight away.
@@ -1520,6 +1536,66 @@ export default function CreateGift({
                                         </p>
                                     </section>
 
+                                    <section className="space-y-4">
+                                        <h3 className="font-display text-lg">
+                                            Gift & promo
+                                        </h3>
+                                        <PromoCodeField
+                                            subtotal={price?.subtotal ?? 0}
+                                            applied={promo}
+                                            discount={price?.discount ?? 0}
+                                            onChange={setPromo}
+                                            serverError={
+                                                (
+                                                    errors as Record<
+                                                        string,
+                                                        string | undefined
+                                                    >
+                                                ).promo_code
+                                            }
+                                        />
+                                        <label className="flex items-start gap-3 text-sm">
+                                            <Checkbox
+                                                checked={data.is_gift}
+                                                onCheckedChange={(checked) =>
+                                                    setData(
+                                                        'is_gift',
+                                                        checked === true,
+                                                    )
+                                                }
+                                                className="mt-0.5"
+                                            />
+                                            <span>
+                                                <span className="block font-medium">
+                                                    This is a gift
+                                                </span>
+                                                <span className="text-muted-foreground">
+                                                    We leave the prices off the
+                                                    packing slip.
+                                                </span>
+                                            </span>
+                                        </label>
+                                        {data.is_gift && (
+                                            <Field
+                                                label="Gift message on the packing slip"
+                                                error={errors.gift_message}
+                                            >
+                                                <Textarea
+                                                    value={data.gift_message}
+                                                    onChange={(event) =>
+                                                        setData(
+                                                            'gift_message',
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="Happy anniversary, my love!"
+                                                    rows={2}
+                                                    maxLength={300}
+                                                />
+                                            </Field>
+                                        )}
+                                    </section>
+
                                     <Field
                                         label="Additional instructions"
                                         error={errors.customer_notes}
@@ -1532,7 +1608,7 @@ export default function CreateGift({
                                                     event.target.value,
                                                 )
                                             }
-                                            placeholder="Delivery notes, gift message for the package, preferred schedule…"
+                                            placeholder="Delivery notes, preferred schedule…"
                                             rows={3}
                                             maxLength={2000}
                                         />
@@ -1560,6 +1636,7 @@ export default function CreateGift({
                                 quantity={data.quantity}
                                 price={price}
                                 pricing={pricing}
+                                promoCode={promo?.code}
                                 designModeLabel={
                                     designMode === 'self'
                                         ? 'Customized by you'

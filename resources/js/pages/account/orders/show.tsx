@@ -4,12 +4,14 @@ import {
     Copy,
     ExternalLink,
     FileText,
+    Gift,
     Loader2,
     Lock,
     MessageSquareText,
     Nfc,
     QrCode,
     ShieldCheck,
+    Star,
     Truck,
     Upload,
 } from 'lucide-react';
@@ -20,6 +22,7 @@ import OnlinePaymentController from '@/actions/App/Http/Controllers/Account/Onli
 import OrderFileController from '@/actions/App/Http/Controllers/Account/OrderFileController';
 import QrPhPaymentController from '@/actions/App/Http/Controllers/Account/QrPhPaymentController';
 import PaymentController from '@/actions/App/Http/Controllers/Account/PaymentController';
+import ReviewController from '@/actions/App/Http/Controllers/Account/ReviewController';
 import InputError from '@/components/input-error';
 import { FileDropzone } from '@/components/taptale/file-dropzone';
 import {
@@ -334,6 +337,8 @@ export default function OrderShow({
                                 )}
                         </Panel>
 
+                        {order.is_reviewable && <ReviewPanel order={order} />}
+
                         <Panel title="Order updates">
                             <OrderTimeline
                                 activities={order.activities ?? []}
@@ -405,16 +410,57 @@ export default function OrderShow({
                                 <br />
                                 {order.customer_phone}
                             </address>
-                            {order.tracking_number && (
-                                <div className="mt-4 flex items-center gap-3 rounded-xl bg-blush-light/50 p-3 text-sm dark:bg-rose/10">
-                                    <Truck className="size-5 text-rose" />
+                            {(order.tracking_number || order.tracking_url) && (
+                                <div className="mt-4 rounded-xl bg-blush-light/50 p-3 text-sm dark:bg-rose/10">
+                                    <div className="flex items-center gap-3">
+                                        <Truck className="size-5 shrink-0 text-rose" />
+                                        <div className="min-w-0">
+                                            <p className="font-medium">
+                                                {order.courier ?? 'Courier'}
+                                            </p>
+                                            {order.tracking_number && (
+                                                <p className="text-muted-foreground">
+                                                    Tracking no.{' '}
+                                                    <span className="font-mono">
+                                                        {order.tracking_number}
+                                                    </span>
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {order.tracking_url && (
+                                        <Button
+                                            asChild
+                                            size="sm"
+                                            className="mt-3 w-full rounded-full"
+                                        >
+                                            <a
+                                                href={order.tracking_url}
+                                                target="_blank"
+                                                rel="noreferrer noopener"
+                                            >
+                                                <ExternalLink className="size-4" />{' '}
+                                                Track my package
+                                            </a>
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
+                            {order.is_gift && (
+                                <div className="mt-4 flex gap-3 rounded-xl bg-muted/60 p-3 text-sm">
+                                    <Gift className="size-5 shrink-0 text-rose" />
                                     <div>
                                         <p className="font-medium">
-                                            {order.courier ?? 'Courier'}
+                                            Sent as a gift
                                         </p>
                                         <p className="text-muted-foreground">
-                                            Tracking no. {order.tracking_number}
+                                            No prices on the packing slip.
                                         </p>
+                                        {order.gift_message && (
+                                            <p className="mt-1 whitespace-pre-line italic">
+                                                “{order.gift_message}”
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                             )}
@@ -955,7 +1001,7 @@ function ExperienceCard({ order }: { order: Order }) {
             <p className="mt-2 font-display text-xl">{experience.title}</p>
             <p className="text-sm text-white/70">
                 {experience.is_published
-                    ? `Live · ${experience.view_count} views`
+                    ? `Live · ${experience.view_count ?? 0} opens`
                     : 'Not published yet — add your photos and message.'}
             </p>
             <div className="mt-4 flex items-center gap-4">
@@ -967,21 +1013,17 @@ function ExperienceCard({ order }: { order: Order }) {
                 <div className="min-w-0 space-y-2 text-sm">
                     <button
                         type="button"
-                        onClick={() => copy(experience.public_url)}
+                        onClick={() => copy(experience.public_url ?? '')}
+                        title="Anyone with this private link can open your page, just like tapping the tag."
                         className="flex max-w-full items-center gap-1.5 truncate text-white/80 hover:text-white"
                     >
                         <Copy className="size-3.5 shrink-0" />
                         <span className="truncate">
-                            {copied
-                                ? 'Link copied!'
-                                : experience.public_url.replace(
-                                      /^https?:\/\//,
-                                      '',
-                                  )}
+                            {copied ? 'Link copied!' : 'Copy private link'}
                         </span>
                     </button>
                     <a
-                        href={experience.public_url}
+                        href={experience.public_url ?? undefined}
                         target="_blank"
                         rel="noreferrer"
                         className="flex items-center gap-1.5 text-white/80 hover:text-white"
@@ -999,5 +1041,135 @@ function ExperienceCard({ order }: { order: Order }) {
                 </Link>
             </Button>
         </section>
+    );
+}
+
+function ReviewPanel({ order }: { order: Order }) {
+    const form = useForm({
+        rating: 5,
+        quote: '',
+        author_name: order.customer_name.split(' ')[0] ?? '',
+    });
+    const review = order.review;
+
+    if (review) {
+        return (
+            <Panel title="Your review">
+                <div id="review" className="scroll-mt-24">
+                    <Stars rating={review.rating} />
+                    <p className="mt-2 text-sm whitespace-pre-line">
+                        “{review.quote}”
+                    </p>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                        — {review.author_name} ·{' '}
+                        {review.is_published
+                            ? 'Shown on our website. Thank you!'
+                            : 'Thank you! We show reviews after a quick check.'}
+                    </p>
+                </div>
+            </Panel>
+        );
+    }
+
+    return (
+        <Panel
+            title="How did we do?"
+            description="Your review helps other gift-givers. We show it on our website after a quick check."
+        >
+            <form
+                id="review"
+                className="scroll-mt-24 space-y-4"
+                onSubmit={(event) => {
+                    event.preventDefault();
+                    form.post(ReviewController.store.url(order.reference), {
+                        preserveScroll: true,
+                    });
+                }}
+            >
+                <div
+                    className="flex gap-1"
+                    role="radiogroup"
+                    aria-label="Rating"
+                >
+                    {[1, 2, 3, 4, 5].map((value) => (
+                        <button
+                            key={value}
+                            type="button"
+                            role="radio"
+                            aria-checked={form.data.rating === value}
+                            aria-label={`${value} star${value > 1 ? 's' : ''}`}
+                            onClick={() => form.setData('rating', value)}
+                            className="text-amber-400 transition hover:scale-110"
+                        >
+                            <Star
+                                className={cn(
+                                    'size-7',
+                                    value <= form.data.rating && 'fill-current',
+                                )}
+                            />
+                        </button>
+                    ))}
+                </div>
+                <InputError message={form.errors.rating} />
+                <div className="grid gap-2">
+                    <Label htmlFor="review-quote">Your review</Label>
+                    <Textarea
+                        id="review-quote"
+                        value={form.data.quote}
+                        onChange={(event) =>
+                            form.setData('quote', event.target.value)
+                        }
+                        rows={4}
+                        maxLength={1000}
+                        placeholder="She cried when she tapped it…"
+                    />
+                    <InputError message={form.errors.quote} />
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="review-name">Name to show</Label>
+                    <Input
+                        id="review-name"
+                        value={form.data.author_name}
+                        onChange={(event) =>
+                            form.setData('author_name', event.target.value)
+                        }
+                        maxLength={80}
+                    />
+                    <InputError message={form.errors.author_name} />
+                </div>
+                <InputError
+                    message={
+                        (form.errors as Record<string, string | undefined>)
+                            .review
+                    }
+                />
+                <Button
+                    type="submit"
+                    disabled={form.processing}
+                    className="rounded-full"
+                >
+                    {form.processing && (
+                        <Loader2 className="size-4 animate-spin" />
+                    )}{' '}
+                    Send review
+                </Button>
+            </form>
+        </Panel>
+    );
+}
+
+function Stars({ rating }: { rating: number }) {
+    return (
+        <div
+            className="flex gap-0.5 text-amber-400"
+            aria-label={`${rating} out of 5`}
+        >
+            {[1, 2, 3, 4, 5].map((value) => (
+                <Star
+                    key={value}
+                    className={cn('size-5', value <= rating && 'fill-current')}
+                />
+            ))}
+        </div>
     );
 }

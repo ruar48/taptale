@@ -8,19 +8,55 @@ use App\Enums\ExperienceTemplate;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DigitalExperienceResource;
 use App\Models\DigitalExperience;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
- * The public NFC / QR destination page: taptale.com/t/{code}, plus the
- * template gallery and demos customers can explore before buying.
+ * The NFC / QR destination page: taptale.com/t/{code}, plus the template
+ * gallery and demos customers can explore before buying.
+ *
+ * A memory page only opens from its tag or QR code. Both carry a secret
+ * "k" key; the first visit with it unlocks the page for that browser (its
+ * session plus an encrypted device cookie) and redirects to the clean
+ * address, so the URL a visitor sees (and might share) opens nothing on
+ * another device.
  */
 class ExperienceController extends Controller
 {
+    /**
+     * Session key holding the ids of pages this visitor unlocked.
+     */
+    public const ACCESS_SESSION_KEY = 'experience_access';
+
+    /**
+     * Encrypted cookie that keeps a tapped page open on the same device after
+     * the session ends, so a recipient who returns to the tab later (or waits
+     * for a countdown) is not met with a 404. It is tied to the browser and
+     * cannot be passed on by sharing a link.
+     */
+    public const ACCESS_COOKIE = 'taptale_pages';
+
+    /**
+     * How long, in minutes, the device remembers a tapped page.
+     */
+    private const ACCESS_COOKIE_MINUTES = 60 * 24 * 30;
+
+    /**
+     * Session key holding the ids of pages whose view this session counted.
+     */
+    private const COUNTED_SESSION_KEY = 'experience_counted';
+
+    /**
+     * How many unlocked pages a visitor remembers.
+     */
+    private const MAX_REMEMBERED_PAGES = 50;
+
     /**
      * Gallery of memory page templates.
      */
@@ -59,14 +95,34 @@ class ExperienceController extends Controller
     /**
      * Show the digital experience a tag or QR code points to.
      */
-    public function show(Request $request, DigitalExperience $experience): Response
+    public function show(Request $request, DigitalExperience $experience): Response|RedirectResponse
     {
-        $canPreview = $request->user()?->can('view', $experience) ?? false;
+        $canPreview = self::canPreview($request, $experience);
 
         abort_unless($experience->is_published || $canPreview, 404);
 
-        if ($experience->is_published && ! $canPreview) {
-            $experience->increment('view_count');
+        if ($request->query->has('k')) {
+            $key = $request->query('k');
+
+            abort_unless(is_string($key) && $experience->hasAccessKey($key), 404);
+
+            $this->unlock($request, $experience, countView: ! $canPreview);
+
+            return redirect()->route('experiences.show', [
+                'experience' => $experience,
+                ...$request->except('k'),
+            ]);
+        }
+
+        abort_unless($canPreview || self::isUnlocked($request, $experience), 404);
+
+        if (! $canPreview && $experience->isLocked()) {
+            return Inertia::render('storefront/experience-locked', [
+                'unlocksAt' => $experience->unlocks_at?->toIso8601String(),
+                'theme' => $experience->theme,
+                'recipientName' => $experience->recipient_name,
+                'senderName' => $experience->sender_name,
+            ]);
         }
 
         $canEdit = $request->user()?->can('update', $experience) ?? false;
@@ -76,6 +132,8 @@ class ExperienceController extends Controller
             'isPreview' => ! $experience->is_published,
             'isDemo' => false,
             'canEdit' => $canEdit,
+            'isRecipient' => ! $canPreview,
+            'hasHearted' => in_array($experience->id, $request->session()->get(ExperienceReactionController::HEARTS_SESSION_KEY, []), true),
             'designOptions' => $canEdit ? [
                 'templates' => ExperienceTemplate::options(),
                 'themes' => DigitalExperience::THEMES,
@@ -89,7 +147,7 @@ class ExperienceController extends Controller
      */
     public function photo(Request $request, DigitalExperience $experience, int $index): SymfonyResponse
     {
-        $this->ensureVisible($request, $experience);
+        abort_unless(static::canSee($request, $experience), 404);
 
         $path = $experience->photos[$index] ?? null;
 
@@ -105,7 +163,7 @@ class ExperienceController extends Controller
      */
     public function audio(Request $request, DigitalExperience $experience): SymfonyResponse
     {
-        $this->ensureVisible($request, $experience);
+        abort_unless(static::canSee($request, $experience), 404);
 
         abort_if($experience->audio_path === null, 404);
 
@@ -113,6 +171,41 @@ class ExperienceController extends Controller
             'Cache-Control' => 'private, max-age=3600',
             'Accept-Ranges' => 'bytes',
         ]);
+    }
+
+    /**
+     * The QR code (SVG) pointing to the experience. It encodes the access
+     * key, so only the owner and administrators may fetch it.
+     */
+    public function qr(Request $request, DigitalExperience $experience, RenderQrCode $renderQrCode): HttpResponse
+    {
+        abort_unless(self::canPreview($request, $experience), 404);
+
+        $svg = $renderQrCode->handle($experience->publicUrl());
+
+        $headers = ['Content-Type' => 'image/svg+xml', 'Cache-Control' => 'private, max-age=3600'];
+
+        if ($request->boolean('download')) {
+            $headers['Content-Disposition'] = 'attachment; filename="taptale-'.$experience->code.'-qr.svg"';
+        }
+
+        return response($svg, 200, $headers);
+    }
+
+    /**
+     * Whether the current visitor may see the page content right now: the
+     * owner or an admin always, anyone else after unlocking it with the tag
+     * once it is published and past its scheduled opening time.
+     */
+    public static function canSee(Request $request, DigitalExperience $experience): bool
+    {
+        if (self::canPreview($request, $experience)) {
+            return true;
+        }
+
+        return $experience->is_published
+            && ! $experience->isLocked()
+            && self::isUnlocked($request, $experience);
     }
 
     /**
@@ -135,26 +228,58 @@ class ExperienceController extends Controller
         return Storage::disk($diskName)->response($path, headers: $headers);
     }
 
-    /**
-     * The QR code (SVG) pointing to the experience.
-     */
-    public function qr(Request $request, DigitalExperience $experience, RenderQrCode $renderQrCode): HttpResponse
+    private static function canPreview(Request $request, DigitalExperience $experience): bool
     {
-        $svg = $renderQrCode->handle($experience->publicUrl());
-
-        $headers = ['Content-Type' => 'image/svg+xml', 'Cache-Control' => 'public, max-age=86400'];
-
-        if ($request->boolean('download')) {
-            $headers['Content-Disposition'] = 'attachment; filename="taptale-'.$experience->code.'-qr.svg"';
-        }
-
-        return response($svg, 200, $headers);
+        return $request->user()?->can('view', $experience) ?? false;
     }
 
-    private function ensureVisible(Request $request, DigitalExperience $experience): void
+    private static function isUnlocked(Request $request, DigitalExperience $experience): bool
     {
-        $canPreview = $request->user()?->can('view', $experience) ?? false;
+        return in_array($experience->id, self::unlockedPageIds($request), true);
+    }
 
-        abort_unless($experience->is_published || $canPreview, 404);
+    /**
+     * Pages this browser has tapped: from the session, or from the device
+     * cookie once the session has ended.
+     *
+     * @return list<int>
+     */
+    private static function unlockedPageIds(Request $request): array
+    {
+        $cookie = $request->cookie(self::ACCESS_COOKIE);
+        $fromCookie = is_string($cookie) ? array_map('intval', explode(',', $cookie)) : [];
+
+        return array_values(array_unique(array_filter(
+            [...$request->session()->get(self::ACCESS_SESSION_KEY, []), ...$fromCookie],
+            fn (int $id): bool => $id > 0,
+        )));
+    }
+
+    /**
+     * Remember that this browser tapped the tag, in the session and on the
+     * device. The first tap of a session counts as one view, so refreshing or
+     * tapping again does not inflate it.
+     */
+    private function unlock(Request $request, DigitalExperience $experience, bool $countView): void
+    {
+        $unlocked = array_slice(
+            array_values(array_unique([...self::unlockedPageIds($request), $experience->id])),
+            -self::MAX_REMEMBERED_PAGES,
+        );
+
+        $request->session()->put(self::ACCESS_SESSION_KEY, $unlocked);
+        Cookie::queue(self::ACCESS_COOKIE, implode(',', $unlocked), self::ACCESS_COOKIE_MINUTES);
+
+        $counted = $request->session()->get(self::COUNTED_SESSION_KEY, []);
+
+        if (! $countView || in_array($experience->id, $counted, true)) {
+            return;
+        }
+
+        $request->session()->put(self::COUNTED_SESSION_KEY, array_slice([...$counted, $experience->id], -self::MAX_REMEMBERED_PAGES));
+        $experience->increment('view_count');
+        $experience->views()->create([
+            'device' => preg_match('/Mobi|Android|iPhone|iPad/i', (string) $request->userAgent()) === 1 ? 'mobile' : 'desktop',
+        ]);
     }
 }

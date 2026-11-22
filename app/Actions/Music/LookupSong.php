@@ -6,15 +6,32 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 
 /**
  * Looks up a song on two free, keyless public APIs: the iTunes Search API
  * (album artwork and a 30-second preview) and LRCLIB (time-synced lyrics).
- * Results are cached for a week (misses for an hour, in case a service was down).
+ * Results are cached for a week and real misses for an hour; a miss caused
+ * by a service failing is not cached. Visitor lookups that are not cached
+ * share a site-wide budget per minute.
  */
 class LookupSong
 {
+    /**
+     * Uncached lookups the whole site may start per minute on behalf of
+     * visitors. Each costs up to three calls to the music services; Apple
+     * allows about twenty a minute per server, so staying under it keeps one
+     * visitor from getting every customer's lookups blocked.
+     */
+    public const VISITOR_LOOKUPS_PER_MINUTE = 15;
+
+    /**
+     * Whether a music service failed (down, slow or refusing us) during the
+     * current lookup; a miss caused by that is not cached.
+     */
+    private bool $upstreamFailed = false;
+
     /**
      * @return array{
      *     title: string,
@@ -27,7 +44,7 @@ class LookupSong
      *     plain_lyrics: list<string>,
      * }
      */
-    public function handle(string $title, ?string $artist = null): array
+    public function handle(string $title, ?string $artist = null, bool $forVisitor = false): array
     {
         $cacheKey = 'song-lookup:'.md5(Str::lower(trim($title).'|'.trim((string) $artist)));
 
@@ -36,6 +53,13 @@ class LookupSong
         if (is_array($cached)) {
             return $cached;
         }
+
+        // Cached songs are always free; new ones share a site-wide budget.
+        if ($forVisitor && ! RateLimiter::attempt('song-lookup-upstream', self::VISITOR_LOOKUPS_PER_MINUTE, fn (): bool => true)) {
+            return $this->emptyDetails($title, $artist);
+        }
+
+        $this->upstreamFailed = false;
 
         $details = (function () use ($title, $artist): array {
             $track = $this->findTrack($title, $artist);
@@ -59,10 +83,32 @@ class LookupSong
 
         $found = $details['preview_url'] !== null || $details['synced_lyrics'] !== [] || $details['plain_lyrics'] !== [];
 
-        // Misses are retried sooner, in case the music services were down.
-        Cache::put($cacheKey, $details, $found ? now()->addWeek() : now()->addHour());
+        // A miss because a service failed is not an answer: keep asking next
+        // time. Real misses are retried within the hour.
+        if ($found || ! $this->upstreamFailed) {
+            Cache::put($cacheKey, $details, $found ? now()->addWeek() : now()->addHour());
+        }
 
         return $details;
+    }
+
+    /**
+     * The shape of a lookup that found nothing, without asking anyone.
+     *
+     * @return array{title: string, artist: string|null, artwork_url: null, preview_url: null, track_url: null, duration: null, synced_lyrics: list<never>, plain_lyrics: list<never>}
+     */
+    private function emptyDetails(string $title, ?string $artist): array
+    {
+        return [
+            'title' => $title,
+            'artist' => $artist,
+            'artwork_url' => null,
+            'preview_url' => null,
+            'track_url' => null,
+            'duration' => null,
+            'synced_lyrics' => [],
+            'plain_lyrics' => [],
+        ];
     }
 
     /**
@@ -130,13 +176,22 @@ class LookupSong
     private function get(string $url, array $query): ?Response
     {
         try {
-            return Http::acceptJson()
+            $response = Http::acceptJson()
                 ->withUserAgent(config('app.name').' memory pages')
                 ->timeout(6)
                 ->get($url, $query);
         } catch (ConnectionException) {
+            $this->upstreamFailed = true;
+
             return null;
         }
+
+        // Rate limited or broken (a 404 just means "no such song").
+        if ($response->status() === 429 || $response->serverError()) {
+            $this->upstreamFailed = true;
+        }
+
+        return $response;
     }
 
     /**

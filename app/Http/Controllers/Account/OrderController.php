@@ -49,6 +49,7 @@ class OrderController extends Controller
             'latestProof',
             'payments.method',
             'experience',
+            'review',
             'activities' => fn ($query) => $query->where('is_internal', false),
         ]);
 

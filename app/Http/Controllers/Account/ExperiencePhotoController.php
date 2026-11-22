@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Account;
 
+use App\Actions\DigitalExperiences\StoreExperiencePhoto;
 use App\Http\Controllers\Controller;
 use App\Models\DigitalExperience;
 use Illuminate\Http\RedirectResponse;
@@ -21,7 +22,7 @@ class ExperiencePhotoController extends Controller
     /**
      * Add photos to the page, optionally attaching the first one to a moment.
      */
-    public function store(Request $request, DigitalExperience $experience): RedirectResponse
+    public function store(Request $request, DigitalExperience $experience, StoreExperiencePhoto $storePhoto): RedirectResponse
     {
         Gate::authorize('update', $experience);
 
@@ -46,15 +47,7 @@ class ExperiencePhotoController extends Controller
         }
 
         $firstNewIndex = count($photos);
-        $disk = (string) config('taptale.uploads_disk');
-
-        foreach ($validated['photos'] as $photo) {
-            $stored = $photo->store("experiences/{$experience->id}", $disk);
-
-            if ($stored !== false) {
-                $photos[] = $stored;
-            }
-        }
+        $photos = [...$photos, ...$storePhoto->handleMany($experience, $validated['photos'], 'photos')];
 
         $moments = $experience->moments ?? [];
         $momentIndex = $validated['moment'] ?? null;
@@ -87,7 +80,7 @@ class ExperiencePhotoController extends Controller
     /**
      * Swap one existing photo for a new one, keeping its place on the page.
      */
-    public function replace(Request $request, DigitalExperience $experience, int $index): RedirectResponse
+    public function replace(Request $request, DigitalExperience $experience, int $index, StoreExperiencePhoto $storePhoto): RedirectResponse
     {
         Gate::authorize('update', $experience);
 
@@ -102,7 +95,7 @@ class ExperiencePhotoController extends Controller
         ]);
 
         $disk = (string) config('taptale.uploads_disk');
-        $stored = $validated['photo']->store("experiences/{$experience->id}", $disk);
+        $stored = $storePhoto->handle($experience, $validated['photo']);
 
         if ($stored === false) {
             throw ValidationException::withMessages(['photo' => 'The photo could not be saved. Please try again.']);

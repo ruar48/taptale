@@ -24,17 +24,13 @@ class FinanceController extends Controller
     {
         $period = FinancePeriod::tryFrom($request->string('period')->toString()) ?? FinancePeriod::ThisMonth;
         $type = FinanceEntryType::tryFrom($request->string('type')->toString());
-        $start = $period->start();
-        $end = $period->end();
 
         return Inertia::render('admin/finance/index', [
             'summary' => $summarizeFinances->handle($period),
             'entries' => FinanceEntryResource::collection(
                 FinanceEntry::query()
                     ->with('recorder:id,name')
-                    ->when($type, fn ($query) => $query->where('type', $type))
-                    ->when($start, fn ($query) => $query->where('occurred_on', '>=', $start->toDateString()))
-                    ->when($end, fn ($query) => $query->where('occurred_on', '<=', $end->toDateTimeString()))
+                    ->filtered($period, $type)
                     ->latest('occurred_on')
                     ->latest('id')
                     ->paginate(15)

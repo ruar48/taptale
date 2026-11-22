@@ -310,9 +310,22 @@ export type DigitalExperience = {
     custom_sections: ExperienceCustomSection[];
     nfc_tag_uid: string | null;
     is_published: boolean;
-    view_count: number;
-    public_url: string;
+    /** Owner/admin only: before this moment visitors see a countdown. */
+    unlocks_at: string | null;
+    /** Owner/admin only. */
+    view_count: number | null;
+    /** Owner/admin only. */
+    heart_count: number | null;
+    /** Owner/admin only: the tap link carries the secret access key. */
+    public_url: string | null;
     qr_url: string | null;
+};
+
+export type OrderReview = {
+    rating: number;
+    quote: string;
+    author_name: string;
+    is_published: boolean;
 };
 
 export type Personalization = {
@@ -359,6 +372,8 @@ export type Order = {
     delivery_fee: number;
     adjustment: number;
     adjustment_note: string | null;
+    promo_code: string | null;
+    discount: number;
     total: number;
     amount_paid?: number;
     balance_due?: number;
@@ -373,8 +388,13 @@ export type Order = {
     province: string;
     postal_code: string;
     customer_notes: string | null;
+    is_gift: boolean;
+    gift_message: string | null;
     courier: string | null;
     tracking_number: string | null;
+    tracking_url: string | null;
+    is_reviewable: boolean;
+    review?: OrderReview | null;
     payment_method?: PaymentMethod | null;
     files?: OrderFile[];
     proofs?: DesignProof[];

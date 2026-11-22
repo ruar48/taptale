@@ -4,10 +4,12 @@ import {
     BadgeCheck,
     ExternalLink,
     FileText,
+    Gift,
     Loader2,
     Mail,
     Nfc,
     Phone,
+    Printer,
     Send,
     ShieldAlert,
 } from 'lucide-react';
@@ -47,6 +49,7 @@ import { useMoney } from '@/hooks/use-money';
 import { formatDate, formatFileSize, toPesoInput } from '@/lib/money';
 import { show as customerShow } from '@/routes/admin/customers';
 import { index as ordersIndex, show as orderShow } from '@/routes/admin/orders';
+import { index as reviewsIndex } from '@/routes/admin/reviews';
 import type { Order, StatusOption } from '@/types';
 
 const PRODUCTION_STATUSES = [
@@ -97,18 +100,31 @@ export default function AdminOrderShow({
                             </span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 rounded-xl border bg-card px-3 py-2 text-sm">
-                        {order.is_design_approved ? (
-                            <>
-                                <BadgeCheck className="size-4 text-emerald-600" />{' '}
-                                Design approved — ready for production
-                            </>
-                        ) : (
-                            <>
-                                <ShieldAlert className="size-4 text-amber-600" />{' '}
-                                Awaiting design approval
-                            </>
-                        )}
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Button asChild variant="outline" size="sm">
+                            <a
+                                href={OrderController.packingSlip.url(
+                                    order.reference,
+                                )}
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                <Printer className="size-4" /> Packing slip
+                            </a>
+                        </Button>
+                        <div className="flex items-center gap-2 rounded-xl border bg-card px-3 py-2 text-sm">
+                            {order.is_design_approved ? (
+                                <>
+                                    <BadgeCheck className="size-4 text-emerald-600" />{' '}
+                                    Design approved — ready for production
+                                </>
+                            ) : (
+                                <>
+                                    <ShieldAlert className="size-4 text-amber-600" />{' '}
+                                    Awaiting design approval
+                                </>
+                            )}
+                        </div>
                     </div>
                 </header>
 
@@ -271,8 +287,48 @@ export default function AdminOrderShow({
                                     </Link>
                                 )}
                             </div>
+                            {order.is_gift && (
+                                <div className="mt-4 rounded-xl bg-blush-light/50 p-3 text-sm dark:bg-rose/10">
+                                    <p className="flex items-center gap-1.5 font-medium">
+                                        <Gift className="size-4 text-rose" />{' '}
+                                        Gift order — leave prices out
+                                    </p>
+                                    {order.gift_message && (
+                                        <p className="mt-1 whitespace-pre-line italic">
+                                            “{order.gift_message}”
+                                        </p>
+                                    )}
+                                </div>
+                            )}
                             <ShippingForm order={order} />
                         </Panel>
+
+                        {order.review && (
+                            <Panel title="Customer review">
+                                <p className="text-sm text-amber-500">
+                                    {'★'.repeat(order.review.rating)}
+                                    <span className="text-muted-foreground/40">
+                                        {'★'.repeat(5 - order.review.rating)}
+                                    </span>
+                                </p>
+                                <p className="mt-1 text-sm whitespace-pre-line">
+                                    “{order.review.quote}”
+                                </p>
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                    — {order.review.author_name} ·{' '}
+                                    {order.review.is_published
+                                        ? 'Published'
+                                        : 'Waiting for approval'}{' '}
+                                    ·{' '}
+                                    <Link
+                                        href={reviewsIndex()}
+                                        className="font-medium text-plum hover:underline dark:text-blush"
+                                    >
+                                        Manage reviews
+                                    </Link>
+                                </p>
+                            </Panel>
+                        )}
                     </div>
                 </div>
             </AdminPage>
@@ -799,6 +855,7 @@ function ShippingForm({ order }: { order: Order }) {
     const form = useForm({
         courier: order.courier ?? '',
         tracking_number: order.tracking_number ?? '',
+        tracking_url: order.tracking_url ?? '',
     });
 
     return (
@@ -828,8 +885,20 @@ function ShippingForm({ order }: { order: Order }) {
                     placeholder="Tracking no."
                 />
             </div>
+            <Input
+                type="url"
+                value={form.data.tracking_url}
+                onChange={(event) =>
+                    form.setData('tracking_url', event.target.value)
+                }
+                placeholder="Tracking link (customer gets a “Track my package” button)"
+            />
             <InputError
-                message={form.errors.courier ?? form.errors.tracking_number}
+                message={
+                    form.errors.courier ??
+                    form.errors.tracking_number ??
+                    form.errors.tracking_url
+                }
             />
             <Button
                 size="sm"
@@ -911,7 +980,7 @@ function ExperiencePanel({ order }: { order: Order }) {
                     </p>
                     <div className="flex gap-3 pt-1 text-xs">
                         <a
-                            href={experience.public_url}
+                            href={experience.public_url ?? undefined}
                             target="_blank"
                             rel="noreferrer"
                             className="font-medium text-plum hover:underline dark:text-blush"

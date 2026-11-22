@@ -5,9 +5,12 @@ import {
     ExternalLink,
     ImageOff,
     Loader2,
+    MessageCircleHeart,
+    Monitor,
     Music,
     Nfc,
     Plus,
+    Smartphone,
     Trash2,
     Undo2,
 } from 'lucide-react';
@@ -48,7 +51,41 @@ type Props = {
     maxMoments: number;
     maxUploadKilobytes: number;
     isTemplateLocked: boolean;
+    stats: {
+        views: number;
+        hearts: number;
+        views_this_week: number;
+        recent_views: { id: number; device: string; created_at: string }[];
+    };
+    replies: {
+        id: number;
+        name: string | null;
+        message: string;
+        created_at: string;
+    }[];
 };
+
+/**
+ * A stored ISO timestamp as the value of a datetime-local input, in the
+ * visitor's own time zone.
+ */
+function toLocalInput(iso: string | null): string {
+    if (!iso) {
+        return '';
+    }
+
+    const date = new Date(iso);
+
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, 16);
+}
+
+const formatWhen = (iso: string) =>
+    new Date(iso).toLocaleString(undefined, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    });
 
 type MomentInput = {
     date: string;
@@ -74,6 +111,7 @@ type ExperienceForm = {
     song_title: string;
     song_artist: string;
     is_published: boolean;
+    unlocks_at: string;
     moments: MomentInput[];
     new_photos: File[];
     remove_photos: number[];
@@ -90,6 +128,8 @@ export default function EditExperience({
     maxMoments,
     maxUploadKilobytes,
     isTemplateLocked,
+    stats,
+    replies,
 }: Props) {
     setLayoutProps({
         breadcrumbs: [
@@ -116,6 +156,7 @@ export default function EditExperience({
         song_title: experience.song_title ?? '',
         song_artist: experience.song_artist ?? '',
         is_published: experience.is_published,
+        unlocks_at: toLocalInput(experience.unlocks_at),
         moments: experience.moments.map((moment) => ({
             date: moment.date ?? '',
             title: moment.title ?? '',
@@ -172,6 +213,9 @@ export default function EditExperience({
         event.preventDefault();
         form.transform((values) => ({
             ...values,
+            unlocks_at: values.unlocks_at
+                ? new Date(values.unlocks_at).toISOString()
+                : '',
             moments: values.moments.map((moment) => ({
                 ...moment,
                 photo: moment.photo ?? '',
@@ -208,12 +252,13 @@ export default function EditExperience({
                         </h1>
                         <p className="mt-1 text-sm text-muted-foreground">
                             This little website opens when someone taps your
-                            keepsake or scans its QR code.
+                            keepsake or scans its QR code. A copied link
+                            won&apos;t open it for anyone else.
                         </p>
                     </div>
                     <Button asChild variant="outline" className="rounded-full">
                         <a
-                            href={experience.public_url}
+                            href={experience.public_url ?? undefined}
                             target="_blank"
                             rel="noreferrer"
                         >
@@ -895,6 +940,39 @@ export default function EditExperience({
                                 .
                             </p>
                         </Panel>
+                        <Panel
+                            title="Open on a date"
+                            description="Optional. Before this moment, a tap shows a countdown instead of your page — perfect for birthdays and anniversaries."
+                        >
+                            <div className="flex gap-2">
+                                <Input
+                                    type="datetime-local"
+                                    value={data.unlocks_at}
+                                    onChange={(event) =>
+                                        setData(
+                                            'unlocks_at',
+                                            event.target.value,
+                                        )
+                                    }
+                                    aria-label="Opening date and time"
+                                />
+                                {data.unlocks_at && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() =>
+                                            setData('unlocks_at', '')
+                                        }
+                                    >
+                                        Clear
+                                    </Button>
+                                )}
+                            </div>
+                            <InputError
+                                message={errors.unlocks_at}
+                                className="mt-2"
+                            />
+                        </Panel>
                         <Button
                             type="submit"
                             disabled={form.processing}
@@ -905,6 +983,86 @@ export default function EditExperience({
                             )}{' '}
                             Save memory page
                         </Button>
+                        <Panel title="Taps & replies">
+                            <dl className="grid grid-cols-3 gap-2 text-center">
+                                {(
+                                    [
+                                        ['Opens', stats.views],
+                                        ['This week', stats.views_this_week],
+                                        ['Hearts', stats.hearts],
+                                    ] as const
+                                ).map(([label, value]) => (
+                                    <div
+                                        key={label}
+                                        className="rounded-xl bg-muted/60 px-2 py-3"
+                                    >
+                                        <dd className="font-display text-2xl font-semibold">
+                                            {value}
+                                        </dd>
+                                        <dt className="text-xs text-muted-foreground">
+                                            {label}
+                                        </dt>
+                                    </div>
+                                ))}
+                            </dl>
+                            {stats.recent_views.length > 0 ? (
+                                <ul className="mt-4 space-y-1.5 text-sm">
+                                    {stats.recent_views.map((view) => (
+                                        <li
+                                            key={view.id}
+                                            className="flex items-center justify-between gap-2 text-muted-foreground"
+                                        >
+                                            <span className="flex items-center gap-1.5">
+                                                {view.device === 'mobile' ? (
+                                                    <Smartphone className="size-3.5" />
+                                                ) : (
+                                                    <Monitor className="size-3.5" />
+                                                )}
+                                                Opened
+                                            </span>
+                                            <span className="text-xs">
+                                                {formatWhen(view.created_at)}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="mt-4 text-sm text-muted-foreground">
+                                    No one has tapped your keepsake yet.
+                                </p>
+                            )}
+
+                            <h3
+                                id="replies"
+                                className="mt-6 mb-2 flex scroll-mt-24 items-center gap-1.5 text-sm font-semibold"
+                            >
+                                <MessageCircleHeart className="size-4 text-rose" />{' '}
+                                Replies
+                            </h3>
+                            {replies.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">
+                                    When they write back, their messages appear
+                                    here and in your email.
+                                </p>
+                            ) : (
+                                <ul className="space-y-3">
+                                    {replies.map((reply) => (
+                                        <li
+                                            key={reply.id}
+                                            className="rounded-xl border p-3"
+                                        >
+                                            <p className="text-sm whitespace-pre-line">
+                                                {reply.message}
+                                            </p>
+                                            <p className="mt-1.5 text-xs text-muted-foreground">
+                                                {reply.name ?? 'Anonymous'} ·{' '}
+                                                {formatWhen(reply.created_at)}
+                                            </p>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </Panel>
                     </div>
                 </div>
             </form>

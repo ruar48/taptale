@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\DigitalExperience;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /*
@@ -47,4 +49,13 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Open a memory page the way its recipient does: by tapping the NFC tag (or
+ * scanning the QR code), which unlocks the page for the rest of the session.
+ */
+function tapTag(DigitalExperience $experience): TestResponse
+{
+    return test()->get($experience->publicUrl());
 }

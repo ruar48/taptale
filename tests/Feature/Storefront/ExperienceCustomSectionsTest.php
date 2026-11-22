@@ -301,6 +301,8 @@ test('the page shows extra sections with their photo links', function () {
         'custom_sections' => [timelineSection(slots: [['photo' => 0, 'caption' => 'Us']])],
     ]);
 
+    tapTag($experience);
+
     $this->get(route('experiences.show', $experience))
         ->assertInertia(fn (Assert $page) => $page
             ->where('experience.custom_sections.0.id', 'abc12345')

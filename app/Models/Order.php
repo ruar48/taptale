@@ -11,6 +11,8 @@ use App\Enums\ProofStatus;
 use Database\Factories\OrderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -41,6 +43,9 @@ use Illuminate\Validation\ValidationException;
  * @property int $delivery_fee
  * @property int $adjustment
  * @property string|null $adjustment_note
+ * @property int|null $promo_code_id
+ * @property string|null $promo_code Code as entered at checkout, kept if the code is later deleted
+ * @property int $discount Promo discount (centavos) on the items subtotal
  * @property int $total
  * @property string $customer_name
  * @property string $customer_email
@@ -50,9 +55,12 @@ use Illuminate\Validation\ValidationException;
  * @property string $province
  * @property string $postal_code
  * @property string|null $customer_notes
+ * @property bool $is_gift Packing slip hides prices
+ * @property string|null $gift_message
  * @property int|null $payment_method_id
  * @property string|null $courier
  * @property string|null $tracking_number
+ * @property string|null $tracking_url
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -60,9 +68,9 @@ use Illuminate\Validation\ValidationException;
 #[Fillable([
     'status', 'category_id', 'product_id', 'template_id', 'product_name', 'template_name',
     'selected_options', 'design_mode', 'personalization', 'preview_approved_at',
-    'quantity', 'unit_price', 'subtotal', 'customization_fee', 'delivery_fee', 'adjustment', 'adjustment_note', 'total',
-    'customer_name', 'customer_email', 'customer_phone', 'address_line', 'city', 'province', 'postal_code', 'customer_notes',
-    'payment_method_id', 'courier', 'tracking_number',
+    'quantity', 'unit_price', 'subtotal', 'customization_fee', 'delivery_fee', 'adjustment', 'adjustment_note', 'promo_code_id', 'promo_code', 'discount', 'total',
+    'customer_name', 'customer_email', 'customer_phone', 'address_line', 'city', 'province', 'postal_code', 'customer_notes', 'is_gift', 'gift_message',
+    'payment_method_id', 'courier', 'tracking_number', 'tracking_url',
 ])]
 class Order extends Model
 {
@@ -76,6 +84,26 @@ class Order extends Model
     {
         static::creating(function (Order $order): void {
             $order->reference ??= static::generateReference();
+        });
+
+        /*
+         * A cancelled order gives its promo code use back, so placing and
+         * cancelling orders cannot use up a limited code. Reopening the
+         * order takes the use again.
+         */
+        static::updated(function (Order $order): void {
+            if ($order->promo_code_id === null || ! $order->wasChanged('status')) {
+                return;
+            }
+
+            $wasCancelled = $order->getOriginal('status') === OrderStatus::Cancelled;
+            $isCancelled = $order->status === OrderStatus::Cancelled;
+
+            if ($isCancelled && ! $wasCancelled) {
+                PromoCode::query()->whereKey($order->promo_code_id)->where('uses', '>', 0)->decrement('uses');
+            } elseif ($wasCancelled && ! $isCancelled) {
+                PromoCode::query()->whereKey($order->promo_code_id)->increment('uses');
+            }
         });
     }
 
@@ -98,8 +126,27 @@ class Order extends Model
             'customization_fee' => 'integer',
             'delivery_fee' => 'integer',
             'adjustment' => 'integer',
+            'discount' => 'integer',
+            'is_gift' => 'boolean',
             'total' => 'integer',
         ];
+    }
+
+    /**
+     * Orders matching the admin list filters: a status and a search over the
+     * reference, customer name and email.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function filtered(Builder $query, ?OrderStatus $status, string $search): void
+    {
+        $query
+            ->when($status, fn (Builder $query) => $query->where('status', $status))
+            ->when($search !== '', fn (Builder $query) => $query->where(fn (Builder $inner) => $inner
+                ->where('reference', 'like', "%{$search}%")
+                ->orWhere('customer_name', 'like', "%{$search}%")
+                ->orWhere('customer_email', 'like', "%{$search}%")));
     }
 
     /**
@@ -203,6 +250,24 @@ class Order extends Model
     }
 
     /**
+     * The customer's review of this order, if they left one.
+     *
+     * @return HasOne<Testimonial, $this>
+     */
+    public function review(): HasOne
+    {
+        return $this->hasOne(Testimonial::class);
+    }
+
+    /**
+     * Customers can review an order once it has reached them.
+     */
+    public function isReviewable(): bool
+    {
+        return in_array($this->status, [OrderStatus::Shipped, OrderStatus::Completed], true);
+    }
+
+    /**
      * Whether the design approval required for production has been recorded.
      *
      * When Taptale has sent a proof, the newest proof must be approved. When
@@ -250,9 +315,7 @@ class Order extends Model
     {
         $this->load(['payments', 'latestProof']);
 
-        $isAwaitingPayment = in_array($this->status, [OrderStatus::PendingOrder, OrderStatus::AwaitingPayment, OrderStatus::PaymentVerification], true);
-
-        if (! $isAwaitingPayment) {
+        if (! $this->status->isPaymentStage()) {
             return;
         }
 
@@ -262,7 +325,22 @@ class Order extends Model
             return;
         }
 
-        $this->moveTo($this->isDesignApproved() ? OrderStatus::DesignApproved : OrderStatus::PendingDesign, $actor);
+        $this->moveTo($this->designStatus(), $actor);
+    }
+
+    /**
+     * Where a paid order stands on its design: approved, a proof waiting for
+     * the customer, a revision to make, or not started. A design proof may
+     * already have gone out (and even been approved) before payment.
+     */
+    public function designStatus(): OrderStatus
+    {
+        return match (true) {
+            $this->isDesignApproved() => OrderStatus::DesignApproved,
+            $this->latestProof?->status === ProofStatus::AwaitingResponse => OrderStatus::AwaitingCustomerApproval,
+            $this->latestProof?->status === ProofStatus::RevisionRequested => OrderStatus::RevisionRequested,
+            default => OrderStatus::PendingDesign,
+        };
     }
 
     /**
@@ -270,7 +348,7 @@ class Order extends Model
      */
     public function recalculateTotal(): void
     {
-        $this->total = max(0, $this->subtotal + $this->customization_fee + $this->delivery_fee + $this->adjustment);
+        $this->total = max(0, $this->subtotal - $this->discount + $this->customization_fee + $this->delivery_fee + $this->adjustment);
     }
 
     /**

@@ -83,6 +83,16 @@ enum OrderStatus: string
     }
 
     /**
+     * Whether the order is still waiting to be paid. Design work can happen
+     * alongside, but an order in one of these statuses stays here until the
+     * payment is verified.
+     */
+    public function isPaymentStage(): bool
+    {
+        return in_array($this, [self::PendingOrder, self::AwaitingPayment, self::PaymentVerification], true);
+    }
+
+    /**
      * Whether the order is still open (not finished or cancelled).
      */
     public function isOpen(): bool

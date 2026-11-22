@@ -5,6 +5,9 @@ use App\Http\Controllers\Admin;
 use App\Http\Controllers\PrivateFileController;
 use App\Http\Controllers\Storefront;
 use App\Http\Controllers\Webhooks;
+use App\Http\Middleware\EnsureAdminHasTwoFactor;
+use App\Http\Middleware\PreventDuplicateSubmissions;
+use App\Http\Middleware\RecordAdminAudit;
 use App\Http\Middleware\VerifyPayMongoSignature;
 use Illuminate\Support\Facades\Route;
 
@@ -46,9 +49,17 @@ Route::get('sitemap.xml', Storefront\SitemapController::class)->name('sitemap');
 Route::get('memory-pages', [Storefront\ExperienceController::class, 'templates'])->name('experiences.templates');
 Route::get('memory-pages/{template}', [Storefront\ExperienceController::class, 'demo'])->name('experiences.demo');
 Route::get('song-lookup', Storefront\SongLookupController::class)
-    ->middleware('throttle:30,1')
+    ->middleware('throttle:60,1,song-lookup')
     ->name('songs.lookup');
-Route::get('t/{experience}', [Storefront\ExperienceController::class, 'show'])->name('experiences.show');
+Route::get('t/{experience}', [Storefront\ExperienceController::class, 'show'])
+    ->middleware('throttle:300,1,memory-page-views')
+    ->name('experiences.show');
+Route::post('t/{experience}/heart', [Storefront\ExperienceReactionController::class, 'heart'])
+    ->middleware('throttle:60,1,memory-page-hearts')
+    ->name('experiences.heart');
+Route::post('t/{experience}/replies', [Storefront\ExperienceReactionController::class, 'reply'])
+    ->middleware(['throttle:15,1,memory-page-replies', PreventDuplicateSubmissions::class])
+    ->name('experiences.replies.store');
 Route::get('t/{experience}/audio', [Storefront\ExperienceController::class, 'audio'])->name('experiences.audio');
 Route::get('t/{experience}/qr', [Storefront\ExperienceController::class, 'qr'])->name('experiences.qr');
 Route::get('t/{experience}/photos/{index}', [Storefront\ExperienceController::class, 'photo'])
@@ -61,10 +72,13 @@ Route::get('t/{experience}/photos/{index}', [Storefront\ExperienceController::cl
 | before the order is placed (see StoreOrderRequest).
 */
 Route::get('create', [Storefront\OrderWizardController::class, 'create'])->name('orders.create');
+Route::get('promo-codes/check', Storefront\PromoCodeController::class)
+    ->middleware('throttle:10,1,promo-code-checks')
+    ->name('promo-codes.check');
 
 Route::middleware('auth')->group(function () {
     Route::post('orders', [Storefront\OrderWizardController::class, 'store'])
-        ->middleware('throttle:10,1')
+        ->middleware(['throttle:10,1,order-placement', PreventDuplicateSubmissions::class])
         ->name('orders.store');
 });
 
@@ -73,7 +87,7 @@ Route::middleware('auth')->group(function () {
 | every request must carry a valid PayMongo signature instead.
 */
 Route::post('webhooks/paymongo', Webhooks\PayMongoWebhookController::class)
-    ->middleware(['throttle:120,1', VerifyPayMongoSignature::class])
+    ->middleware(['throttle:120,1,paymongo-webhook', VerifyPayMongoSignature::class])
     ->name('webhooks.paymongo');
 
 Route::middleware('auth')->group(function () {
@@ -94,45 +108,58 @@ Route::middleware('auth')->group(function () {
     Route::prefix('account')->name('account.')->group(function () {
         Route::get('orders', [Account\OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [Account\OrderController::class, 'show'])->name('orders.show');
-        Route::post('orders/{order}/cancel', [Account\OrderController::class, 'cancel'])->name('orders.cancel');
-        Route::post('orders/{order}/files', [Account\OrderFileController::class, 'store'])->name('orders.files.store');
-        Route::post('orders/{order}/payments', [Account\PaymentController::class, 'store'])->name('orders.payments.store');
+        Route::post('orders/{order}/cancel', [Account\OrderController::class, 'cancel'])
+            ->middleware(PreventDuplicateSubmissions::class)
+            ->name('orders.cancel');
+        Route::post('orders/{order}/files', [Account\OrderFileController::class, 'store'])
+            ->middleware(['throttle:10,1,order-file-uploads', PreventDuplicateSubmissions::class])
+            ->name('orders.files.store');
+        Route::post('orders/{order}/payments', [Account\PaymentController::class, 'store'])
+            ->middleware(['throttle:10,1,manual-payments', PreventDuplicateSubmissions::class])
+            ->name('orders.payments.store');
+        Route::post('orders/{order}/review', [Account\ReviewController::class, 'store'])
+            ->middleware(['throttle:6,1,order-reviews', PreventDuplicateSubmissions::class])
+            ->name('orders.review.store');
         Route::post('orders/{order}/checkout', [Account\OnlinePaymentController::class, 'store'])
-            ->middleware('throttle:6,1')
+            ->middleware('throttle:6,1,online-checkout')
             ->name('orders.checkout');
         Route::get('orders/{order}/checkout/complete', [Account\OnlinePaymentController::class, 'complete'])
-            ->middleware('throttle:20,1')
+            ->middleware('throttle:20,1,online-checkout-return')
             ->name('orders.checkout.complete');
         Route::post('orders/{order}/qrph', [Account\QrPhPaymentController::class, 'store'])
-            ->middleware('throttle:6,1')
+            ->middleware('throttle:6,1,qrph-codes')
             ->name('orders.qrph.store');
         Route::get('orders/{order}/qrph', [Account\QrPhPaymentController::class, 'show'])
-            ->middleware('throttle:40,1')
+            ->middleware('throttle:40,1,qrph-status')
             ->name('orders.qrph.show');
-        Route::post('orders/{order}/proofs/{proof}/approve', [Account\DesignProofController::class, 'approve'])->name('orders.proofs.approve');
-        Route::post('orders/{order}/proofs/{proof}/revision', [Account\DesignProofController::class, 'requestRevision'])->name('orders.proofs.revision');
+        Route::post('orders/{order}/proofs/{proof}/approve', [Account\DesignProofController::class, 'approve'])
+            ->middleware(PreventDuplicateSubmissions::class)
+            ->name('orders.proofs.approve');
+        Route::post('orders/{order}/proofs/{proof}/revision', [Account\DesignProofController::class, 'requestRevision'])
+            ->middleware(PreventDuplicateSubmissions::class)
+            ->name('orders.proofs.revision');
 
         Route::get('experiences/{experience}', [Account\ExperienceController::class, 'edit'])->name('experiences.edit');
         Route::put('experiences/{experience}', [Account\ExperienceController::class, 'update'])->name('experiences.update');
         Route::patch('experiences/{experience}/content', [Account\ExperienceContentController::class, 'update'])
-            ->middleware('throttle:60,1')
+            ->middleware('throttle:60,1,memory-page-text')
             ->name('experiences.content');
         Route::post('experiences/{experience}/photos/{index}', [Account\ExperiencePhotoController::class, 'replace'])
             ->whereNumber('index')
-            ->middleware('throttle:30,1')
+            ->middleware('throttle:30,1,memory-page-photo-swaps')
             ->name('experiences.photos.replace');
         Route::put('experiences/{experience}/design', [Account\ExperienceController::class, 'updateDesign'])->name('experiences.design');
         Route::post('experiences/{experience}/photos', [Account\ExperiencePhotoController::class, 'store'])
-            ->middleware('throttle:30,1')
+            ->middleware('throttle:30,1,memory-page-photo-uploads')
             ->name('experiences.photos.store');
         Route::post('experiences/{experience}/sections', [Account\ExperienceSectionController::class, 'store'])
-            ->middleware('throttle:30,1')
+            ->middleware('throttle:30,1,memory-page-sections')
             ->name('experiences.sections.store');
         Route::patch('experiences/{experience}/sections/{section}', [Account\ExperienceSectionController::class, 'update'])
-            ->middleware('throttle:60,1')
+            ->middleware('throttle:60,1,memory-page-section-edits')
             ->name('experiences.sections.update');
         Route::delete('experiences/{experience}/sections/{section}', [Account\ExperienceSectionController::class, 'destroy'])
-            ->middleware('throttle:30,1')
+            ->middleware('throttle:30,1,memory-page-section-removals')
             ->name('experiences.sections.destroy');
     });
 });
@@ -143,8 +170,10 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'verified', 'can:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'can:admin', EnsureAdminHasTwoFactor::class, RecordAdminAudit::class])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', Admin\DashboardController::class)->name('dashboard');
+    Route::get('production', Admin\ProductionController::class)->name('production');
+    Route::get('audit-log', Admin\AuditLogController::class)->name('audit-log');
 
     Route::resource('categories', Admin\CategoryController::class)->except(['create', 'show', 'edit']);
 
@@ -159,23 +188,42 @@ Route::middleware(['auth', 'verified', 'can:admin'])->prefix('admin')->name('adm
     Route::resource('templates', Admin\TemplateController::class)->except(['show']);
 
     Route::get('orders', [Admin\OrderController::class, 'index'])->name('orders.index');
+    Route::get('orders/export', [Admin\ExportController::class, 'orders'])->name('orders.export');
     Route::get('orders/{order}', [Admin\OrderController::class, 'show'])->name('orders.show');
+    Route::get('orders/{order}/packing-slip', [Admin\OrderController::class, 'packingSlip'])->name('orders.packing-slip');
     Route::put('orders/{order}/status', [Admin\OrderController::class, 'updateStatus'])->name('orders.status');
     Route::put('orders/{order}/shipping', [Admin\OrderController::class, 'updateShipping'])->name('orders.shipping');
     Route::put('orders/{order}/adjustment', [Admin\OrderController::class, 'adjust'])->name('orders.adjust');
-    Route::post('orders/{order}/notes', [Admin\OrderController::class, 'storeNote'])->name('orders.notes.store');
-    Route::post('orders/{order}/proofs', [Admin\DesignProofController::class, 'store'])->name('orders.proofs.store');
-    Route::post('orders/{order}/refunds', [Admin\PaymentController::class, 'refund'])->name('orders.refunds.store');
+    Route::post('orders/{order}/notes', [Admin\OrderController::class, 'storeNote'])
+        ->middleware(PreventDuplicateSubmissions::class)
+        ->name('orders.notes.store');
+    Route::post('orders/{order}/proofs', [Admin\DesignProofController::class, 'store'])
+        ->middleware(PreventDuplicateSubmissions::class)
+        ->name('orders.proofs.store');
+    Route::post('orders/{order}/refunds', [Admin\PaymentController::class, 'refund'])
+        ->middleware(PreventDuplicateSubmissions::class)
+        ->name('orders.refunds.store');
 
     Route::get('payments', [Admin\PaymentController::class, 'index'])->name('payments.index');
-    Route::post('payments/{payment}/verify', [Admin\PaymentController::class, 'verify'])->name('payments.verify');
-    Route::post('payments/{payment}/reject', [Admin\PaymentController::class, 'reject'])->name('payments.reject');
+    Route::post('payments/{payment}/verify', [Admin\PaymentController::class, 'verify'])
+        ->middleware(PreventDuplicateSubmissions::class)
+        ->name('payments.verify');
+    Route::post('payments/{payment}/reject', [Admin\PaymentController::class, 'reject'])
+        ->middleware(PreventDuplicateSubmissions::class)
+        ->name('payments.reject');
 
     Route::resource('payment-methods', Admin\PaymentMethodController::class)
         ->parameters(['payment-methods' => 'paymentMethod'])
         ->except(['create', 'show', 'edit']);
 
+    Route::get('finance/export', [Admin\ExportController::class, 'finance'])->name('finance.export');
     Route::resource('finance', Admin\FinanceController::class)->except(['create', 'show', 'edit']);
+
+    Route::resource('promo-codes', Admin\PromoCodeController::class)
+        ->parameters(['promo-codes' => 'promoCode'])
+        ->except(['create', 'show', 'edit']);
+
+    Route::resource('reviews', Admin\ReviewController::class)->only(['index', 'update', 'destroy']);
 
     Route::get('customers', [Admin\CustomerController::class, 'index'])->name('customers.index');
     Route::get('customers/{customer}', [Admin\CustomerController::class, 'show'])->name('customers.show');

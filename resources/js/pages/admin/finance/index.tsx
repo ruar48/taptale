@@ -3,6 +3,7 @@ import {
     ArrowDownRight,
     ArrowUpRight,
     Coins,
+    Download,
     Loader2,
     Pencil,
     PiggyBank,
@@ -43,7 +44,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useMoney } from '@/hooks/use-money';
 import { formatDate, toPesoInput } from '@/lib/money';
 import { cn } from '@/lib/utils';
-import { index } from '@/routes/admin/finance';
+import { exportMethod as exportFinance, index } from '@/routes/admin/finance';
 import type {
     FinanceEntry,
     FinanceEntryTypeValue,
@@ -97,6 +98,15 @@ export default function AdminFinance({
                     description="Track your puhunan, expenses and profit in one place. Order sales are added automatically once a payment is verified."
                     actions={
                         <>
+                            <Button asChild variant="ghost">
+                                <a
+                                    href={exportFinance.url({
+                                        query: { period: filters.period },
+                                    })}
+                                >
+                                    <Download className="size-4" /> Export CSV
+                                </a>
+                            </Button>
                             <Button
                                 variant="outline"
                                 onClick={() => setEditing('capital')}

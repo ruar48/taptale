@@ -1,5 +1,6 @@
 import { createInertiaApp } from '@inertiajs/react';
 import { lazy, Suspense } from 'react';
+import { ConnectionStatus } from '@/components/taptale/connection-status';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
@@ -25,6 +26,10 @@ void createInertiaApp({
     layout: (name) => {
         switch (true) {
             case name === 'storefront/experience':
+            case name === 'storefront/experience-locked':
+            case name === 'storefront/experience-unavailable':
+            case name === 'storefront/error':
+            case name === 'admin/orders/packing-slip':
                 return null;
             case name.startsWith('storefront/'):
                 return StorefrontLayout;
@@ -42,6 +47,7 @@ void createInertiaApp({
             <TooltipProvider delayDuration={0}>
                 <Suspense fallback={null}>{app}</Suspense>
                 <Toaster />
+                <ConnectionStatus />
             </TooltipProvider>
         );
     },

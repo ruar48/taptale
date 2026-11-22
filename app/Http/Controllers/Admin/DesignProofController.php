@@ -41,7 +41,11 @@ class DesignProofController extends Controller
             'status' => ProofStatus::AwaitingResponse,
         ]);
 
-        $order->update(['status' => OrderStatus::AwaitingCustomerApproval]);
+        // An unpaid order keeps waiting for payment (so the customer can still
+        // pay); the proof goes out either way.
+        if (! $order->status->isPaymentStage()) {
+            $order->update(['status' => OrderStatus::AwaitingCustomerApproval]);
+        }
         $order->recordActivity(
             ActivityType::ProofSent,
             trim("Design v{$version} is ready for your review. ".($validated['designer_notes'] ?? '')),

@@ -43,6 +43,7 @@ class UpdateExperienceRequest extends FormRequest
             'song_title' => ['nullable', 'string', 'max:120'],
             'song_artist' => ['nullable', 'string', 'max:120'],
             'is_published' => ['boolean'],
+            'unlocks_at' => ['nullable', 'date'],
 
             'moments' => ['array', 'max:'.DigitalExperience::MAX_MOMENTS],
             'moments.*.date' => ['nullable', 'string', 'max:60'],

@@ -54,7 +54,11 @@ class ExperienceContentController extends Controller
     {
         Gate::authorize('update', $experience);
 
-        $field = (string) $request->input('field');
+        $field = $request->input('field');
+
+        if (! is_string($field)) {
+            throw ValidationException::withMessages(['field' => 'This text cannot be edited here.']);
+        }
 
         if (array_key_exists($field, self::FIELDS)) {
             $validated = $request->validate(['value' => self::FIELDS[$field]]);

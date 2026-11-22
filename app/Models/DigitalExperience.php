@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
@@ -19,6 +20,7 @@ use Illuminate\Support\Str;
  * @property int $order_id
  * @property int $user_id
  * @property string $code
+ * @property string $access_key Secret carried by the NFC tag and QR code; without it the page is a 404
  * @property ExperienceTemplate $template
  * @property string $title
  * @property string|null $subtitle
@@ -43,7 +45,9 @@ use Illuminate\Support\Str;
  * @property string $theme
  * @property string|null $nfc_tag_uid
  * @property bool $is_published
+ * @property Carbon|null $unlocks_at Before this moment visitors see a countdown instead of the page
  * @property int $view_count
+ * @property int $heart_count
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -51,7 +55,7 @@ use Illuminate\Support\Str;
 #[Fillable([
     'template', 'title', 'subtitle', 'recipient_name', 'sender_name', 'message', 'quote', 'flowers_note',
     'photo_rain_layer', 'event_date', 'video_url', 'music_url', 'song_title', 'song_artist', 'song_ornament', 'song_background', 'photos', 'moments', 'custom_sections', 'theme',
-    'nfc_tag_uid', 'is_published',
+    'nfc_tag_uid', 'is_published', 'unlocks_at',
 ])]
 class DigitalExperience extends Model
 {
@@ -98,6 +102,7 @@ class DigitalExperience extends Model
         'song_background' => 'theme',
         'is_published' => false,
         'view_count' => 0,
+        'heart_count' => 0,
     ];
 
     /**
@@ -107,6 +112,7 @@ class DigitalExperience extends Model
     {
         static::creating(function (DigitalExperience $experience): void {
             $experience->code ??= static::generateCode();
+            $experience->access_key ??= Str::random(32);
         });
 
         static::saved(function (DigitalExperience $experience): void {
@@ -132,7 +138,9 @@ class DigitalExperience extends Model
             'custom_sections' => 'array',
             'song_details' => 'array',
             'is_published' => 'boolean',
+            'unlocks_at' => 'datetime',
             'view_count' => 'integer',
+            'heart_count' => 'integer',
         ];
     }
 
@@ -165,6 +173,38 @@ class DigitalExperience extends Model
     }
 
     /**
+     * @return HasMany<ExperienceView, $this>
+     */
+    public function views(): HasMany
+    {
+        return $this->hasMany(ExperienceView::class);
+    }
+
+    /**
+     * @return HasMany<ExperienceReply, $this>
+     */
+    public function replies(): HasMany
+    {
+        return $this->hasMany(ExperienceReply::class)->latest()->latest('id');
+    }
+
+    /**
+     * Whether the given secret matches the one written into the tag / QR code.
+     */
+    public function hasAccessKey(string $key): bool
+    {
+        return $key !== '' && hash_equals((string) $this->access_key, $key);
+    }
+
+    /**
+     * Whether the owner scheduled the page to open later than now.
+     */
+    public function isLocked(): bool
+    {
+        return $this->unlocks_at !== null && $this->unlocks_at->isFuture();
+    }
+
+    /**
      * Whether the page template is fixed because the keepsake was released.
      */
     public function isTemplateLocked(): bool
@@ -173,10 +213,11 @@ class DigitalExperience extends Model
     }
 
     /**
-     * The public URL encoded in the QR code and written to NFC tags.
+     * The URL encoded in the QR code and written to NFC tags. It carries the
+     * access key; the bare /t/{code} address alone opens nothing.
      */
     public function publicUrl(): string
     {
-        return route('experiences.show', $this);
+        return route('experiences.show', ['experience' => $this, 'k' => $this->access_key]);
     }
 }

@@ -21,6 +21,13 @@ class DigitalExperienceResource extends JsonResource
         $photoUrl = fn (int $index): string => route('experiences.photo', ['experience' => $this->code, 'index' => $index]);
         $photoCount = count($this->photos ?? []);
 
+        /*
+         * The tap link and QR code carry the access key, and the counters are
+         * private, so only the owner and admins receive them. A recipient
+         * never sees a URL they could pass on.
+         */
+        $canManage = $request->user()?->can('view', $this->resource) ?? false;
+
         return [
             'code' => $this->code,
             'template' => $this->template->value,
@@ -66,11 +73,13 @@ class DigitalExperienceResource extends JsonResource
                     'caption' => $slot['caption'] ?? null,
                 ])->all(),
             ])->all(),
-            'nfc_tag_uid' => $this->nfc_tag_uid,
+            'nfc_tag_uid' => $canManage ? $this->nfc_tag_uid : null,
             'is_published' => $this->is_published,
-            'view_count' => $this->view_count,
-            'public_url' => $this->publicUrl(),
-            'qr_url' => route('experiences.qr', $this->resource),
+            'unlocks_at' => $canManage ? $this->unlocks_at?->toIso8601String() : null,
+            'view_count' => $canManage ? $this->view_count : null,
+            'heart_count' => $canManage ? $this->heart_count : null,
+            'public_url' => $canManage ? $this->publicUrl() : null,
+            'qr_url' => $canManage ? route('experiences.qr', $this->resource) : null,
         ];
     }
 }

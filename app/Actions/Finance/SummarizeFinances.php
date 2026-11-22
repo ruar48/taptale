@@ -11,6 +11,7 @@ use App\Models\FinanceEntry;
 use App\Models\Payment;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Builds the owner's money picture from two sources: verified order payments
@@ -114,24 +115,26 @@ class SummarizeFinances
         }
 
         $this->verifiedPayments($start, null)
-            ->get(['kind', 'amount', 'reviewed_at', 'created_at'])
-            ->each(function (Payment $payment) use (&$months): void {
-                $key = ($payment->reviewed_at ?? $payment->created_at)->format('Y-m');
-
-                if (isset($months[$key])) {
-                    $months[$key]['income'] += $payment->kind === PaymentKind::Refund ? -$payment->amount : $payment->amount;
+            ->toBase()
+            ->selectRaw($this->monthOf('coalesce(reviewed_at, created_at)').' as month_key, kind, sum(amount) as total')
+            ->groupBy('month_key', 'kind')
+            ->get()
+            ->each(function (object $row) use (&$months): void {
+                if (isset($months[$row->month_key])) {
+                    $months[$row->month_key]['income'] += $row->kind === PaymentKind::Refund->value ? -(int) $row->total : (int) $row->total;
                 }
             });
 
         FinanceEntry::query()
             ->whereIn('type', [FinanceEntryType::Income, FinanceEntryType::Expense])
             ->where('occurred_on', '>=', $start->toDateString())
-            ->get(['type', 'amount', 'occurred_on'])
-            ->each(function (FinanceEntry $entry) use (&$months): void {
-                $key = $entry->occurred_on->format('Y-m');
-
-                if (isset($months[$key])) {
-                    $months[$key][$entry->type === FinanceEntryType::Expense ? 'expenses' : 'income'] += $entry->amount;
+            ->toBase()
+            ->selectRaw($this->monthOf('occurred_on').' as month_key, type, sum(amount) as total')
+            ->groupBy('month_key', 'type')
+            ->get()
+            ->each(function (object $row) use (&$months): void {
+                if (isset($months[$row->month_key])) {
+                    $months[$row->month_key][$row->type === FinanceEntryType::Expense->value ? 'expenses' : 'income'] += (int) $row->total;
                 }
             });
 
@@ -205,6 +208,18 @@ class SummarizeFinances
             ->where('status', PaymentStatus::Verified)
             ->when($from, fn (Builder $query) => $query->whereRaw('coalesce(reviewed_at, created_at) >= ?', [$from]))
             ->when($until, fn (Builder $query) => $query->whereRaw('coalesce(reviewed_at, created_at) <= ?', [$until]));
+    }
+
+    /**
+     * SQL expression giving the "YYYY-MM" month of a date column, so monthly
+     * totals are summed by the database instead of loading every row.
+     */
+    private function monthOf(string $column): string
+    {
+        return match (DB::getDriverName()) {
+            'sqlite' => "strftime('%Y-%m', {$column})",
+            default => "date_format({$column}, '%Y-%m')",
+        };
     }
 
     /**

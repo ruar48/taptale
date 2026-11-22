@@ -21,11 +21,14 @@ test('the owner sees their page as editable and visitors do not', function () {
         ->get(route('experiences.show', $experience))
         ->assertInertia(fn (Assert $page) => $page->where('canEdit', true));
 
-    $this->actingAs(User::factory()->create())
-        ->get(route('experiences.show', $experience))
+    $this->actingAs(User::factory()->create());
+    tapTag($experience);
+
+    $this->get(route('experiences.show', $experience))
         ->assertInertia(fn (Assert $page) => $page->where('canEdit', false));
 
     auth()->logout();
+    tapTag($experience);
 
     $this->get(route('experiences.show', $experience))
         ->assertInertia(fn (Assert $page) => $page->where('canEdit', false));
@@ -134,6 +137,7 @@ test('the owner switches the page design from the page', function () {
 
 test('visitors get no design options and cannot change the design', function () {
     $experience = DigitalExperience::factory()->create(['template' => 'classic']);
+    tapTag($experience);
 
     $this->get(route('experiences.show', $experience))
         ->assertInertia(fn (Assert $page) => $page->where('designOptions', null));

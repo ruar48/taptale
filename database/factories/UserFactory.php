@@ -47,11 +47,12 @@ class UserFactory extends Factory
     }
 
     /**
-     * Indicate that the user is a Taptale administrator.
+     * Indicate that the user is a Taptale administrator. Administrators must
+     * have two-factor authentication to open the dashboard, so it is on.
      */
     public function admin(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->withTwoFactor()->state(fn (array $attributes) => [
             'is_admin' => true,
         ]);
     }
