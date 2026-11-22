@@ -22,6 +22,8 @@ export type ExperienceContextValue = {
     addPhotos: (files: File[], moment?: number) => void;
     replacePhoto: (index: number, file: File) => void;
     saveText: (field: string, value: string) => Promise<boolean>;
+    /** False while the opening gate still covers the page. */
+    opened: boolean;
 };
 
 export const ExperienceContext = createContext<ExperienceContextValue | null>(

@@ -5,6 +5,8 @@ import {
     BadgeCheck,
     Brush,
     Check,
+    Heart,
+    History,
     Loader2,
     MailCheck,
     Minus,
@@ -15,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
+import PasswordInput from '@/components/password-input';
 import { CategoryIcon } from '@/components/taptale/category-icon';
 import { FileDropzone } from '@/components/taptale/file-dropzone';
 import { ProductArt } from '@/components/taptale/product-art';
@@ -37,7 +40,20 @@ import type { PricingConfig } from '@/lib/pricing';
 import { cn } from '@/lib/utils';
 import { stepsFor } from '@/lib/wizard';
 import type { DesignMode, WizardStepKey } from '@/lib/wizard';
+import {
+    canResume,
+    clearDraft,
+    loadDraft,
+    loadPhotos,
+    saveDraft,
+    savePhotos,
+} from '@/lib/wizard-draft';
+import type { WizardDraft } from '@/lib/wizard-draft';
+import { store as logIn } from '@/routes/login';
 import { create as wizardRoute, store as storeOrder } from '@/routes/orders';
+import { privacy, terms } from '@/routes/pages';
+import { request as requestPasswordReset } from '@/routes/password';
+import { store as registerAccount } from '@/routes/register';
 import { send as sendVerification } from '@/routes/verification';
 import type {
     Category,
@@ -66,7 +82,8 @@ type Props = {
         city: string | null;
         province: string | null;
         postal_code: string | null;
-    };
+    } | null;
+    passwordRules: string | null;
 };
 
 type WizardForm = {
@@ -102,6 +119,31 @@ const COLOR_CHOICES = [
     '#343039',
 ];
 
+/**
+ * Contact and delivery details are never kept in the browser draft, so a
+ * shared computer does not hold anyone's address. The account fills them.
+ */
+const CONTACT_FIELDS = [
+    'customer_name',
+    'customer_email',
+    'customer_phone',
+    'address_line',
+    'city',
+    'province',
+    'postal_code',
+] as const;
+
+type DraftData = Omit<WizardForm, 'photos' | (typeof CONTACT_FIELDS)[number]>;
+
+function toDraftData(data: WizardForm): DraftData {
+    const draft: Partial<WizardForm> = { ...data };
+
+    delete draft.photos;
+    CONTACT_FIELDS.forEach((field) => delete draft[field]);
+
+    return draft as DraftData;
+}
+
 const ERROR_STEPS: [RegExp, WizardStepKey][] = [
     [/^(category_id|product_id|template_id)/, 'product'],
     [/^experience_template/, 'website'],
@@ -120,10 +162,12 @@ export default function CreateGift({
     paymentMethods,
     pricing,
     customer,
+    passwordRules,
 }: Props) {
     const money = useMoney();
     const { storefront, auth } = usePage().props;
     const symbol = storefront?.currencySymbol ?? '₱';
+    const isGuest = !auth.user;
     const isEmailVerified = Boolean(auth.user?.email_verified_at);
     const preselectedTemplate =
         templates.find((template) => template.slug === initialTemplate) ?? null;
@@ -163,19 +207,40 @@ export default function CreateGift({
         approve_preview: false,
         personalize_later: false,
         experience_template: '',
-        customer_name: customer.name ?? '',
-        customer_email: customer.email ?? '',
-        customer_phone: customer.phone ?? '',
-        address_line: customer.address_line ?? '',
-        city: customer.city ?? '',
-        province: customer.province ?? '',
-        postal_code: customer.postal_code ?? '',
+        customer_name: customer?.name ?? '',
+        customer_email: customer?.email ?? '',
+        customer_phone: customer?.phone ?? '',
+        address_line: customer?.address_line ?? '',
+        city: customer?.city ?? '',
+        province: customer?.province ?? '',
+        postal_code: customer?.postal_code ?? '',
         customer_notes: '',
         payment_method_id: paymentMethods[0]?.id ?? null,
-        save_details: !customer.phone,
+        save_details: !customer?.phone,
     });
 
     const { data, setData, errors } = form;
+
+    // A guest who signs up or logs in at checkout stays on this page with
+    // everything they made; fill in whatever their account already knows.
+    useEffect(() => {
+        if (!customer) {
+            return;
+        }
+
+        setData((current) => ({
+            ...current,
+            customer_name: current.customer_name || customer.name || '',
+            customer_email: current.customer_email || customer.email || '',
+            customer_phone: current.customer_phone || customer.phone || '',
+            address_line: current.address_line || customer.address_line || '',
+            city: current.city || customer.city || '',
+            province: current.province || customer.province || '',
+            postal_code: current.postal_code || customer.postal_code || '',
+            save_details: !customer.phone,
+        }));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [customer?.email]);
 
     // Reset product-specific choices when a different product is loaded.
     useEffect(() => {
@@ -212,6 +277,138 @@ export default function CreateGift({
         );
     const needsPreviewApproval =
         designMode === 'self' && !data.personalize_later;
+
+    const userId = auth.user?.id ?? null;
+    const [isDraftReady, setIsDraftReady] = useState(false);
+    const [savedDraft, setSavedDraft] = useState<WizardDraft<DraftData> | null>(
+        null,
+    );
+    const [wasRestored, setWasRestored] = useState(false);
+
+    // Pick up a gift this visitor was crafting in this browser — after
+    // logging in (even through two-factor), a refresh or a later visit.
+    useEffect(() => {
+        const draft = loadDraft<DraftData>();
+
+        if (!draft || !canResume(draft, userId)) {
+            setIsDraftReady(true);
+
+            return;
+        }
+
+        if (!selectedProduct || selectedProduct.slug !== draft.productSlug) {
+            setSavedDraft(draft);
+            setIsDraftReady(true);
+
+            return;
+        }
+
+        const optionIds = new Set(
+            (selectedProduct.options ?? []).map((option) => option.id),
+        );
+        const restoredOptions = Array.isArray(draft.data.option_ids)
+            ? draft.data.option_ids.filter((id) => optionIds.has(id))
+            : [];
+        const lastStep = steps.length - 1;
+
+        setData((current) => ({
+            ...current,
+            ...draft.data,
+            category_id: current.category_id,
+            product_id: selectedProduct.id,
+            personalization: {
+                ...current.personalization,
+                ...draft.data.personalization,
+            },
+            option_ids:
+                restoredOptions.length > 0
+                    ? restoredOptions
+                    : current.option_ids,
+            template_id: templates.some(
+                (item) => item.id === draft.data.template_id,
+            )
+                ? draft.data.template_id
+                : current.template_id,
+            payment_method_id: paymentMethods.some(
+                (method) => method.id === draft.data.payment_method_id,
+            )
+                ? draft.data.payment_method_id
+                : current.payment_method_id,
+        }));
+        setTemplateSkipped(Boolean(draft.templateSkipped));
+        setStep(Math.min(Math.max(0, draft.step), lastStep));
+        setFurthest(Math.min(Math.max(0, draft.furthest), lastStep));
+        setWasRestored(true);
+
+        void loadPhotos()
+            .then((photos) => {
+                if (photos.length > 0) {
+                    setData(
+                        'photos',
+                        photos.slice(0, selectedProduct.max_photos),
+                    );
+                }
+            })
+            .finally(() => setIsDraftReady(true));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // An unrelated saved gift stays untouched until the visitor starts
+    // changing this one (then the new gift replaces it).
+    const isKeepingSavedDraft =
+        savedDraft !== null && !form.isDirty && step === 0;
+
+    const saveCurrentDraft = () => {
+        if (!selectedProduct) {
+            return;
+        }
+
+        saveDraft<DraftData>({
+            ownerId: userId,
+            productSlug: selectedProduct.slug,
+            productName: selectedProduct.name,
+            categorySlug: selectedCategory?.slug ?? null,
+            step,
+            furthest,
+            templateSkipped,
+            data: toDraftData(data),
+        });
+    };
+
+    useEffect(() => {
+        if (!isDraftReady || !selectedProduct || isKeepingSavedDraft) {
+            return;
+        }
+
+        const timer = window.setTimeout(() => {
+            saveCurrentDraft();
+            setSavedDraft(null);
+        }, 400);
+
+        return () => window.clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        data,
+        step,
+        furthest,
+        templateSkipped,
+        isDraftReady,
+        isKeepingSavedDraft,
+    ]);
+
+    useEffect(() => {
+        if (!isDraftReady || !selectedProduct || isKeepingSavedDraft) {
+            return;
+        }
+
+        void savePhotos(data.photos);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [data.photos, isDraftReady, isKeepingSavedDraft]);
+
+    const startOver = () => {
+        clearDraft();
+        router.visit(wizardRoute.url());
+    };
 
     const price = useMemo(
         () =>
@@ -457,6 +654,17 @@ export default function CreateGift({
             }
         }
 
+        if (isGuest) {
+            setStepError(
+                'Create your free account or log in to place your order — your gift is saved right here.',
+            );
+            document
+                .getElementById('checkout-account')
+                ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            return;
+        }
+
         if (!isEmailVerified) {
             setStepError(
                 'Please confirm your email address before placing your order.',
@@ -474,10 +682,16 @@ export default function CreateGift({
             category_id: isGiftInOccasion ? selectedCategory.id : null,
         }));
 
+        // Cleared up front: a PayMongo order leaves the site straight away.
+        clearDraft();
+
         form.post(storeOrder.url(), {
             forceFormData: true,
             preserveScroll: true,
             onError: (serverErrors) => {
+                saveCurrentDraft();
+                void savePhotos(data.photos);
+
                 const firstKey = Object.keys(serverErrors)[0] ?? '';
                 const key = ERROR_STEPS.find(([pattern]) =>
                     pattern.test(firstKey),
@@ -505,6 +719,41 @@ export default function CreateGift({
             <Head title="Order Your Gift" />
 
             <div className="mx-auto max-w-7xl px-4 pt-8 pb-36 sm:px-6 lg:px-8 lg:pb-16">
+                {savedDraft && (
+                    <DraftNotice
+                        title={`Continue your ${savedDraft.productName}?`}
+                        description="You started crafting this gift earlier — it's saved on this device. Starting a different gift replaces it."
+                        action="Continue my gift"
+                        onAction={() =>
+                            router.visit(
+                                wizardRoute.url({
+                                    query: savedDraft.categorySlug
+                                        ? {
+                                              category: savedDraft.categorySlug,
+                                              product: savedDraft.productSlug,
+                                          }
+                                        : { product: savedDraft.productSlug },
+                                }),
+                            )
+                        }
+                        onDismiss={() => {
+                            clearDraft();
+                            setSavedDraft(null);
+                        }}
+                        dismissLabel="Discard"
+                    />
+                )}
+                {wasRestored && (
+                    <DraftNotice
+                        title="Welcome back — your gift is just as you left it"
+                        description="We saved your choices on this device so you can pick up where you left off."
+                        action="Start over"
+                        onAction={startOver}
+                        onDismiss={() => setWasRestored(false)}
+                        dismissLabel="Got it"
+                        isSubtle
+                    />
+                )}
                 <div className="mb-8">
                     <WizardProgress
                         steps={steps}
@@ -1194,20 +1443,35 @@ export default function CreateGift({
                                 description="Almost there! Tell us where to send your gift."
                             >
                                 <div className="space-y-8">
-                                    <EmailConfirmation
-                                        email={auth.user?.email ?? ''}
-                                        isVerified={isEmailVerified}
-                                        isSent={verificationSent}
-                                        isSending={sendingVerification}
-                                        onSend={sendVerificationLink}
-                                        error={
-                                            (
-                                                errors as Partial<
-                                                    Record<string, string>
-                                                >
-                                            ).email_verification
-                                        }
-                                    />
+                                    {isGuest ? (
+                                        <GuestAccount
+                                            passwordRules={passwordRules}
+                                            defaultName={data.customer_name}
+                                            defaultEmail={data.customer_email}
+                                            onRegistered={() => {
+                                                setVerificationSent(true);
+                                                setStepError(null);
+                                            }}
+                                            onLoggedIn={() =>
+                                                setStepError(null)
+                                            }
+                                        />
+                                    ) : (
+                                        <EmailConfirmation
+                                            email={auth.user?.email ?? ''}
+                                            isVerified={isEmailVerified}
+                                            isSent={verificationSent}
+                                            isSending={sendingVerification}
+                                            onSend={sendVerificationLink}
+                                            error={
+                                                (
+                                                    errors as Partial<
+                                                        Record<string, string>
+                                                    >
+                                                ).email_verification
+                                            }
+                                        />
+                                    )}
                                     <section className="grid gap-4 sm:grid-cols-2">
                                         <Field
                                             label="Full name"
@@ -1888,6 +2152,294 @@ function EmailConfirmation({
                     </div>
                     <InputError message={error} className="mt-2" />
                 </div>
+            </div>
+        </section>
+    );
+}
+
+/**
+ * Sign up or log in without leaving the wizard. Fortify redirects back to
+ * this page and `preserveState` keeps the gift, choices and photos intact.
+ */
+function GuestAccount({
+    passwordRules,
+    defaultName,
+    defaultEmail,
+    onRegistered,
+    onLoggedIn,
+}: {
+    passwordRules: string | null;
+    defaultName: string;
+    defaultEmail: string;
+    onRegistered: () => void;
+    onLoggedIn: () => void;
+}) {
+    const [mode, setMode] = useState<'register' | 'login'>('register');
+    const form = useForm({
+        name: defaultName,
+        email: defaultEmail,
+        password: '',
+        password_confirmation: '',
+        remember: true,
+    });
+    const isRegistering = mode === 'register';
+
+    const submitAccount = () => {
+        form.transform(
+            ({ name, email, password, password_confirmation, remember }) =>
+                isRegistering
+                    ? { name, email, password, password_confirmation }
+                    : { email, password, remember },
+        );
+
+        form.post(isRegistering ? registerAccount.url() : logIn.url(), {
+            preserveState: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                form.reset('password', 'password_confirmation');
+
+                if (isRegistering) {
+                    onRegistered();
+                } else {
+                    onLoggedIn();
+                }
+            },
+        });
+    };
+
+    return (
+        <section
+            id="checkout-account"
+            className="scroll-mt-24 rounded-3xl border-2 border-rose/40 bg-blush-light/50 p-5 dark:bg-rose/10"
+        >
+            <div className="flex items-start gap-3">
+                <Heart className="mt-1 size-5 shrink-0 text-rose" />
+                <div className="min-w-0 flex-1">
+                    <p className="font-display text-lg leading-tight">
+                        {isRegistering
+                            ? 'Create your free account to place your order'
+                            : 'Welcome back! Log in to place your order'}
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        Everything you've made stays right here. Your account
+                        lets you track your gift and approve your design.
+                    </p>
+                </div>
+            </div>
+
+            <div
+                role="tablist"
+                aria-label="Account"
+                className="mt-4 grid grid-cols-2 gap-1 rounded-full bg-background/80 p-1 text-sm font-medium"
+            >
+                {(
+                    [
+                        ['register', 'New here'],
+                        ['login', 'I have an account'],
+                    ] as const
+                ).map(([value, label]) => (
+                    <button
+                        key={value}
+                        type="button"
+                        role="tab"
+                        aria-selected={mode === value}
+                        onClick={() => {
+                            setMode(value);
+                            form.clearErrors();
+                        }}
+                        className={cn(
+                            'rounded-full px-3 py-2 transition',
+                            mode === value
+                                ? 'bg-plum text-white shadow-sm dark:bg-blush dark:text-plum-dark'
+                                : 'text-muted-foreground hover:text-foreground',
+                        )}
+                    >
+                        {label}
+                    </button>
+                ))}
+            </div>
+
+            <form
+                onSubmit={(event) => {
+                    event.preventDefault();
+                    submitAccount();
+                }}
+                className="mt-4 grid gap-4 sm:grid-cols-2"
+            >
+                {isRegistering && (
+                    <Field
+                        label="Full name"
+                        error={form.errors.name}
+                        required
+                        className="sm:col-span-2"
+                    >
+                        <Input
+                            value={form.data.name}
+                            onChange={(event) =>
+                                form.setData('name', event.target.value)
+                            }
+                            autoComplete="name"
+                            required
+                        />
+                    </Field>
+                )}
+                <Field
+                    label="Email address"
+                    error={form.errors.email}
+                    required
+                    className="sm:col-span-2"
+                >
+                    <Input
+                        type="email"
+                        value={form.data.email}
+                        onChange={(event) =>
+                            form.setData('email', event.target.value)
+                        }
+                        autoComplete="email"
+                        required
+                    />
+                </Field>
+                <Field
+                    label="Password"
+                    error={form.errors.password}
+                    required
+                    className={isRegistering ? undefined : 'sm:col-span-2'}
+                >
+                    <PasswordInput
+                        value={form.data.password}
+                        onChange={(event) =>
+                            form.setData('password', event.target.value)
+                        }
+                        autoComplete={
+                            isRegistering ? 'new-password' : 'current-password'
+                        }
+                        passwordrules={
+                            isRegistering
+                                ? (passwordRules ?? undefined)
+                                : undefined
+                        }
+                        required
+                    />
+                </Field>
+                {isRegistering && (
+                    <Field
+                        label="Confirm password"
+                        error={form.errors.password_confirmation}
+                        required
+                    >
+                        <PasswordInput
+                            value={form.data.password_confirmation}
+                            onChange={(event) =>
+                                form.setData(
+                                    'password_confirmation',
+                                    event.target.value,
+                                )
+                            }
+                            autoComplete="new-password"
+                            required
+                        />
+                    </Field>
+                )}
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-3 sm:col-span-2">
+                    <Button
+                        type="submit"
+                        disabled={form.processing}
+                        className="rounded-full"
+                    >
+                        {form.processing && (
+                            <Loader2 className="size-4 animate-spin" />
+                        )}
+                        {isRegistering ? 'Create account' : 'Log in'}
+                    </Button>
+                    {isRegistering ? (
+                        <p className="text-xs text-muted-foreground">
+                            By creating an account you agree to our{' '}
+                            <a
+                                href={terms.url()}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="underline underline-offset-2"
+                            >
+                                Terms
+                            </a>{' '}
+                            and{' '}
+                            <a
+                                href={privacy.url()}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="underline underline-offset-2"
+                            >
+                                Privacy Policy
+                            </a>
+                            .
+                        </p>
+                    ) : (
+                        <a
+                            href={requestPasswordReset.url()}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs text-muted-foreground underline underline-offset-2"
+                        >
+                            Forgot password?
+                        </a>
+                    )}
+                </div>
+            </form>
+        </section>
+    );
+}
+
+function DraftNotice({
+    title,
+    description,
+    action,
+    onAction,
+    onDismiss,
+    dismissLabel,
+    isSubtle = false,
+}: {
+    title: string;
+    description: string;
+    action: string;
+    onAction: () => void;
+    onDismiss: () => void;
+    dismissLabel: string;
+    isSubtle?: boolean;
+}) {
+    return (
+        <section
+            role="status"
+            className={cn(
+                'mb-6 flex flex-col gap-4 rounded-3xl p-5 sm:flex-row sm:items-center',
+                isSubtle
+                    ? 'border border-border bg-card'
+                    : 'border-2 border-rose/40 bg-blush-light/50 dark:bg-rose/10',
+            )}
+        >
+            <History className="size-5 shrink-0 text-rose" aria-hidden />
+            <div className="min-w-0 flex-1">
+                <p className="font-display text-lg leading-tight">{title}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    {description}
+                </p>
+            </div>
+            <div className="flex shrink-0 gap-2">
+                <Button
+                    type="button"
+                    variant="ghost"
+                    className="rounded-full"
+                    onClick={onDismiss}
+                >
+                    {dismissLabel}
+                </Button>
+                <Button
+                    type="button"
+                    variant={isSubtle ? 'outline' : 'default'}
+                    className="rounded-full"
+                    onClick={onAction}
+                >
+                    {action}
+                </Button>
             </div>
         </section>
     );

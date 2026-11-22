@@ -17,6 +17,7 @@ use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Template;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -48,6 +49,16 @@ class OrderWizardController extends Controller
 
         $user = $request->user();
 
+        if ($user === null && $product !== null) {
+            /*
+             * Once a guest is crafting a gift, logging in or signing up from
+             * anywhere (the checkout panel, the header, two-factor) brings
+             * them back here, where the browser draft restores their gift.
+             * Guests who only looked around keep the normal dashboard redirect.
+             */
+            redirect()->setIntendedUrl($request->fullUrl());
+        }
+
         return Inertia::render('storefront/create', [
             'categories' => CategoryResource::collection(Category::active()->get()),
             'selectedCategory' => $category ? new CategoryResource($category) : null,
@@ -64,7 +75,7 @@ class OrderWizardController extends Controller
                 'free_delivery_threshold' => (int) config('taptale.free_delivery_threshold'),
                 'max_upload_kilobytes' => (int) config('taptale.max_upload_kilobytes'),
             ],
-            'customer' => [
+            'customer' => $user === null ? null : [
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $user->phone,
@@ -73,6 +84,7 @@ class OrderWizardController extends Controller
                 'province' => $user->province,
                 'postal_code' => $user->postal_code,
             ],
+            'passwordRules' => $user === null ? Password::defaults()->toPasswordRulesString() : null,
         ]);
     }
 

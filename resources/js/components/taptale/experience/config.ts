@@ -130,6 +130,20 @@ export const EXPERIENCE_THEMES: Record<string, ExperienceTheme> = {
         paperInk: '#2F3B2A',
         dark: false,
     },
+    moonlit: {
+        label: 'Moonlit garden',
+        base: '#0E1A24',
+        background:
+            'radial-gradient(120% 70% at 50% 0%, #1E3346 0%, #0E1A24 55%, #0A1219 100%)',
+        surface: 'rgb(255 255 255 / 0.05)',
+        ink: '#F6F1EC',
+        muted: 'rgb(246 241 236 / 0.7)',
+        accent: '#FFB8CB',
+        accentInk: '#0E1A24',
+        paper: '#FFFBF7',
+        paperInk: '#2B2A33',
+        dark: true,
+    },
 };
 
 export function themeFor(key: string): ExperienceTheme {
@@ -157,12 +171,16 @@ export function themeStyle(theme: ExperienceTheme): CSSProperties {
     } as CSSProperties;
 }
 
+export type GardenVariant =
+    'teal' | 'pink' | 'lavender' | 'golden' | 'red' | 'white';
+
 export type GateKind = 'envelope' | 'question' | 'tap' | null;
 
 export type SectionKey =
     | 'hero_photo'
     | 'hero_script'
     | 'hero_doily'
+    | 'bouquet'
     | 'note'
     | 'letter_card'
     | 'letter_paper'
@@ -183,6 +201,8 @@ export type SectionKey =
 export type ExperiencePreset = {
     gate: GateKind;
     sections: SectionKey[];
+    /** Flower colors for the night garden section. */
+    garden?: GardenVariant;
     labels?: Partial<{
         gate: string;
         gateHint: string;
@@ -198,6 +218,26 @@ export type ExperiencePreset = {
         closing: string;
     }>;
 };
+
+function gardenPreset(garden: GardenVariant): ExperiencePreset {
+    return {
+        gate: 'tap',
+        garden,
+        sections: [
+            'garden',
+            'letter_paper',
+            'gallery',
+            'song',
+            'quote',
+            'closing',
+        ],
+        labels: {
+            gate: 'Someone sent you flowers',
+            gallery: 'Every flower is a memory of us',
+            closing: 'Flowers that never wilt, just like my love',
+        },
+    };
+}
 
 export const EXPERIENCE_PRESETS: Record<
     ExperienceTemplateKey,
@@ -248,6 +288,28 @@ export const EXPERIENCE_PRESETS: Record<
             gifts: 'Open your gifts',
         },
     },
+    digital_bouquet: {
+        gate: 'tap',
+        sections: [
+            'bouquet',
+            'letter_paper',
+            'gallery',
+            'song',
+            'quote',
+            'closing',
+        ],
+        labels: {
+            gate: 'Someone sent you flowers',
+            gallery: 'Every flower is a memory of us',
+            closing: 'Flowers that never wilt, just like my love',
+        },
+    },
+    night_garden: gardenPreset('teal'),
+    pink_garden: gardenPreset('pink'),
+    lavender_garden: gardenPreset('lavender'),
+    golden_garden: gardenPreset('golden'),
+    red_garden: gardenPreset('red'),
+    moonlight_garden: gardenPreset('white'),
     girlfriends_day: {
         gate: 'envelope',
         sections: [

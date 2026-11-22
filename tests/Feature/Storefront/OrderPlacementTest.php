@@ -60,9 +60,50 @@ function orderPayload(object $test, array $overrides = []): array
     ], $overrides);
 }
 
-test('guests must sign in before personalizing a gift', function () {
-    $this->get(route('orders.create'))->assertRedirect(route('login'));
-    $this->post(route('orders.store'), [])->assertRedirect(route('login'));
+test('guests can craft a gift but must have an account to place the order', function () {
+    $this->get(route('orders.create', ['product' => $this->product->slug]))
+        ->assertInertia(fn ($page) => $page
+            ->component('storefront/create')
+            ->where('selectedProduct.id', $this->product->id)
+            ->where('customer', null)
+            ->whereType('passwordRules', 'string'));
+
+    $this->post(route('orders.store'), orderPayload($this))->assertRedirect(route('login'));
+
+    expect(Order::count())->toBe(0);
+});
+
+test('signing up from the wizard brings the guest back to their gift', function () {
+    $wizardUrl = route('orders.create', ['product' => $this->product->slug]);
+    $this->get($wizardUrl)->assertOk();
+
+    $this->post(route('register.store'), [
+        'name' => 'Ana Cruz',
+        'email' => 'ana@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ])->assertRedirect($wizardUrl);
+
+    $this->assertAuthenticated();
+});
+
+test('a guest who only browsed the wizard is sent to the dashboard after logging in', function () {
+    $this->get(route('orders.create'))->assertOk();
+
+    $this->post(route('login.store'), [
+        'email' => $this->customer->email,
+        'password' => 'password',
+    ])->assertRedirect(route('dashboard'));
+});
+
+test('logging in from the wizard brings the customer back to their gift', function () {
+    $wizardUrl = route('orders.create', ['product' => $this->product->slug]);
+    $this->get($wizardUrl)->assertOk();
+
+    $this->post(route('login.store'), [
+        'email' => $this->customer->email,
+        'password' => 'password',
+    ])->assertRedirect($wizardUrl);
 });
 
 test('the wizard starts with every gift and an occasion only narrows the list', function () {

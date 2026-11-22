@@ -200,6 +200,13 @@ export type ExperienceTemplateKey =
     | 'birthday'
     | 'love_story'
     | 'little_something'
+    | 'digital_bouquet'
+    | 'night_garden'
+    | 'pink_garden'
+    | 'lavender_garden'
+    | 'golden_garden'
+    | 'red_garden'
+    | 'moonlight_garden'
     | 'girlfriends_day'
     | 'valentines'
     | 'apology'
@@ -333,10 +340,7 @@ export type Testimonial = {
 };
 
 export type FinanceEntryTypeValue =
-    | 'capital'
-    | 'expense'
-    | 'withdrawal'
-    | 'income';
+    'capital' | 'expense' | 'withdrawal' | 'income';
 
 export type FinanceEntry = {
     id: number;

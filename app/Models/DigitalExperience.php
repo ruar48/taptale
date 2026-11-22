@@ -66,7 +66,7 @@ class DigitalExperience extends Model
      *
      * @var list<string>
      */
-    public const THEMES = ['crimson', 'rose', 'blush', 'plum', 'midnight', 'cream', 'sunset', 'sage'];
+    public const THEMES = ['crimson', 'rose', 'blush', 'plum', 'midnight', 'cream', 'sunset', 'sage', 'moonlit'];
 
     /**
      * Default attribute values, mirroring the database defaults.

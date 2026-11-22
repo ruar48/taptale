@@ -45,11 +45,13 @@ Route::get('t/{experience}/photos/{index}', [Storefront\ExperienceController::cl
     ->name('experiences.photo');
 
 /*
-| Customers can browse and personalize right after registering. Their email
-| is only confirmed at checkout (see StoreOrderRequest).
+| Anyone can craft a gift. Guests create an account (or log in) at the
+| checkout step without leaving the wizard, and the email is confirmed
+| before the order is placed (see StoreOrderRequest).
 */
+Route::get('create', [Storefront\OrderWizardController::class, 'create'])->name('orders.create');
+
 Route::middleware('auth')->group(function () {
-    Route::get('create', [Storefront\OrderWizardController::class, 'create'])->name('orders.create');
     Route::post('orders', [Storefront\OrderWizardController::class, 'store'])
         ->middleware('throttle:10,1')
         ->name('orders.store');

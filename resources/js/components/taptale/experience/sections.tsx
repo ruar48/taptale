@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import { BloomingBouquet } from '@/components/taptale/experience/blooming-bouquet';
 import {
     embedFor,
     parseEventDate,
@@ -53,6 +54,8 @@ export function ExperienceSection({ section }: { section: SectionKey }) {
             return <HeroScript />;
         case 'hero_doily':
             return <HeroDoily />;
+        case 'bouquet':
+            return <BloomingBouquet />;
         case 'note':
             return <Note />;
         case 'letter_card':
@@ -86,6 +89,12 @@ export function ExperienceSection({ section }: { section: SectionKey }) {
         case 'closing':
             return <Closing />;
     }
+}
+
+function GardenSection() {
+    const { preset } = useExperience();
+
+    return <NightGarden variant={preset.garden ?? 'teal'} />;
 }
 
 function ScrollHint() {

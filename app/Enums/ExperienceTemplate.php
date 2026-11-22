@@ -13,6 +13,7 @@ enum ExperienceTemplate: string
     case Birthday = 'birthday';
     case LoveStory = 'love_story';
     case LittleSomething = 'little_something';
+    case DigitalBouquet = 'digital_bouquet';
     case GirlfriendsDay = 'girlfriends_day';
     case Valentines = 'valentines';
     case Apology = 'apology';
@@ -35,6 +36,7 @@ enum ExperienceTemplate: string
             self::Birthday => 'Happy Birthday Love',
             self::LoveStory => 'How We Happened',
             self::LittleSomething => 'A Little Something For You',
+            self::DigitalBouquet => 'A Bouquet For You',
             self::GirlfriendsDay => "Happy Girlfriend's Day",
             self::Valentines => 'Be My Valentine',
             self::Apology => "I'm Sorry",
@@ -59,6 +61,7 @@ enum ExperienceTemplate: string
             self::Birthday => 'A cinematic photo greeting, a sweet note, your photo album and a birthday song.',
             self::LoveStory => '"To my langga" note and a timeline of how you happened, with photos and dates.',
             self::LittleSomething => 'Tap to open: flowers, a love letter and a song — each revealed one by one.',
+            self::DigitalBouquet => 'A bouquet that blooms on their screen — stems grow, petals open and fireflies glow around your note. Flowers that never wilt.',
             self::GirlfriendsDay => 'A lace doily greeting on gingham, a letter and a scrapbook of your moments.',
             self::Valentines => '"Would you like to see your gift?" — the No button runs away. Then hearts, letter and song.',
             self::Apology => 'A gentle question gate, a heartfelt apology letter and the memories worth fixing it for.',
@@ -85,6 +88,7 @@ enum ExperienceTemplate: string
             self::LittleSomething, self::Apology => 'rose',
             self::Wedding, self::SaveTheDate, self::Family, self::Classic => 'cream',
             self::Graduation => 'plum',
+            self::DigitalBouquet => 'moonlit',
         };
     }
 

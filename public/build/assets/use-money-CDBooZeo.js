@@ -1,1 +1,0 @@
-import{c as e,g as t}from"./wayfinder-DeVRZRpn.js";import{p as n}from"./app-CDhtDZjq.js";var r=e();function i(){let e=(0,r.c)(2),i=t().props.storefront?.currencySymbol??`₱`,a;return e[0]===i?a=e[1]:(a=e=>n(e,i),e[0]=i,e[1]=a),a}export{i as t};

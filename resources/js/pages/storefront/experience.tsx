@@ -153,6 +153,7 @@ export default function Experience({
                 addPhotos,
                 replacePhoto,
                 saveText,
+                opened,
             }}
         >
             <AudioProvider src={experience.audio_url}>
