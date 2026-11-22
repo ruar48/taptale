@@ -1,18 +1,18 @@
-import { Music, Pause, Play } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { MouseEvent } from "react";
-import { embedFor, youTubeIdFor } from "@/components/taptale/experience/config";
+import { Music, Pause, Play } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { MouseEvent } from 'react';
+import { embedFor, youTubeIdFor } from '@/components/taptale/experience/config';
 import {
     EditableText,
     useExperience,
     useExperienceAudio,
-} from "@/components/taptale/experience/shared";
-import { useYouTubePlayer } from "@/components/taptale/experience/youtube-player";
-import { cn } from "@/lib/utils";
-import { lookup } from "@/routes/songs";
-import type { SongDetails } from "@/types";
+} from '@/components/taptale/experience/shared';
+import { useYouTubePlayer } from '@/components/taptale/experience/youtube-player';
+import { cn } from '@/lib/utils';
+import { lookup } from '@/routes/songs';
+import type { SongDetails } from '@/types';
 
-type LyricLine = SongDetails["synced_lyrics"][number];
+type LyricLine = SongDetails['synced_lyrics'][number];
 
 type Clock = { current: number; duration: number };
 
@@ -45,7 +45,7 @@ function useSongDetails(
                 query: { title, ...(artist ? { artist } : {}) },
             }),
             {
-                headers: { Accept: "application/json" },
+                headers: { Accept: 'application/json' },
                 signal: controller.signal,
             },
         )
@@ -123,13 +123,13 @@ function waveformFor(seed: string): number[] {
 
 function formatTime(seconds: number): string {
     if (!Number.isFinite(seconds) || seconds <= 0) {
-        return "0:00";
+        return '0:00';
     }
 
     const minutes = Math.floor(seconds / 60);
     const rest = Math.floor(seconds % 60);
 
-    return `${minutes}:${rest.toString().padStart(2, "0")}`;
+    return `${minutes}:${rest.toString().padStart(2, '0')}`;
 }
 
 function Vinyl({
@@ -145,12 +145,12 @@ function Vinyl({
         <div className="relative pr-[16%]">
             <div
                 className={cn(
-                    "relative aspect-square w-full rounded-full shadow-[0_30px_60px_-20px_rgb(0_0_0/0.8)] ring-1 ring-white/5",
-                    spinning && "animate-[spin_5s_linear_infinite]",
+                    'relative aspect-square w-full rounded-full shadow-[0_30px_60px_-20px_rgb(0_0_0/0.8)] ring-1 ring-white/5',
+                    spinning && 'animate-[spin_5s_linear_infinite]',
                 )}
                 style={{
                     background:
-                        "repeating-radial-gradient(circle, #121212 0 1.5px, #1c1c1c 1.5px 3px)",
+                        'repeating-radial-gradient(circle, #121212 0 1.5px, #1c1c1c 1.5px 3px)',
                 }}
             >
                 <div className="absolute inset-[31%] overflow-hidden rounded-full bg-[var(--x-accent)] text-[var(--x-accent-ink)] ring-4 ring-black/40">
@@ -163,7 +163,7 @@ function Vinyl({
                         />
                     ) : (
                         <span className="absolute inset-x-3 top-[20%] line-clamp-2 text-center text-[10px] font-semibold tracking-wide uppercase">
-                            {label ?? "Our song"}
+                            {label ?? 'Our song'}
                         </span>
                     )}
                 </div>
@@ -176,8 +176,8 @@ function Vinyl({
                 viewBox="0 0 60 240"
                 aria-hidden
                 className={cn(
-                    "absolute top-[-4%] right-0 w-[22%] origin-[50%_12%] drop-shadow-[0_8px_10px_rgb(0_0_0/0.45)] transition-transform duration-1000 ease-out",
-                    spinning ? "rotate-[24deg]" : "rotate-[4deg]",
+                    'absolute top-[-4%] right-0 w-[22%] origin-[50%_12%] drop-shadow-[0_8px_10px_rgb(0_0_0/0.45)] transition-transform duration-1000 ease-out',
+                    spinning ? 'rotate-[24deg]' : 'rotate-[4deg]',
                 )}
             >
                 <defs>
@@ -235,15 +235,15 @@ function Waveform({
 
     return (
         <div
-            role={onSeek ? "slider" : undefined}
+            role={onSeek ? 'slider' : undefined}
             aria-label="Song progress"
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={Math.round(progress * 100)}
             onClick={handleClick}
             className={cn(
-                "flex h-16 items-center gap-[2px] sm:h-20",
-                onSeek && "cursor-pointer",
+                'flex h-16 items-center gap-[2px] sm:h-20',
+                onSeek && 'cursor-pointer',
             )}
         >
             {bars.map((height, index) => {
@@ -256,11 +256,11 @@ function Waveform({
                     >
                         <span
                             className={cn(
-                                "w-full rounded-full transition-colors duration-300",
+                                'w-full rounded-full transition-colors duration-300',
                                 played
-                                    ? "bg-[var(--x-accent)]"
-                                    : "bg-[var(--x-ink)] opacity-25",
-                                playing && "animate-soundwave",
+                                    ? 'bg-[var(--x-accent)]'
+                                    : 'bg-[var(--x-ink)] opacity-25',
+                                playing && 'animate-soundwave',
                             )}
                             style={{
                                 height: `${height * 100}%`,
@@ -326,7 +326,7 @@ function Lyrics({
         const next = synced[activeIndex + 1]?.time ?? start + 4;
         const singing = Math.max(0.6, Math.min(next - start, 6) * 0.9);
 
-        text = synced[activeIndex].text || "♪ ♪ ♪";
+        text = synced[activeIndex].text || '♪ ♪ ♪';
         fill = Math.round(
             Math.min(1, Math.max(0, (current - start) / singing)) * 100,
         );
@@ -338,18 +338,18 @@ function Lyrics({
         <div
             aria-live="off"
             className={cn(
-                "pointer-events-none flex items-center select-none max-md:justify-center",
-                compact ? "min-h-24" : "min-h-32 sm:min-h-40",
+                'pointer-events-none flex items-center select-none',
+                compact ? 'min-h-24 justify-center' : 'min-h-24 sm:min-h-40',
             )}
         >
             <p
                 key={activeIndex}
                 className={cn(
-                    "animate-fade-up font-display leading-tight font-semibold text-balance max-md:text-center",
+                    'animate-fade-up font-display leading-tight font-semibold text-balance',
                     compact
-                        ? "text-2xl"
-                        : "text-3xl sm:text-4xl lg:text-[2.6rem]",
-                    !active && "opacity-50",
+                        ? 'text-center text-2xl'
+                        : 'text-xl sm:text-3xl md:text-4xl lg:text-[2.6rem]',
+                    !active && 'opacity-50',
                 )}
             >
                 {/*
@@ -361,11 +361,11 @@ function Lyrics({
                         active
                             ? {
                                   backgroundImage: `linear-gradient(90deg, var(--x-accent) ${fill}%, color-mix(in srgb, var(--x-ink) 45%, transparent) ${fill}%)`,
-                                  WebkitBackgroundClip: "text",
-                                  backgroundClip: "text",
-                                  WebkitBoxDecorationBreak: "slice",
-                                  boxDecorationBreak: "slice",
-                                  color: "transparent",
+                                  WebkitBackgroundClip: 'text',
+                                  backgroundClip: 'text',
+                                  WebkitBoxDecorationBreak: 'slice',
+                                  boxDecorationBreak: 'slice',
+                                  color: 'transparent',
                               }
                             : undefined
                     }
@@ -401,36 +401,36 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
         ? null
         : youTubeIdFor(experience.music_url);
     const youTube = useYouTubePlayer(youTubeId);
-    const source: "upload" | "youtube" | "preview" | "none" =
+    const source: 'upload' | 'youtube' | 'preview' | 'none' =
         pageAudio.available
-            ? "upload"
+            ? 'upload'
             : youTubeId
-              ? "youtube"
+              ? 'youtube'
               : details?.preview_url
-                ? "preview"
-                : "none";
-    const embed = source === "youtube" ? null : embedFor(experience.music_url);
+                ? 'preview'
+                : 'none';
+    const embed = source === 'youtube' ? null : embedFor(experience.music_url);
 
     const playing =
-        source === "upload"
+        source === 'upload'
             ? pageAudio.playing
-            : source === "youtube"
+            : source === 'youtube'
               ? youTube.playing
               : previewPlaying;
     const canPlay =
-        source === "upload" ||
-        source === "preview" ||
-        (source === "youtube" && youTube.ready);
-    const fullSong = source === "upload" || source === "youtube";
+        source === 'upload' ||
+        source === 'preview' ||
+        (source === 'youtube' && youTube.ready);
+    const fullSong = source === 'upload' || source === 'youtube';
 
     const pageElement = pageAudio.getElement;
     const youTubeClock = youTube.readClock;
     const readClock = useCallback(
         () =>
-            source === "youtube"
+            source === 'youtube'
                 ? youTubeClock()
                 : clockFrom(
-                      source === "upload" ? pageElement() : previewRef.current,
+                      source === 'upload' ? pageElement() : previewRef.current,
                   ),
         [source, pageElement, youTubeClock],
     );
@@ -443,19 +443,19 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
     const bars = useMemo(
         () =>
             waveformFor(
-                `${experience.song_title ?? ""}${experience.song_artist ?? ""}`,
+                `${experience.song_title ?? ''}${experience.song_artist ?? ''}`,
             ),
         [experience.song_title, experience.song_artist],
     );
 
     const toggle = () => {
-        if (source === "upload") {
+        if (source === 'upload') {
             pageAudio.toggle();
 
             return;
         }
 
-        if (source === "youtube") {
+        if (source === 'youtube') {
             youTube.toggle();
 
             return;
@@ -479,14 +479,14 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
     };
 
     const seek = (fraction: number) => {
-        if (source === "youtube") {
+        if (source === 'youtube') {
             youTube.seek(fraction * duration);
 
             return;
         }
 
         const element =
-            source === "upload" ? pageElement() : previewRef.current;
+            source === 'upload' ? pageElement() : previewRef.current;
 
         if (element && Number.isFinite(element.duration)) {
             element.currentTime = fraction * element.duration;
@@ -496,15 +496,24 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
     const hasLyrics =
         (details?.synced_lyrics.length ?? 0) > 0 ||
         (details?.plain_lyrics.length ?? 0) > 0;
+    const showsLyricsColumn = (loading && !details) || (!!details && hasLyrics);
 
+    /*
+     * On phones the full-size layout keeps its look: the record sits beside
+     * the lyrics like on desktop, with the controls and video below it. The
+     * two column wrappers become `contents` there so their children can be
+     * placed on one shared grid; from `md` up they are regular columns.
+     */
     return (
         <div
             className={cn(
-                "grid items-center gap-10",
-                !compact && "md:grid-cols-[0.85fr_1.15fr] md:gap-14",
+                'grid items-center',
+                compact
+                    ? 'gap-10'
+                    : 'grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] gap-x-4 gap-y-6 sm:gap-x-8 md:grid-cols-[0.85fr_1.15fr] md:gap-14',
             )}
         >
-            {source === "preview" && details?.preview_url && (
+            {source === 'preview' && details?.preview_url && (
                 <audio
                     ref={previewRef}
                     src={details.preview_url}
@@ -515,17 +524,33 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
 
             <div
                 className={cn(
-                    "mx-auto w-full",
-                    compact ? "max-w-[14rem]" : "max-w-[20rem] sm:max-w-sm",
+                    compact
+                        ? 'mx-auto w-full max-w-[14rem]'
+                        : 'contents md:mx-auto md:block md:w-full md:max-w-sm',
                 )}
             >
-                <Vinyl
-                    spinning={playing}
-                    label={experience.song_title}
-                    artwork={details?.artwork_url ?? null}
-                />
+                <div
+                    className={cn(
+                        !compact &&
+                            (showsLyricsColumn
+                                ? 'max-md:col-start-1 max-md:row-start-1'
+                                : 'max-md:col-span-2 max-md:row-start-1 max-md:mx-auto max-md:w-full max-md:max-w-[16rem]'),
+                    )}
+                >
+                    <Vinyl
+                        spinning={playing}
+                        label={experience.song_title}
+                        artwork={details?.artwork_url ?? null}
+                    />
+                </div>
 
-                <div className="mt-8">
+                <div
+                    className={cn(
+                        compact
+                            ? 'mt-8'
+                            : 'max-md:col-span-2 max-md:row-start-2 md:mt-8',
+                    )}
+                >
                     <Waveform
                         bars={bars}
                         progress={progress}
@@ -535,154 +560,178 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                     <div className="mt-1 flex justify-between text-xs tabular-nums opacity-60">
                         <span>{formatTime(clock.current)}</span>
                         <span>
-                            {source === "preview" && "Preview · "}
+                            {source === 'preview' && 'Preview · '}
                             {formatTime(duration)}
                         </span>
                     </div>
-                </div>
-                <div className="mt-6 flex items-center gap-4">
-                    {canPlay && (
-                        <button
-                            type="button"
-                            onClick={toggle}
-                            className="relative flex size-14 shrink-0 items-center justify-center rounded-full bg-[var(--x-accent)] text-[var(--x-accent-ink)] shadow-lg transition hover:scale-105"
-                            aria-label={
-                                playing ? "Pause our song" : "Play our song"
-                            }
-                        >
-                            {playing ? (
-                                <Pause className="size-6" fill="currentColor" />
-                            ) : (
-                                <Play
-                                    className="ml-0.5 size-6"
-                                    fill="currentColor"
-                                />
-                            )}
-                            {playing && (
-                                <span className="absolute inset-0 animate-ping rounded-full bg-[var(--x-accent)] opacity-25" />
-                            )}
-                        </button>
-                    )}
-                    <div className="min-w-0 text-left">
-                        <EditableText
-                            block
-                            field="song_title"
-                            value={experience.song_title}
-                            placeholder="Add the song title"
-                            label="Song title"
-                            className="truncate font-display text-2xl sm:text-3xl"
-                        >
-                            {experience.song_title}
-                        </EditableText>
-                        <EditableText
-                            block
-                            field="song_artist"
-                            value={experience.song_artist}
-                            placeholder="Add the artist"
-                            label="Artist"
-                            className="truncate opacity-70"
-                        >
-                            {experience.song_artist}
-                        </EditableText>
+                    <div className="mt-6 flex items-center gap-4">
+                        {canPlay && (
+                            <button
+                                type="button"
+                                onClick={toggle}
+                                className="relative flex size-14 shrink-0 items-center justify-center rounded-full bg-[var(--x-accent)] text-[var(--x-accent-ink)] shadow-lg transition hover:scale-105"
+                                aria-label={
+                                    playing ? 'Pause our song' : 'Play our song'
+                                }
+                            >
+                                {playing ? (
+                                    <Pause
+                                        className="size-6"
+                                        fill="currentColor"
+                                    />
+                                ) : (
+                                    <Play
+                                        className="ml-0.5 size-6"
+                                        fill="currentColor"
+                                    />
+                                )}
+                                {playing && (
+                                    <span className="absolute inset-0 animate-ping rounded-full bg-[var(--x-accent)] opacity-25" />
+                                )}
+                            </button>
+                        )}
+                        <div className="min-w-0 text-left">
+                            <EditableText
+                                block
+                                field="song_title"
+                                value={experience.song_title}
+                                placeholder="Add the song title"
+                                label="Song title"
+                                className="truncate font-display text-2xl sm:text-3xl"
+                            >
+                                {experience.song_title}
+                            </EditableText>
+                            <EditableText
+                                block
+                                field="song_artist"
+                                value={experience.song_artist}
+                                placeholder="Add the artist"
+                                label="Artist"
+                                className="truncate opacity-70"
+                            >
+                                {experience.song_artist}
+                            </EditableText>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="min-w-0">
-                {loading && !details && (
-                    <div className="mt-6 space-y-3">
-                        {[70, 50, 80, 40].map((width) => (
-                            <div
-                                key={width}
-                                className="h-5 animate-pulse rounded-full bg-[var(--x-ink)] opacity-10"
-                                style={{ width: `${width}%` }}
-                            />
-                        ))}
-                    </div>
+            <div
+                className={cn(
+                    compact ? 'min-w-0' : 'contents md:block md:min-w-0',
                 )}
-
-                {details && hasLyrics && (
-                    <div>
-                        <Lyrics
-                            synced={details.synced_lyrics}
-                            plain={details.plain_lyrics}
-                            current={clock.current}
-                            isSynced={
-                                fullSong && details.synced_lyrics.length > 0
-                            }
-                            compact={compact}
-                        />
-                    </div>
-                )}
-
-                {youTubeId && (
-                    <div className="mt-6 overflow-hidden rounded-2xl bg-black/20 shadow-xl">
-                        {/* YouTube's terms require its player to stay visible (min 200px). */}
-                        <div
-                            ref={youTube.containerRef}
-                            className="aspect-video min-h-[200px] w-full"
-                        />
-                    </div>
-                )}
-
-                {embed && (
+            >
+                {showsLyricsColumn && (
                     <div
                         className={cn(
-                            "mt-6 overflow-hidden rounded-2xl shadow-xl",
-                            embed.kind === "video"
-                                ? "aspect-video"
-                                : "h-[152px]",
+                            'min-w-0',
+                            !compact && 'max-md:col-start-2 max-md:row-start-1',
                         )}
                     >
-                        <iframe
-                            src={embed.src}
-                            title="Our song"
-                            className="size-full"
-                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                            loading="lazy"
-                        />
+                        {loading && !details && (
+                            <div className="space-y-3 md:mt-6">
+                                {[70, 50, 80, 40].map((width) => (
+                                    <div
+                                        key={width}
+                                        className="h-5 animate-pulse rounded-full bg-[var(--x-ink)] opacity-10"
+                                        style={{ width: `${width}%` }}
+                                    />
+                                ))}
+                            </div>
+                        )}
+
+                        {details && hasLyrics && (
+                            <div>
+                                <Lyrics
+                                    synced={details.synced_lyrics}
+                                    plain={details.plain_lyrics}
+                                    current={clock.current}
+                                    isSynced={
+                                        fullSong &&
+                                        details.synced_lyrics.length > 0
+                                    }
+                                    compact={compact}
+                                />
+                            </div>
+                        )}
                     </div>
                 )}
 
-                {!embed && experience.music_url && (
-                    <a
-                        href={experience.music_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-5 inline-flex items-center gap-2 underline underline-offset-4"
-                    >
-                        <Music className="size-4" /> Listen to our song
-                    </a>
-                )}
+                <div
+                    className={cn(
+                        'min-w-0',
+                        !compact && 'max-md:col-span-2 max-md:row-start-3',
+                    )}
+                >
+                    {youTubeId && (
+                        <div className="mt-6 overflow-hidden rounded-2xl bg-black/20 shadow-xl">
+                            {/* YouTube's terms require its player to stay visible (min 200px). */}
+                            <div
+                                ref={youTube.containerRef}
+                                className="aspect-video min-h-[200px] w-full"
+                            />
+                        </div>
+                    )}
 
-                {details && (hasLyrics || details.preview_url) && (
-                    <p className="mt-4 text-[11px] opacity-45">
-                        {hasLyrics && (
-                            <>
-                                Lyrics via{" "}
+                    {embed && (
+                        <div
+                            className={cn(
+                                'mt-6 overflow-hidden rounded-2xl shadow-xl',
+                                embed.kind === 'video'
+                                    ? 'aspect-video'
+                                    : 'h-[152px]',
+                            )}
+                        >
+                            <iframe
+                                src={embed.src}
+                                title="Our song"
+                                className="size-full"
+                                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                                loading="lazy"
+                            />
+                        </div>
+                    )}
+
+                    {!embed && experience.music_url && (
+                        <a
+                            href={experience.music_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-5 inline-flex items-center gap-2 underline underline-offset-4"
+                        >
+                            <Music className="size-4" /> Listen to our song
+                        </a>
+                    )}
+
+                    {details && (hasLyrics || details.preview_url) && (
+                        <p className="mt-4 text-[11px] opacity-45">
+                            {hasLyrics && (
+                                <>
+                                    Lyrics via{' '}
+                                    <a
+                                        href="https://lrclib.net"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="underline"
+                                    >
+                                        LRCLIB
+                                    </a>
+                                </>
+                            )}
+                            {hasLyrics && details.track_url && ' · '}
+                            {details.track_url && (
                                 <a
-                                    href="https://lrclib.net"
+                                    href={details.track_url}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="underline"
                                 >
-                                    LRCLIB
+                                    Listen on Apple Music
                                 </a>
-                            </>
-                        )}
-                        {hasLyrics && details.track_url && " · "}
-                        {details.track_url && (
-                            <a
-                                href={details.track_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="underline"
-                            >
-                                Listen on Apple Music
-                            </a>
-                        )}
-                    </p>
-                )}
+                            )}
+                        </p>
+                    )}
+                </div>
             </div>
         </div>
     );
