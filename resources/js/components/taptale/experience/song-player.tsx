@@ -348,7 +348,8 @@ function Lyrics({
         <div
             ref={containerRef}
             className={cn(
-                "relative overflow-y-auto overscroll-contain [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+                // overflow-hidden: visitors can't scroll it; only the song moves the lyrics.
+                "pointer-events-none relative overflow-hidden select-none [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]",
                 compact ? "h-52" : "h-72 sm:h-80",
             )}
         >
@@ -381,18 +382,28 @@ function Lyrics({
                                             ? "opacity-55"
                                             : "opacity-35 blur-[0.5px]"),
                             )}
-                            style={
-                                active
-                                    ? {
-                                          backgroundImage: `linear-gradient(90deg, var(--x-accent) ${fill}%, color-mix(in srgb, var(--x-ink) 55%, transparent) ${fill}%)`,
-                                          WebkitBackgroundClip: "text",
-                                          backgroundClip: "text",
-                                          color: "transparent",
-                                      }
-                                    : undefined
-                            }
                         >
-                            {text || "♪ ♪ ♪"}
+                            {/*
+                             * Inline span: its background is painted as one
+                             * strip across wrapped rows, so the wipe follows
+                             * reading order instead of the box width.
+                             */}
+                            <span
+                                style={
+                                    active
+                                        ? {
+                                              backgroundImage: `linear-gradient(90deg, var(--x-accent) ${fill}%, color-mix(in srgb, var(--x-ink) 55%, transparent) ${fill}%)`,
+                                              WebkitBackgroundClip: "text",
+                                              backgroundClip: "text",
+                                              WebkitBoxDecorationBreak: "slice",
+                                              boxDecorationBreak: "slice",
+                                              color: "transparent",
+                                          }
+                                        : undefined
+                                }
+                            >
+                                {text || "♪ ♪ ♪"}
+                            </span>
                         </p>
                     );
                 })}
@@ -548,6 +559,22 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                     label={experience.song_title}
                     artwork={details?.artwork_url ?? null}
                 />
+
+                <div className="mt-8">
+                    <Waveform
+                        bars={bars}
+                        progress={progress}
+                        playing={playing}
+                        onSeek={canPlay && duration > 0 ? seek : undefined}
+                    />
+                    <div className="mt-1 flex justify-between text-xs tabular-nums opacity-60">
+                        <span>{formatTime(clock.current)}</span>
+                        <span>
+                            {source === "preview" && "Preview · "}
+                            {formatTime(duration)}
+                        </span>
+                    </div>
+                </div>
             </div>
 
             <div className="min-w-0">
@@ -595,22 +622,6 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                         >
                             {experience.song_artist}
                         </EditableText>
-                    </div>
-                </div>
-
-                <div className="mt-6">
-                    <Waveform
-                        bars={bars}
-                        progress={progress}
-                        playing={playing}
-                        onSeek={canPlay && duration > 0 ? seek : undefined}
-                    />
-                    <div className="mt-1 flex justify-between text-xs tabular-nums opacity-60">
-                        <span>{formatTime(clock.current)}</span>
-                        <span>
-                            {source === "preview" && "Preview · "}
-                            {formatTime(duration)}
-                        </span>
                     </div>
                 </div>
 
