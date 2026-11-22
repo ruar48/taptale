@@ -19,6 +19,16 @@ test('the homepage lists active categories and featured products', function () {
             ->has('featuredProducts', 1));
 });
 
+test('only the homepage ships a static hero for the first paint', function () {
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('Every memory deserves to be <em', false);
+
+    $this->get(route('categories.index'))
+        ->assertOk()
+        ->assertDontSee('Every memory deserves to be', false);
+});
+
 test('a category page shows only its active products', function () {
     $category = Category::factory()->create();
     $listed = Product::factory()->create();

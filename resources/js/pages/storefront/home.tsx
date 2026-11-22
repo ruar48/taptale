@@ -290,7 +290,8 @@ function Hero() {
             <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-[#fbe9e6]/95 via-[#fbe9e6]/60 to-transparent lg:block lg:w-[65%] dark:from-background dark:via-background/80" />
 
             <div className="relative mx-auto w-full max-w-7xl px-4 pt-12 pb-10 sm:px-6 lg:px-8 lg:py-24">
-                <div className="max-w-xl animate-fade-up">
+                {/* No fade-in: resources/views/partials/home-shell.blade.php paints this first, keep it in sync */}
+                <div className="max-w-xl">
                     <span className="inline-flex items-center gap-2 rounded-full border border-rose/30 bg-white/70 px-4 py-1.5 text-xs font-semibold tracking-wide text-plum backdrop-blur dark:bg-card/60 dark:text-blush">
                         <Heart className="size-3.5" /> A little gift. A lifetime
                         of memories.

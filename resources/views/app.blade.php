@@ -54,6 +54,11 @@
         </x-inertia::head>
     </head>
     <body class="font-sans antialiased">
-        <x-inertia::app />
+        @if ($page['component'] === 'storefront/home')
+            {{-- Same output as <x-inertia::app />, but the mount point carries a static first paint that React replaces --}}
+            <script data-page="app" type="application/json">{!! json_encode($page, JSON_HEX_TAG) !!}</script><div id="app">@include('partials.home-shell')</div>
+        @else
+            <x-inertia::app />
+        @endif
     </body>
 </html>
