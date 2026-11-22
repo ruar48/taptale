@@ -1,29 +1,28 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link } from "@inertiajs/react";
 import {
     ArrowRight,
     BadgeCheck,
     Camera,
-    HandHeart,
     Heart,
     LayoutTemplate,
     Nfc,
-    PackageCheck,
     QrCode,
     Quote,
+    ShieldCheck,
     Sparkles,
     Star,
-} from 'lucide-react';
-import { CategoryCard } from '@/components/taptale/category-card';
-import { KeychainMockup } from '@/components/taptale/keychain-mockup';
-import { ProductCard } from '@/components/taptale/product-card';
-import { SectionHeading } from '@/components/taptale/section-heading';
-import { TemplatePreview } from '@/components/taptale/template-preview';
-import { Button } from '@/components/ui/button';
-import { index as categoriesIndex } from '@/routes/categories';
-import { templates as memoryPages } from '@/routes/experiences';
-import { create as startOrder } from '@/routes/orders';
-import { index as templatesIndex } from '@/routes/templates';
-import type { Category, Product, Template, Testimonial } from '@/types';
+    Truck,
+} from "lucide-react";
+import { CategoryCard } from "@/components/taptale/category-card";
+import { ProductCard } from "@/components/taptale/product-card";
+import { SectionHeading } from "@/components/taptale/section-heading";
+import { TemplatePreview } from "@/components/taptale/template-preview";
+import { Button } from "@/components/ui/button";
+import { index as categoriesIndex } from "@/routes/categories";
+import { templates as memoryPages } from "@/routes/experiences";
+import { create as startOrder } from "@/routes/orders";
+import { index as templatesIndex } from "@/routes/templates";
+import type { Category, Product, Template, Testimonial } from "@/types";
 
 type Props = {
     categories: Category[];
@@ -36,23 +35,23 @@ type Props = {
 const STEPS = [
     {
         icon: Heart,
-        title: 'Choose the occasion',
-        body: 'Anniversary, wedding, baptism, graduation — start with who the gift is for.',
+        title: "Choose the occasion",
+        body: "Anniversary, wedding, baptism, graduation — start with who the gift is for.",
     },
     {
         icon: LayoutTemplate,
-        title: 'Pick a gift & template',
-        body: 'Browse keepsakes and professionally designed templates made for the moment.',
+        title: "Pick a gift & template",
+        body: "Browse keepsakes and professionally designed templates made for the moment.",
     },
     {
         icon: Camera,
-        title: 'Add your story',
-        body: 'Upload photos, names and a message — or tell us your idea and our designers take it from there.',
+        title: "Add your story",
+        body: "Upload photos, names and a message — or tell us your idea and our designers take it from there.",
     },
     {
         icon: BadgeCheck,
-        title: 'Approve, then we craft',
-        body: 'Nothing goes into production until you approve your design. Then we make it by hand.',
+        title: "Approve, then we craft",
+        body: "Nothing goes into production until you approve your design. Then we make it by hand.",
     },
 ];
 
@@ -74,7 +73,7 @@ export default function Home({
                     eyebrow="Shop by occasion"
                     title={
                         <>
-                            A keepsake for every{' '}
+                            A keepsake for every{" "}
                             <em className="text-rose">chapter</em>
                         </>
                     }
@@ -97,7 +96,7 @@ export default function Home({
                             category={category}
                             className={
                                 index === 0 || index === 5
-                                    ? 'lg:col-span-2'
+                                    ? "lg:col-span-2"
                                     : undefined
                             }
                         />
@@ -136,7 +135,7 @@ export default function Home({
                                 className="rounded-full text-plum hover:bg-plum/5 dark:text-blush"
                             >
                                 <Link href={templatesIndex()}>
-                                    See all templates{' '}
+                                    See all templates{" "}
                                     <ArrowRight className="size-4" />
                                 </Link>
                             </Button>
@@ -163,7 +162,7 @@ export default function Home({
                                     {template.categories
                                         ?.slice(0, 2)
                                         .map((category) => category.name)
-                                        .join(' · ')}
+                                        .join(" · ")}
                                 </p>
                             </Link>
                         ))}
@@ -265,122 +264,67 @@ export default function Home({
 
 function Hero() {
     return (
-        <section className="relative overflow-hidden">
-            <div className="bg-grain absolute inset-0" />
-            <div className="absolute top-0 right-0 h-full w-full bg-[radial-gradient(60%_60%_at_80%_30%,rgb(233_201_201/0.7),transparent_70%)] dark:bg-[radial-gradient(60%_60%_at_80%_30%,rgb(113_61_80/0.4),transparent_70%)]" />
+        <section className="relative flex flex-col overflow-hidden bg-blush-light/40 lg:min-h-[640px] lg:justify-center dark:bg-background">
+            <img
+                src="/image/taptale-nfc-wedding-couple-hero.webp"
+                alt="Personalized NFC photo keychain with a wedding couple photo beside a pink gift box and a tap-to-relive card"
+                width={1672}
+                height={941}
+                fetchPriority="high"
+                decoding="async"
+                className="order-last mx-4 mb-12 aspect-[16/10] w-[calc(100%-2rem)] rounded-3xl object-cover object-[70%_center] shadow-[0_24px_50px_-24px_rgb(113_61_80/0.45)] sm:mx-6 sm:w-[calc(100%-3rem)] lg:absolute lg:inset-0 lg:order-none lg:m-0 lg:aspect-auto lg:h-full lg:w-full lg:rounded-none lg:object-[75%_center] lg:shadow-none"
+            />
+            <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-[#fbe9e6]/95 via-[#fbe9e6]/60 to-transparent lg:block lg:w-[65%] dark:from-background dark:via-background/80" />
 
-            <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 pt-12 pb-20 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:px-8 lg:pt-20 lg:pb-28">
-                <div className="animate-fade-up">
+            <div className="relative mx-auto w-full max-w-7xl px-4 pt-12 pb-10 sm:px-6 lg:px-8 lg:py-24">
+                <div className="max-w-xl animate-fade-up">
                     <span className="inline-flex items-center gap-2 rounded-full border border-rose/30 bg-white/70 px-4 py-1.5 text-xs font-semibold tracking-wide text-plum backdrop-blur dark:bg-card/60 dark:text-blush">
-                        <Nfc className="size-4" /> NFC & photo keepsakes,
-                        handmade
+                        <Heart className="size-3.5" /> A little gift. A lifetime
+                        of memories.
                     </span>
-                    <h1 className="mt-6 font-display text-5xl leading-[1.02] font-medium text-balance text-charcoal sm:text-6xl lg:text-7xl dark:text-cream">
-                        Gifts that hold{' '}
-                        <em className="font-normal text-rose">your story</em>
+                    <h1 className="mt-6 font-display text-5xl leading-[1.05] font-medium text-balance text-charcoal sm:text-6xl lg:text-7xl dark:text-cream">
+                        Every memory deserves to be{" "}
+                        <em className="font-normal text-plum dark:text-rose">
+                            held.
+                        </em>
                     </h1>
-                    <p className="mt-6 max-w-xl text-lg leading-relaxed text-charcoal/75 dark:text-foreground/75">
-                        Personalized keychains and souvenirs that open your
-                        photos, videos and messages with a single tap. Design it
-                        yourself or let our designers create it — you approve
-                        every detail before we make it.
+                    <p className="mt-6 max-w-md text-lg leading-relaxed text-charcoal/75 dark:text-foreground/75">
+                        Turn your favorite photos, videos and messages into
+                        personalized keepsakes that tell your story — with a
+                        single tap.
                     </p>
                     <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                         <Button
                             asChild
                             size="lg"
-                            className="h-14 rounded-full bg-plum px-8 text-base text-white shadow-[0_14px_30px_-12px_rgb(113_61_80/0.7)] hover:bg-plum-dark dark:bg-blush dark:text-plum-dark"
+                            className="h-13 rounded-full bg-plum px-7 text-base text-white shadow-[0_14px_30px_-12px_rgb(113_61_80/0.7)] hover:bg-plum-dark dark:bg-blush dark:text-plum-dark"
                         >
                             <Link href={startOrder()}>
-                                <Sparkles className="size-5" /> Start creating
+                                Create your keepsake{" "}
+                                <ArrowRight className="size-4" />
                             </Link>
                         </Button>
                         <Button
                             asChild
                             size="lg"
                             variant="outline"
-                            className="h-14 rounded-full border-plum/20 bg-white/60 px-8 text-base text-plum hover:bg-white dark:bg-transparent dark:text-blush"
+                            className="h-13 rounded-full border-plum/30 bg-white/60 px-7 text-base text-plum backdrop-blur hover:bg-white dark:bg-transparent dark:text-blush"
                         >
-                            <Link href={categoriesIndex()}>
-                                Browse occasions
-                            </Link>
+                            <Link href={categoriesIndex()}>Explore gifts</Link>
                         </Button>
                     </div>
-                    <ul className="mt-10 grid max-w-lg grid-cols-3 gap-4 text-sm">
+                    <ul className="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-sm text-charcoal/75 dark:text-foreground/70">
                         {[
-                            {
-                                icon: BadgeCheck,
-                                label: 'Approve before we print',
-                            },
-                            { icon: HandHeart, label: 'Handmade with care' },
-                            {
-                                icon: PackageCheck,
-                                label: 'Nationwide delivery',
-                            },
+                            { icon: ShieldCheck, label: "Premium quality" },
+                            { icon: Truck, label: "Nationwide delivery" },
+                            { icon: Heart, label: "A gift with meaning" },
                         ].map(({ icon: Icon, label }) => (
-                            <li
-                                key={label}
-                                className="flex flex-col gap-2 text-charcoal/70 dark:text-foreground/70"
-                            >
-                                <Icon className="size-5 text-rose" />
+                            <li key={label} className="flex items-center gap-2">
+                                <Icon className="size-4.5 text-plum dark:text-rose" />
                                 {label}
                             </li>
                         ))}
                     </ul>
-                </div>
-
-                <div className="relative mx-auto aspect-square w-full max-w-md lg:max-w-none">
-                    <div className="absolute inset-[8%] rounded-full bg-gradient-to-br from-blush to-blush-light dark:from-plum/50 dark:to-plum/20" />
-                    <div className="absolute top-[4%] left-[6%] w-[42%] -rotate-[8deg] animate-float-slow">
-                        <KeychainMockup ringColor="#B76E79">
-                            <TemplatePreview
-                                layout="polaroid"
-                                palette={{
-                                    background: '#FFFDF9',
-                                    ink: '#343039',
-                                    accent: '#B86F83',
-                                }}
-                                names="Mia & Paolo"
-                                date="Since 2019"
-                            />
-                        </KeychainMockup>
-                    </div>
-                    <div className="absolute top-[18%] right-[4%] w-[46%] rotate-[6deg] animate-float">
-                        <div className="pointer-events-none absolute top-[58%] -left-[30%] flex size-[55%] items-center justify-center">
-                            {[0, 0.8, 1.6].map((delay) => (
-                                <span
-                                    key={delay}
-                                    className="absolute size-full animate-tap-ring rounded-full border-2 border-rose/70"
-                                    style={{ animationDelay: `${delay}s` }}
-                                />
-                            ))}
-                        </div>
-                        <KeychainMockup nfc ringColor="#C9A66B">
-                            <TemplatePreview
-                                layout="celestial"
-                                palette={{
-                                    background: '#1F1B2E',
-                                    ink: '#F8F3ED',
-                                    accent: '#E9C9C9',
-                                }}
-                                names="Under our stars"
-                                date="06 · 21 · 2025"
-                            />
-                        </KeychainMockup>
-                    </div>
-                    <div className="absolute bottom-[4%] left-[22%] w-[36%] -rotate-[4deg] animate-float-slow [animation-delay:1.5s]">
-                        <div className="rounded-[14%] bg-white p-[9%] shadow-[0_24px_40px_-18px_rgb(52_48_57/0.5)]">
-                            <div className="flex aspect-square items-center justify-center rounded-xl bg-cream">
-                                <QrCode
-                                    className="size-3/4 text-charcoal"
-                                    strokeWidth={1.2}
-                                />
-                            </div>
-                            <p className="mt-2 text-center font-display text-sm text-plum italic">
-                                Scan our story
-                            </p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </section>
@@ -430,7 +374,7 @@ function HowItWorks() {
                         className="h-12 rounded-full bg-blush px-7 text-plum-dark hover:bg-white"
                     >
                         <Link href={startOrder()}>
-                            Start with an occasion{' '}
+                            Start with an occasion{" "}
                             <ArrowRight className="size-4" />
                         </Link>
                     </Button>
@@ -459,7 +403,7 @@ function TapSection() {
                             </p>
                         </div>
                         <div className="grid grid-cols-2 gap-2 px-4">
-                            {['#E9C9C9', '#B86F83', '#713D50', '#F1D9D2'].map(
+                            {["#E9C9C9", "#B86F83", "#713D50", "#F1D9D2"].map(
                                 (color) => (
                                     <div
                                         key={color}
@@ -482,7 +426,7 @@ function TapSection() {
                     eyebrow="Tap-enabled keepsakes"
                     title={
                         <>
-                            Hold it in your hand.{' '}
+                            Hold it in your hand.{" "}
                             <em className="text-rose">Tap it</em> to relive it.
                         </>
                     }
@@ -492,18 +436,18 @@ function TapSection() {
                     {[
                         {
                             icon: Nfc,
-                            title: 'Tap with any modern phone',
-                            body: 'No app needed. The tag opens your page instantly.',
+                            title: "Tap with any modern phone",
+                            body: "No app needed. The tag opens your page instantly.",
                         },
                         {
                             icon: QrCode,
-                            title: 'QR code included',
-                            body: 'Works with every phone camera, even without NFC.',
+                            title: "QR code included",
+                            body: "Works with every phone camera, even without NFC.",
                         },
                         {
                             icon: Sparkles,
-                            title: 'Update it anytime',
-                            body: 'Add new photos and messages from your account — the keepsake stays the same.',
+                            title: "Update it anytime",
+                            body: "Add new photos and messages from your account — the keepsake stays the same.",
                         },
                     ].map(({ icon: Icon, title, body }) => (
                         <li key={title} className="flex gap-4">
@@ -524,7 +468,7 @@ function TapSection() {
                     className="mt-8 rounded-full bg-plum px-6 text-white hover:bg-plum-dark dark:bg-blush dark:text-plum-dark"
                 >
                     <Link href={memoryPages()}>
-                        Explore memory page designs{' '}
+                        Explore memory page designs{" "}
                         <ArrowRight className="size-4" />
                     </Link>
                 </Button>
