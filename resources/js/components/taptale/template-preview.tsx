@@ -1,6 +1,7 @@
-import { useId } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
+import { useId } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import {
+    CalendarLayout,
     DieCutLayout,
     EngravedLayout,
     MiniCdCover,
@@ -9,9 +10,9 @@ import {
     PhotoStripLayout,
     resolveLayout,
     TapTagLayout,
-} from '@/components/taptale/template-layouts';
-import { cn } from '@/lib/utils';
-import type { Palette, TemplateLayout } from '@/types';
+} from "@/components/taptale/template-layouts";
+import { cn } from "@/lib/utils";
+import type { Palette, TemplateLayout } from "@/types";
 
 export type TemplatePreviewProps = {
     layout: TemplateLayout;
@@ -51,12 +52,13 @@ export const LAYOUT_RATIO: Record<TemplateLayout, number> = {
     tap_tag: 1,
     engraved: 4 / 5,
     die_cut: 1,
+    calendar: 3 / 4,
 };
 
 /**
  * Layouts that feature a song / album title and artist.
  */
-export const MUSIC_LAYOUTS: TemplateLayout[] = ['mini_cd', 'music_player'];
+export const MUSIC_LAYOUTS: TemplateLayout[] = ["mini_cd", "music_player"];
 
 /**
  * Renders a design template as a live, resolution-independent preview.
@@ -79,7 +81,7 @@ export function TemplatePreview({
     bare = false,
     className,
 }: TemplatePreviewProps) {
-    const clipId = useId().replace(/:/g, '');
+    const clipId = useId().replace(/:/g, "");
     const { colors, text, photoAt } = resolveLayout({
         palette,
         accent,
@@ -97,7 +99,7 @@ export function TemplatePreview({
         return (
             <div
                 className={cn(
-                    'relative aspect-[4/5] w-full overflow-hidden',
+                    "relative aspect-[4/5] w-full overflow-hidden",
                     className,
                 )}
             >
@@ -112,8 +114,8 @@ export function TemplatePreview({
     }
 
     const rootStyle: CSSProperties = {
-        containerType: 'inline-size',
-        backgroundColor: bare ? 'transparent' : colors.background,
+        containerType: "inline-size",
+        backgroundColor: bare ? "transparent" : colors.background,
         color: colors.ink,
     };
 
@@ -126,44 +128,48 @@ export function TemplatePreview({
     let body: ReactNode;
 
     switch (layout) {
-        case 'mini_cd':
+        case "mini_cd":
             body = <MiniCdCover {...layoutProps} />;
             break;
 
-        case 'music_player':
+        case "music_player":
             body = <MusicPlayerCard {...layoutProps} />;
             break;
 
-        case 'photo_strip':
+        case "photo_strip":
             body = <PhotoStripLayout {...layoutProps} />;
             break;
 
-        case 'tap_tag':
+        case "tap_tag":
             body = <TapTagLayout {...layoutProps} />;
             break;
 
-        case 'engraved':
+        case "engraved":
             body = <EngravedLayout {...layoutProps} />;
             break;
 
-        case 'die_cut':
+        case "die_cut":
             body = <DieCutLayout {...layoutProps} bare={bare} />;
             break;
 
-        case 'polaroid':
+        case "calendar":
+            body = <CalendarLayout {...layoutProps} />;
+            break;
+
+        case "polaroid":
             body = (
                 <div className="flex size-full items-center justify-center p-[8cqw]">
                     <div className="flex w-full -rotate-2 flex-col bg-white p-[4cqw] pb-[3cqw] shadow-[0_4cqw_8cqw_-3cqw_rgb(0_0_0/0.25)]">
-                        {photo('aspect-square w-full')}
+                        {photo("aspect-square w-full")}
                         <p
                             className="mt-[3cqw] truncate text-center font-display italic"
-                            style={{ fontSize: '8cqw', color: colors.ink }}
+                            style={{ fontSize: "8cqw", color: colors.ink }}
                         >
                             {text.names}
                         </p>
                         <p
                             className="text-center tracking-[0.2em] uppercase"
-                            style={{ fontSize: '3.4cqw', color: colors.accent }}
+                            style={{ fontSize: "3.4cqw", color: colors.accent }}
                         >
                             {text.date}
                         </p>
@@ -172,7 +178,7 @@ export function TemplatePreview({
             );
             break;
 
-        case 'heart':
+        case "heart":
             body = (
                 <div className="flex size-full flex-col items-center justify-center gap-[3cqw] p-[7cqw]">
                     <svg width="0" height="0" className="absolute">
@@ -195,18 +201,18 @@ export function TemplatePreview({
                             className="size-full"
                             style={{ clipPath: `url(#${clipId})` }}
                         >
-                            {photo('size-full')}
+                            {photo("size-full")}
                         </div>
                     </div>
                     <p
                         className="max-w-full truncate font-display font-medium"
-                        style={{ fontSize: '9cqw' }}
+                        style={{ fontSize: "9cqw" }}
                     >
                         {text.names}
                     </p>
                     <p
                         className="line-clamp-1 text-center italic opacity-80"
-                        style={{ fontSize: '4cqw' }}
+                        style={{ fontSize: "4cqw" }}
                     >
                         {text.message}
                     </p>
@@ -214,7 +220,7 @@ export function TemplatePreview({
             );
             break;
 
-        case 'arch':
+        case "arch":
             body = (
                 <div className="flex size-full flex-col items-center justify-center p-[9cqw] pb-[7cqw]">
                     <div
@@ -222,7 +228,7 @@ export function TemplatePreview({
                         style={{ border: `0.6cqw solid ${colors.accent}` }}
                     >
                         <div className="overflow-hidden rounded-t-full">
-                            {photo('aspect-[3/4] w-full')}
+                            {photo("aspect-[3/4] w-full")}
                         </div>
                     </div>
                     <span
@@ -231,13 +237,13 @@ export function TemplatePreview({
                     />
                     <p
                         className="mt-[3cqw] max-w-full truncate font-display"
-                        style={{ fontSize: '8.5cqw' }}
+                        style={{ fontSize: "8.5cqw" }}
                     >
                         {text.names}
                     </p>
                     <p
                         className="tracking-[0.25em] uppercase opacity-80"
-                        style={{ fontSize: '3.2cqw' }}
+                        style={{ fontSize: "3.2cqw" }}
                     >
                         {text.date}
                     </p>
@@ -245,7 +251,7 @@ export function TemplatePreview({
             );
             break;
 
-        case 'celestial':
+        case "celestial":
             body = (
                 <div className="relative flex size-full flex-col items-center justify-center p-[8cqw]">
                     <Stars color={colors.accent} />
@@ -257,18 +263,18 @@ export function TemplatePreview({
                         }}
                     >
                         <div className="size-full overflow-hidden rounded-full">
-                            {photo('size-full')}
+                            {photo("size-full")}
                         </div>
                     </div>
                     <p
                         className="relative mt-[5cqw] max-w-full truncate font-display italic"
-                        style={{ fontSize: '8.5cqw' }}
+                        style={{ fontSize: "8.5cqw" }}
                     >
                         {text.names}
                     </p>
                     <p
                         className="relative line-clamp-1 text-center tracking-[0.15em] uppercase opacity-80"
-                        style={{ fontSize: '3.2cqw', color: colors.accent }}
+                        style={{ fontSize: "3.2cqw", color: colors.accent }}
                     >
                         {text.date}
                     </p>
@@ -276,24 +282,24 @@ export function TemplatePreview({
             );
             break;
 
-        case 'floral':
+        case "floral":
             body = (
                 <div className="flex size-full flex-col items-center justify-center p-[7cqw]">
                     <div className="relative aspect-square w-[74%]">
                         <Wreath color={colors.accent} ink={colors.ink} />
                         <div className="absolute inset-[13%] overflow-hidden rounded-full">
-                            {photo('size-full')}
+                            {photo("size-full")}
                         </div>
                     </div>
                     <p
                         className="mt-[3cqw] max-w-full truncate font-display"
-                        style={{ fontSize: '8.5cqw' }}
+                        style={{ fontSize: "8.5cqw" }}
                     >
                         {text.names}
                     </p>
                     <p
                         className="line-clamp-1 text-center italic opacity-80"
-                        style={{ fontSize: '3.8cqw' }}
+                        style={{ fontSize: "3.8cqw" }}
                     >
                         {text.message}
                     </p>
@@ -304,11 +310,11 @@ export function TemplatePreview({
         default:
             body = (
                 <div className="flex size-full flex-col">
-                    {photo('h-[66%] w-full')}
+                    {photo("h-[66%] w-full")}
                     <div className="flex flex-1 flex-col justify-center px-[7cqw]">
                         <p
                             className="truncate font-semibold tracking-[0.18em] uppercase"
-                            style={{ fontSize: '6.2cqw' }}
+                            style={{ fontSize: "6.2cqw" }}
                         >
                             {text.names}
                         </p>
@@ -319,7 +325,7 @@ export function TemplatePreview({
                             />
                             <p
                                 className="truncate opacity-75"
-                                style={{ fontSize: '3.6cqw' }}
+                                style={{ fontSize: "3.6cqw" }}
                             >
                                 {text.date}
                             </p>
@@ -334,7 +340,7 @@ export function TemplatePreview({
     const design = (
         <div
             className={cn(
-                'relative w-full overflow-hidden select-none',
+                "relative w-full overflow-hidden select-none",
                 !fitted && className,
             )}
             style={{ ...rootStyle, aspectRatio: String(ratio) }}
@@ -350,7 +356,7 @@ export function TemplatePreview({
     return (
         <div
             className={cn(
-                'relative flex aspect-[4/5] w-full items-center justify-center overflow-hidden p-[9%]',
+                "relative flex aspect-[4/5] w-full items-center justify-center overflow-hidden p-[9%]",
                 className,
             )}
             style={{
@@ -361,8 +367,8 @@ export function TemplatePreview({
                 className="overflow-hidden rounded-[6%] shadow-[0_12px_28px_-14px_rgb(52_48_57/0.55)]"
                 style={
                     ratio < 0.8
-                        ? { height: '100%', aspectRatio: String(ratio) }
-                        : { width: '100%', aspectRatio: String(ratio) }
+                        ? { height: "100%", aspectRatio: String(ratio) }
+                        : { width: "100%", aspectRatio: String(ratio) }
                 }
             >
                 {design}

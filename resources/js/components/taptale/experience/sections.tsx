@@ -39,7 +39,7 @@ import {
 } from "@/components/taptale/experience/shared";
 import { cn } from "@/lib/utils";
 
-const ROTATIONS = [-6, 4, -3, 7, -5, 3, -7, 5, -2, 6, -4, 2];
+export const ROTATIONS = [-6, 4, -3, 7, -5, 3, -7, 5, -2, 6, -4, 2];
 
 function paragraphs(text: string | null | undefined): string[] {
     return (text ?? "")
@@ -490,7 +490,13 @@ function LetterPaper() {
  * the last card of each row (2, 3 or 4 columns) and on the very last card, so
  * the line never trails off into empty space.
  */
-function PolaroidConnector({ index, total }: { index: number; total: number }) {
+export function PolaroidConnector({
+    index,
+    total,
+}: {
+    index: number;
+    total: number;
+}) {
     if (index === total - 1) {
         return null;
     }

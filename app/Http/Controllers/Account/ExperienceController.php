@@ -84,6 +84,7 @@ class ExperienceController extends Controller
             ...$request->safe()->except(['new_photos', 'remove_photos', 'audio', 'remove_audio', 'moments']),
             'photos' => $photos,
             'moments' => $this->normalizeMoments($request->validated('moments', []), $photoIndexMap),
+            'custom_sections' => $this->remapSectionPhotos($experience->custom_sections ?? [], $photoIndexMap),
         ]);
         $experience->audio_path = $audioPath;
         $experience->save();
@@ -125,6 +126,26 @@ class ExperienceController extends Controller
         }
 
         return [$photos, $indexMap];
+    }
+
+    /**
+     * Point the photo slots of the owner's extra sections at the new photo
+     * positions, emptying slots whose photo was removed.
+     *
+     * @param  list<array<string, mixed>>  $sections
+     * @param  array<int, int>  $photoIndexMap
+     * @return list<array<string, mixed>>
+     */
+    private function remapSectionPhotos(array $sections, array $photoIndexMap): array
+    {
+        return array_map(function (array $section) use ($photoIndexMap): array {
+            $section['slots'] = array_map(fn (array $slot): array => [
+                ...$slot,
+                'photo' => isset($slot['photo']) ? ($photoIndexMap[(int) $slot['photo']] ?? null) : null,
+            ], $section['slots'] ?? []);
+
+            return $section;
+        }, $sections);
     }
 
     /**

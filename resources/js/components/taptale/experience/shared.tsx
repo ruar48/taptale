@@ -8,6 +8,9 @@ import type {
 import { cn } from "@/lib/utils";
 import type { DigitalExperience, ExperienceMoment } from "@/types";
 
+/** A photo slot in one of the owner's extra sections. */
+export type PhotoSlot = { section: string; slot: number };
+
 export type ExperienceContextValue = {
     experience: DigitalExperience;
     preset: ExperiencePreset;
@@ -19,7 +22,7 @@ export type ExperienceContextValue = {
     /** True when the owner is viewing: empty frames become "Add photo" buttons. */
     editable: boolean;
     uploading: boolean;
-    addPhotos: (files: File[], moment?: number) => void;
+    addPhotos: (files: File[], moment?: number, slot?: PhotoSlot) => void;
     replacePhoto: (index: number, file: File) => void;
     saveText: (field: string, value: string) => Promise<boolean>;
     /** False while the opening gate still covers the page. */
@@ -220,12 +223,14 @@ export function Reveal({
  */
 export function AddPhotoButton({
     moment,
+    slot,
     multiple = false,
     label = "Add photo",
     className,
     children,
 }: {
     moment?: number;
+    slot?: PhotoSlot;
     multiple?: boolean;
     label?: string;
     className?: string;
@@ -255,7 +260,7 @@ export function AddPhotoButton({
                     const files = Array.from(event.target.files ?? []);
 
                     if (files.length > 0) {
-                        context.addPhotos(files, moment);
+                        context.addPhotos(files, moment, slot);
                     }
 
                     event.target.value = "";
@@ -282,6 +287,7 @@ export function PhotoFill({
     style,
     onClick,
     moment,
+    slot,
 }: {
     src: string | null;
     className?: string;
@@ -289,6 +295,8 @@ export function PhotoFill({
     onClick?: () => void;
     /** Attach a photo added into this frame to a timeline moment. */
     moment?: number;
+    /** Attach a photo added into this frame to an extra section's slot. */
+    slot?: PhotoSlot;
 }) {
     const context = useContext(ExperienceContext);
 
@@ -296,6 +304,7 @@ export function PhotoFill({
         return (
             <AddPhotoButton
                 moment={moment}
+                slot={slot}
                 className={cn(
                     "group/add relative isolate flex flex-col items-center justify-center gap-2 overflow-hidden border-2 border-dashed border-white/80 text-white transition hover:brightness-105",
                     className,
@@ -414,13 +423,15 @@ export function Polaroid({
     className,
     tape = false,
     moment,
+    slot,
 }: {
     src: string | null;
-    caption?: string | null;
+    caption?: ReactNode;
     rotate?: number;
     className?: string;
     tape?: boolean;
     moment?: number;
+    slot?: PhotoSlot;
 }) {
     const { openPhoto } = useExperience();
 
@@ -446,6 +457,7 @@ export function Polaroid({
                 className="aspect-square w-full"
                 onClick={src ? () => openPhoto(src) : undefined}
                 moment={moment}
+                slot={slot}
             />
             {caption && (
                 <figcaption className="mt-2 truncate text-center font-display text-sm text-[#3A2A2A] italic">
@@ -484,10 +496,12 @@ export function FloatingHearts({ count = 10 }: { count?: number }) {
 export function SectionShell({
     children,
     className,
+    style,
     surface = false,
 }: {
     children: ReactNode;
     className?: string;
+    style?: CSSProperties;
     surface?: boolean;
 }) {
     return (
@@ -497,6 +511,7 @@ export function SectionShell({
                 surface && "bg-[var(--x-surface)]",
                 className,
             )}
+            style={style}
         >
             <div className="relative mx-auto max-w-5xl">{children}</div>
         </section>

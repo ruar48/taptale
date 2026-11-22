@@ -1,4 +1,4 @@
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from "@inertiajs/react";
 import {
     ArrowLeft,
     ArrowRight,
@@ -14,32 +14,32 @@ import {
     Plus,
     ShieldCheck,
     Wand2,
-} from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-import type { ReactNode } from 'react';
-import PasswordInput from '@/components/password-input';
-import { CategoryIcon } from '@/components/taptale/category-icon';
-import { FileDropzone } from '@/components/taptale/file-dropzone';
-import { ProductArt } from '@/components/taptale/product-art';
-import { MUSIC_LAYOUTS } from '@/components/taptale/template-preview';
-import { DesignPreview } from '@/components/taptale/wizard/design-preview';
-import { OptionPicker } from '@/components/taptale/wizard/option-picker';
-import { OrderSummary } from '@/components/taptale/wizard/order-summary';
-import { ProductShowcase } from '@/components/taptale/wizard/product-showcase';
-import { WebsitePicker } from '@/components/taptale/wizard/website-picker';
-import { WizardProgress } from '@/components/taptale/wizard/wizard-progress';
-import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { useMoney } from '@/hooks/use-money';
-import { calculatePrice, defaultOptionIds, groupOptions } from '@/lib/pricing';
-import type { PricingConfig } from '@/lib/pricing';
-import { cn } from '@/lib/utils';
-import { stepsFor } from '@/lib/wizard';
-import type { DesignMode, WizardStepKey } from '@/lib/wizard';
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
+import PasswordInput from "@/components/password-input";
+import { CategoryIcon } from "@/components/taptale/category-icon";
+import { FileDropzone } from "@/components/taptale/file-dropzone";
+import { ProductArt } from "@/components/taptale/product-art";
+import { MUSIC_LAYOUTS } from "@/components/taptale/template-preview";
+import { DesignPreview } from "@/components/taptale/wizard/design-preview";
+import { OptionPicker } from "@/components/taptale/wizard/option-picker";
+import { OrderSummary } from "@/components/taptale/wizard/order-summary";
+import { ProductShowcase } from "@/components/taptale/wizard/product-showcase";
+import { WebsitePicker } from "@/components/taptale/wizard/website-picker";
+import { WizardProgress } from "@/components/taptale/wizard/wizard-progress";
+import InputError from "@/components/input-error";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useMoney } from "@/hooks/use-money";
+import { calculatePrice, defaultOptionIds, groupOptions } from "@/lib/pricing";
+import type { PricingConfig } from "@/lib/pricing";
+import { cn } from "@/lib/utils";
+import { stepsFor } from "@/lib/wizard";
+import type { DesignMode, WizardStepKey } from "@/lib/wizard";
 import {
     canResume,
     clearDraft,
@@ -47,14 +47,14 @@ import {
     loadPhotos,
     saveDraft,
     savePhotos,
-} from '@/lib/wizard-draft';
-import type { WizardDraft } from '@/lib/wizard-draft';
-import { store as logIn } from '@/routes/login';
-import { create as wizardRoute, store as storeOrder } from '@/routes/orders';
-import { privacy, terms } from '@/routes/pages';
-import { request as requestPasswordReset } from '@/routes/password';
-import { store as registerAccount } from '@/routes/register';
-import { send as sendVerification } from '@/routes/verification';
+} from "@/lib/wizard-draft";
+import type { WizardDraft } from "@/lib/wizard-draft";
+import { store as logIn } from "@/routes/login";
+import { create as wizardRoute, store as storeOrder } from "@/routes/orders";
+import { privacy, terms } from "@/routes/pages";
+import { request as requestPasswordReset } from "@/routes/password";
+import { store as registerAccount } from "@/routes/register";
+import { send as sendVerification } from "@/routes/verification";
 import type {
     Category,
     ExperienceTemplateOption,
@@ -62,7 +62,7 @@ import type {
     Personalization,
     Product,
     Template,
-} from '@/types';
+} from "@/types";
 
 type Props = {
     categories: Category[];
@@ -90,7 +90,7 @@ type WizardForm = {
     category_id: number | null;
     product_id: number | null;
     template_id: number | null;
-    design_mode: DesignMode | '';
+    design_mode: DesignMode | "";
     option_ids: number[];
     quantity: number;
     personalization: Required<Personalization>;
@@ -111,12 +111,12 @@ type WizardForm = {
 };
 
 const COLOR_CHOICES = [
-    '#B86F83',
-    '#713D50',
-    '#C9A66B',
-    '#7C9473',
-    '#5B6C8F',
-    '#343039',
+    "#B86F83",
+    "#713D50",
+    "#C9A66B",
+    "#7C9473",
+    "#5B6C8F",
+    "#343039",
 ];
 
 /**
@@ -124,16 +124,16 @@ const COLOR_CHOICES = [
  * shared computer does not hold anyone's address. The account fills them.
  */
 const CONTACT_FIELDS = [
-    'customer_name',
-    'customer_email',
-    'customer_phone',
-    'address_line',
-    'city',
-    'province',
-    'postal_code',
+    "customer_name",
+    "customer_email",
+    "customer_phone",
+    "address_line",
+    "city",
+    "province",
+    "postal_code",
 ] as const;
 
-type DraftData = Omit<WizardForm, 'photos' | (typeof CONTACT_FIELDS)[number]>;
+type DraftData = Omit<WizardForm, "photos" | (typeof CONTACT_FIELDS)[number]>;
 
 function toDraftData(data: WizardForm): DraftData {
     const draft: Partial<WizardForm> = { ...data };
@@ -145,10 +145,10 @@ function toDraftData(data: WizardForm): DraftData {
 }
 
 const ERROR_STEPS: [RegExp, WizardStepKey][] = [
-    [/^(category_id|product_id|template_id)/, 'product'],
-    [/^experience_template/, 'website'],
-    [/^(design_mode|personalization|photos)/, 'customize'],
-    [/^(option_ids|quantity|approve_preview)/, 'specs'],
+    [/^(category_id|product_id|template_id)/, "product"],
+    [/^experience_template/, "website"],
+    [/^(design_mode|personalization|photos)/, "customize"],
+    [/^(option_ids|quantity|approve_preview)/, "specs"],
 ];
 
 export default function CreateGift({
@@ -166,7 +166,7 @@ export default function CreateGift({
 }: Props) {
     const money = useMoney();
     const { storefront, auth } = usePage().props;
-    const symbol = storefront?.currencySymbol ?? '₱';
+    const symbol = storefront?.currencySymbol ?? "₱";
     const isGuest = !auth.user;
     const isEmailVerified = Boolean(auth.user?.email_verified_at);
     const preselectedTemplate =
@@ -188,33 +188,33 @@ export default function CreateGift({
         category_id: selectedCategory?.id ?? null,
         product_id: selectedProduct?.id ?? null,
         template_id: preselectedTemplate?.id ?? templates[0]?.id ?? null,
-        design_mode: '',
+        design_mode: "",
         option_ids: selectedProduct
             ? defaultOptionIds(selectedProduct.options ?? [])
             : [],
         quantity: selectedProduct?.min_quantity ?? 1,
         personalization: {
-            names: '',
-            date: '',
-            message: '',
-            song_title: '',
-            artist: '',
-            color: '',
-            design_brief: '',
-            instructions: '',
+            names: "",
+            date: "",
+            message: "",
+            song_title: "",
+            artist: "",
+            color: "",
+            design_brief: "",
+            instructions: "",
         },
         photos: [],
         approve_preview: false,
         personalize_later: false,
-        experience_template: '',
-        customer_name: customer?.name ?? '',
-        customer_email: customer?.email ?? '',
-        customer_phone: customer?.phone ?? '',
-        address_line: customer?.address_line ?? '',
-        city: customer?.city ?? '',
-        province: customer?.province ?? '',
-        postal_code: customer?.postal_code ?? '',
-        customer_notes: '',
+        experience_template: "",
+        customer_name: customer?.name ?? "",
+        customer_email: customer?.email ?? "",
+        customer_phone: customer?.phone ?? "",
+        address_line: customer?.address_line ?? "",
+        city: customer?.city ?? "",
+        province: customer?.province ?? "",
+        postal_code: customer?.postal_code ?? "",
+        customer_notes: "",
         payment_method_id: paymentMethods[0]?.id ?? null,
         save_details: !customer?.phone,
     });
@@ -230,13 +230,13 @@ export default function CreateGift({
 
         setData((current) => ({
             ...current,
-            customer_name: current.customer_name || customer.name || '',
-            customer_email: current.customer_email || customer.email || '',
-            customer_phone: current.customer_phone || customer.phone || '',
-            address_line: current.address_line || customer.address_line || '',
-            city: current.city || customer.city || '',
-            province: current.province || customer.province || '',
-            postal_code: current.postal_code || customer.postal_code || '',
+            customer_name: current.customer_name || customer.name || "",
+            customer_email: current.customer_email || customer.email || "",
+            customer_phone: current.customer_phone || customer.phone || "",
+            address_line: current.address_line || customer.address_line || "",
+            city: current.city || customer.city || "",
+            province: current.province || customer.province || "",
+            postal_code: current.postal_code || customer.postal_code || "",
             save_details: !customer.phone,
         }));
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -269,14 +269,14 @@ export default function CreateGift({
                 (option) => option.enables_digital_experience,
             ));
     const steps = stepsFor(hasTapPage);
-    const stepKey: WizardStepKey = steps[step]?.key ?? 'product';
+    const stepKey: WizardStepKey = steps[step]?.key ?? "product";
     const stepIndex = (key: WizardStepKey) =>
         Math.max(
             0,
             steps.findIndex((item) => item.key === key),
         );
     const needsPreviewApproval =
-        designMode === 'self' && !data.personalize_later;
+        designMode === "self" && !data.personalize_later;
 
     const userId = auth.user?.id ?? null;
     const [isDraftReady, setIsDraftReady] = useState(false);
@@ -344,7 +344,7 @@ export default function CreateGift({
             .then((photos) => {
                 if (photos.length > 0) {
                     setData(
-                        'photos',
+                        "photos",
                         photos.slice(0, selectedProduct.max_photos),
                     );
                 }
@@ -436,10 +436,13 @@ export default function CreateGift({
     const activeLayout = template?.layout ?? null;
     const isMusicDesign =
         (activeLayout !== null && MUSIC_LAYOUTS.includes(activeLayout)) ||
-        selectedProduct?.art_style === 'cd' ||
-        selectedProduct?.art_style === 'music';
+        selectedProduct?.art_style === "cd" ||
+        selectedProduct?.art_style === "music";
     const isCdDesign =
-        activeLayout === 'mini_cd' || selectedProduct?.art_style === 'cd';
+        activeLayout === "mini_cd" || selectedProduct?.art_style === "cd";
+    const isCalendarDesign =
+        activeLayout === "calendar" ||
+        selectedProduct?.art_style === "calendar";
     const previewText = {
         photos: photoUrls,
         names: data.personalization.names,
@@ -454,7 +457,7 @@ export default function CreateGift({
         setStepError(null);
         setStep(target);
         setFurthest((value) => Math.max(value, target));
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
     const reloadSelection = (
@@ -471,10 +474,10 @@ export default function CreateGift({
                 preserveScroll: true,
                 replace: true,
                 only: [
-                    'selectedCategory',
-                    'products',
-                    'selectedProduct',
-                    'templates',
+                    "selectedCategory",
+                    "products",
+                    "selectedProduct",
+                    "templates",
                 ],
                 onSuccess: () => goTo(nextStep),
                 onFinish: () => setLoadingSelection(null),
@@ -497,7 +500,7 @@ export default function CreateGift({
                 preserveState: true,
                 preserveScroll: true,
                 replace: true,
-                only: ['selectedCategory', 'products'],
+                only: ["selectedCategory", "products"],
                 onFinish: () => setLoadingIdea(null),
             },
         );
@@ -516,39 +519,39 @@ export default function CreateGift({
 
     const validateStep = (index: number): string | null => {
         switch (steps[index]?.key) {
-            case 'product':
+            case "product":
                 if (!selectedProduct) {
-                    return 'Please choose a gift.';
+                    return "Please choose a gift.";
                 }
 
                 return data.template_id || templateSkipped
                     ? null
-                    : 'Please choose a design, or pick “Custom design”.';
-            case 'customize':
+                    : "Please choose a design, or pick “Custom design”.";
+            case "customize":
                 if (data.personalize_later) {
                     return null;
                 }
 
                 if (!designMode) {
-                    return 'Please choose how you would like to create your design, or skip this step.';
+                    return "Please choose how you would like to create your design, or skip this step.";
                 }
 
                 if (
-                    designMode === 'self' &&
+                    designMode === "self" &&
                     !data.personalization.names.trim()
                 ) {
-                    return 'Please enter the names to feature on your design, or skip this step.';
+                    return "Please enter the names to feature on your design, or skip this step.";
                 }
 
                 if (
-                    designMode === 'assisted' &&
+                    designMode === "assisted" &&
                     !data.personalization.design_brief.trim()
                 ) {
-                    return 'Please describe the design you would like us to create, or skip this step.';
+                    return "Please describe the design you would like us to create, or skip this step.";
                 }
 
                 return null;
-            case 'specs': {
+            case "specs": {
                 const missing = groupOptions(selectedProduct?.options ?? [])
                     .filter((group) => !group.multiple)
                     .find(
@@ -571,7 +574,7 @@ export default function CreateGift({
                 }
 
                 if (needsPreviewApproval && !data.approve_preview) {
-                    return 'Please approve your design preview to continue.';
+                    return "Please approve your design preview to continue.";
                 }
 
                 return null;
@@ -585,7 +588,7 @@ export default function CreateGift({
         setData((current) => ({
             ...current,
             personalize_later: true,
-            design_mode: templateSkipped ? 'assisted' : 'self',
+            design_mode: templateSkipped ? "assisted" : "self",
             approve_preview: false,
         }));
         goTo(step + 1);
@@ -600,8 +603,8 @@ export default function CreateGift({
             return;
         }
 
-        if (stepKey === 'customize' && data.personalize_later && designMode) {
-            setData('personalize_later', false);
+        if (stepKey === "customize" && data.personalize_later && designMode) {
+            setData("personalize_later", false);
         }
 
         goTo(step + 1);
@@ -617,7 +620,7 @@ export default function CreateGift({
         }
 
         const interval = window.setInterval(
-            () => router.reload({ only: ['auth'] }),
+            () => router.reload({ only: ["auth"] }),
             5000,
         );
 
@@ -632,7 +635,7 @@ export default function CreateGift({
             {
                 preserveState: true,
                 preserveScroll: true,
-                only: ['auth'],
+                only: ["auth"],
                 onSuccess: () => {
                     setVerificationSent(true);
                     setStepError(null);
@@ -656,18 +659,18 @@ export default function CreateGift({
 
         if (isGuest) {
             setStepError(
-                'Create your free account or log in to place your order — your gift is saved right here.',
+                "Create your free account or log in to place your order — your gift is saved right here.",
             );
             document
-                .getElementById('checkout-account')
-                ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                .getElementById("checkout-account")
+                ?.scrollIntoView({ behavior: "smooth", block: "center" });
 
             return;
         }
 
         if (!isEmailVerified) {
             setStepError(
-                'Please confirm your email address before placing your order.',
+                "Please confirm your email address before placing your order.",
             );
 
             return;
@@ -692,7 +695,7 @@ export default function CreateGift({
                 saveCurrentDraft();
                 void savePhotos(data.photos);
 
-                const firstKey = Object.keys(serverErrors)[0] ?? '';
+                const firstKey = Object.keys(serverErrors)[0] ?? "";
                 const key = ERROR_STEPS.find(([pattern]) =>
                     pattern.test(firstKey),
                 )?.[1];
@@ -706,10 +709,10 @@ export default function CreateGift({
     };
 
     const setPersonalization = (key: keyof Personalization, value: string) =>
-        setData('personalization', { ...data.personalization, [key]: value });
+        setData("personalization", { ...data.personalization, [key]: value });
 
     const photoErrors = Object.entries(errors)
-        .filter(([key]) => key.startsWith('photos'))
+        .filter(([key]) => key.startsWith("photos"))
         .map(([, message]) => message)[0];
 
     const isLastStep = step === steps.length - 1;
@@ -765,19 +768,19 @@ export default function CreateGift({
 
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
                     <div key={step} className="min-w-0 animate-fade-up">
-                        {stepKey === 'product' && (
+                        {stepKey === "product" && (
                             <StepShell
                                 title={
                                     selectedProduct
-                                        ? 'Your gift'
-                                        : 'Choose your gift'
+                                        ? "Your gift"
+                                        : "Choose your gift"
                                 }
                                 description={
                                     selectedProduct
-                                        ? 'Pick a design to see it on your gift. Want something else? Choose another gift below.'
+                                        ? "Pick a design to see it on your gift. Want something else? Choose another gift below."
                                         : selectedCategory
                                           ? `Gift ideas for ${selectedCategory.name.toLowerCase()}. Tap a gift to see its details.`
-                                          : 'Tap a gift to see its details and designs. Need ideas? Pick an occasion below.'
+                                          : "Tap a gift to see its details and designs. Need ideas? Pick an occasion below."
                                 }
                             >
                                 {selectedProduct && (
@@ -797,8 +800,8 @@ export default function CreateGift({
                                                     template_id: id,
                                                     design_mode:
                                                         current.design_mode ===
-                                                        'assisted'
-                                                            ? ''
+                                                        "assisted"
+                                                            ? ""
                                                             : current.design_mode,
                                                 }));
                                                 setTemplateSkipped(false);
@@ -808,7 +811,7 @@ export default function CreateGift({
                                                 setData((current) => ({
                                                     ...current,
                                                     template_id: null,
-                                                    design_mode: 'assisted',
+                                                    design_mode: "assisted",
                                                 }));
                                                 setTemplateSkipped(true);
                                                 setStepError(null);
@@ -889,17 +892,17 @@ export default function CreateGift({
                                                         {product.min_quantity >
                                                             1 && (
                                                             <span>
-                                                                · min.{' '}
+                                                                · min.{" "}
                                                                 {
                                                                     product.min_quantity
-                                                                }{' '}
+                                                                }{" "}
                                                                 pcs
                                                             </span>
                                                         )}
                                                         {product.has_digital_experience && (
                                                             <span className="inline-flex items-center gap-1 text-plum dark:text-blush">
-                                                                ·{' '}
-                                                                <Nfc className="size-3" />{' '}
+                                                                ·{" "}
+                                                                <Nfc className="size-3" />{" "}
                                                                 Tap memory page
                                                             </span>
                                                         )}
@@ -912,7 +915,7 @@ export default function CreateGift({
                             </StepShell>
                         )}
 
-                        {stepKey === 'website' && selectedProduct && (
+                        {stepKey === "website" && selectedProduct && (
                             <StepShell
                                 title="Choose your tap page design"
                                 description="This little website opens when they tap the NFC or scan the QR code. Open a demo to see it in action — you can switch designs anytime later."
@@ -921,7 +924,7 @@ export default function CreateGift({
                                     templates={experienceTemplates}
                                     selected={data.experience_template}
                                     onSelect={(value) => {
-                                        setData('experience_template', value);
+                                        setData("experience_template", value);
                                         setStepError(null);
                                     }}
                                 />
@@ -932,7 +935,7 @@ export default function CreateGift({
                             </StepShell>
                         )}
 
-                        {stepKey === 'customize' && selectedProduct && (
+                        {stepKey === "customize" && selectedProduct && (
                             <StepShell
                                 title="Add your story"
                                 description="Add photos, names and a message now — or skip and add them later from your order page."
@@ -941,7 +944,7 @@ export default function CreateGift({
                                     <p className="text-sm text-muted-foreground">
                                         <span className="font-medium text-foreground">
                                             Not ready yet?
-                                        </span>{' '}
+                                        </span>{" "}
                                         You can upload your photos and details
                                         after you order. We will send your
                                         design for approval before anything is
@@ -961,20 +964,20 @@ export default function CreateGift({
                                         icon={Brush}
                                         title="I'll customize it myself"
                                         body="Upload photos, add names, dates and a message. See a live preview."
-                                        selected={designMode === 'self'}
+                                        selected={designMode === "self"}
                                         disabled={templateSkipped}
                                         disabledNote="Choose a template to customize it yourself."
                                         onClick={() =>
-                                            setData('design_mode', 'self')
+                                            setData("design_mode", "self")
                                         }
                                     />
                                     <ModeCard
                                         icon={Wand2}
                                         title="Let Taptale design it for me"
                                         body={`Share your photos and ideas — we'll prepare the design for your approval. +${money(selectedProduct.design_fee)}`}
-                                        selected={designMode === 'assisted'}
+                                        selected={designMode === "assisted"}
                                         onClick={() =>
-                                            setData('design_mode', 'assisted')
+                                            setData("design_mode", "assisted")
                                         }
                                     />
                                 </div>
@@ -987,11 +990,11 @@ export default function CreateGift({
                                     <div className="mt-8 space-y-6">
                                         <div>
                                             <Label className="mb-2 block text-base">
-                                                {designMode === 'self'
-                                                    ? 'Your photos'
-                                                    : 'Reference photos'}
+                                                {designMode === "self"
+                                                    ? "Your photos"
+                                                    : "Reference photos"}
                                                 <span className="ml-2 text-sm font-normal text-muted-foreground">
-                                                    up to{' '}
+                                                    up to{" "}
                                                     {selectedProduct.max_photos}
                                                 </span>
                                             </Label>
@@ -999,7 +1002,7 @@ export default function CreateGift({
                                                 id="photos"
                                                 files={data.photos}
                                                 onChange={(files) =>
-                                                    setData('photos', files)
+                                                    setData("photos", files)
                                                 }
                                                 maxFiles={
                                                     selectedProduct.max_photos
@@ -1008,13 +1011,13 @@ export default function CreateGift({
                                                     pricing.max_upload_kilobytes
                                                 }
                                                 label={
-                                                    designMode === 'self'
-                                                        ? 'Add your photos'
-                                                        : 'Add reference photos'
+                                                    designMode === "self"
+                                                        ? "Add your photos"
+                                                        : "Add reference photos"
                                                 }
                                                 error={photoErrors}
                                             />
-                                            {designMode === 'self' && (
+                                            {designMode === "self" && (
                                                 <p className="mt-2 text-xs text-muted-foreground">
                                                     The first photo appears in
                                                     your preview. Our team
@@ -1029,10 +1032,10 @@ export default function CreateGift({
                                                 label="Names"
                                                 error={
                                                     errors[
-                                                        'personalization.names'
+                                                        "personalization.names"
                                                     ]
                                                 }
-                                                required={designMode === 'self'}
+                                                required={designMode === "self"}
                                             >
                                                 <Input
                                                     value={
@@ -1041,7 +1044,7 @@ export default function CreateGift({
                                                     }
                                                     onChange={(event) =>
                                                         setPersonalization(
-                                                            'names',
+                                                            "names",
                                                             event.target.value,
                                                         )
                                                     }
@@ -1053,7 +1056,7 @@ export default function CreateGift({
                                                 label="Date"
                                                 error={
                                                     errors[
-                                                        'personalization.date'
+                                                        "personalization.date"
                                                     ]
                                                 }
                                             >
@@ -1064,11 +1067,15 @@ export default function CreateGift({
                                                     }
                                                     onChange={(event) =>
                                                         setPersonalization(
-                                                            'date',
+                                                            "date",
                                                             event.target.value,
                                                         )
                                                     }
-                                                    placeholder="e.g. 02 · 14 · 2026"
+                                                    placeholder={
+                                                        isCalendarDesign
+                                                            ? "e.g. 11 · 14 · 2026 (sets the calendar month)"
+                                                            : "e.g. 02 · 14 · 2026"
+                                                    }
                                                     maxLength={60}
                                                 />
                                             </Field>
@@ -1078,12 +1085,12 @@ export default function CreateGift({
                                                 <Field
                                                     label={
                                                         isCdDesign
-                                                            ? 'Album title'
-                                                            : 'Song title'
+                                                            ? "Album title"
+                                                            : "Song title"
                                                     }
                                                     error={
                                                         errors[
-                                                            'personalization.song_title'
+                                                            "personalization.song_title"
                                                         ]
                                                     }
                                                 >
@@ -1094,15 +1101,15 @@ export default function CreateGift({
                                                         }
                                                         onChange={(event) =>
                                                             setPersonalization(
-                                                                'song_title',
+                                                                "song_title",
                                                                 event.target
                                                                     .value,
                                                             )
                                                         }
                                                         placeholder={
                                                             isCdDesign
-                                                                ? 'e.g. Golden Days'
-                                                                : 'e.g. Our Song'
+                                                                ? "e.g. Golden Days"
+                                                                : "e.g. Our Song"
                                                         }
                                                         maxLength={80}
                                                     />
@@ -1111,7 +1118,7 @@ export default function CreateGift({
                                                     label="Artist"
                                                     error={
                                                         errors[
-                                                            'personalization.artist'
+                                                            "personalization.artist"
                                                         ]
                                                     }
                                                 >
@@ -1122,7 +1129,7 @@ export default function CreateGift({
                                                         }
                                                         onChange={(event) =>
                                                             setPersonalization(
-                                                                'artist',
+                                                                "artist",
                                                                 event.target
                                                                     .value,
                                                             )
@@ -1136,12 +1143,12 @@ export default function CreateGift({
                                         <Field
                                             label={
                                                 isCdDesign
-                                                    ? 'Tracklist (one song per line)'
-                                                    : 'Message'
+                                                    ? "Tracklist (one song per line)"
+                                                    : "Message"
                                             }
                                             error={
                                                 errors[
-                                                    'personalization.message'
+                                                    "personalization.message"
                                                 ]
                                             }
                                             hint={`${data.personalization.message.length}/300`}
@@ -1152,21 +1159,23 @@ export default function CreateGift({
                                                 }
                                                 onChange={(event) =>
                                                     setPersonalization(
-                                                        'message',
+                                                        "message",
                                                         event.target.value,
                                                     )
                                                 }
                                                 placeholder={
                                                     isCdDesign
-                                                        ? 'First date\nOur song\nForever starts today'
-                                                        : 'A short line, quote or inside joke'
+                                                        ? "First date\nOur song\nForever starts today"
+                                                        : isCalendarDesign
+                                                          ? "e.g. Years na kitang mahal — spelled out in the date boxes (up to 4 rows of 7 letters)"
+                                                          : "A short line, quote or inside joke"
                                                 }
                                                 maxLength={300}
                                                 rows={isCdDesign ? 5 : 2}
                                             />
                                         </Field>
 
-                                        {designMode === 'self' && (
+                                        {designMode === "self" && (
                                             <div>
                                                 <Label className="mb-2 block">
                                                     Accent color
@@ -1194,12 +1203,12 @@ export default function CreateGift({
                                                                 type="button"
                                                                 onClick={() =>
                                                                     setPersonalization(
-                                                                        'color',
+                                                                        "color",
                                                                         color,
                                                                     )
                                                                 }
                                                                 className={cn(
-                                                                    'size-10 rounded-full ring-2 ring-offset-2 ring-offset-background transition',
+                                                                    "size-10 rounded-full ring-2 ring-offset-2 ring-offset-background transition",
                                                                     (data
                                                                         .personalization
                                                                         .color ||
@@ -1207,8 +1216,8 @@ export default function CreateGift({
                                                                             ?.palette
                                                                             .accent) ===
                                                                         color
-                                                                        ? 'ring-plum dark:ring-blush'
-                                                                        : 'ring-transparent hover:ring-plum/30',
+                                                                        ? "ring-plum dark:ring-blush"
+                                                                        : "ring-transparent hover:ring-plum/30",
                                                                 )}
                                                                 style={{
                                                                     backgroundColor:
@@ -1221,12 +1230,12 @@ export default function CreateGift({
                                             </div>
                                         )}
 
-                                        {designMode === 'assisted' && (
+                                        {designMode === "assisted" && (
                                             <Field
                                                 label="Describe your dream design"
                                                 error={
                                                     errors[
-                                                        'personalization.design_brief'
+                                                        "personalization.design_brief"
                                                     ]
                                                 }
                                                 required
@@ -1238,7 +1247,7 @@ export default function CreateGift({
                                                     }
                                                     onChange={(event) =>
                                                         setPersonalization(
-                                                            'design_brief',
+                                                            "design_brief",
                                                             event.target.value,
                                                         )
                                                     }
@@ -1253,7 +1262,7 @@ export default function CreateGift({
                                             label="Special instructions"
                                             error={
                                                 errors[
-                                                    'personalization.instructions'
+                                                    "personalization.instructions"
                                                 ]
                                             }
                                         >
@@ -1264,7 +1273,7 @@ export default function CreateGift({
                                                 }
                                                 onChange={(event) =>
                                                     setPersonalization(
-                                                        'instructions',
+                                                        "instructions",
                                                         event.target.value,
                                                     )
                                                 }
@@ -1278,7 +1287,7 @@ export default function CreateGift({
                             </StepShell>
                         )}
 
-                        {stepKey === 'specs' && selectedProduct && (
+                        {stepKey === "specs" && selectedProduct && (
                             <StepShell
                                 title="Size, finish & quantity"
                                 description="Your price updates as you choose."
@@ -1287,7 +1296,7 @@ export default function CreateGift({
                                     options={selectedProduct.options ?? []}
                                     selected={data.option_ids}
                                     onChange={(ids) =>
-                                        setData('option_ids', ids)
+                                        setData("option_ids", ids)
                                     }
                                     symbol={symbol}
                                 />
@@ -1315,7 +1324,7 @@ export default function CreateGift({
                                             className="rounded-full"
                                             onClick={() =>
                                                 setData(
-                                                    'quantity',
+                                                    "quantity",
                                                     Math.max(
                                                         selectedProduct.min_quantity,
                                                         data.quantity - 1,
@@ -1334,7 +1343,7 @@ export default function CreateGift({
                                             value={data.quantity}
                                             onChange={(event) =>
                                                 setData(
-                                                    'quantity',
+                                                    "quantity",
                                                     Number.parseInt(
                                                         event.target.value,
                                                         10,
@@ -1351,7 +1360,7 @@ export default function CreateGift({
                                             className="rounded-full"
                                             onClick={() =>
                                                 setData(
-                                                    'quantity',
+                                                    "quantity",
                                                     Math.min(
                                                         selectedProduct.max_quantity,
                                                         data.quantity + 1,
@@ -1382,17 +1391,17 @@ export default function CreateGift({
                                         />
                                         <label
                                             className={cn(
-                                                'flex cursor-pointer gap-4 rounded-2xl border-2 bg-card p-5 transition',
+                                                "flex cursor-pointer gap-4 rounded-2xl border-2 bg-card p-5 transition",
                                                 data.approve_preview
-                                                    ? 'border-rose'
-                                                    : 'border-border',
+                                                    ? "border-rose"
+                                                    : "border-border",
                                             )}
                                         >
                                             <Checkbox
                                                 checked={data.approve_preview}
                                                 onCheckedChange={(checked) => {
                                                     setData(
-                                                        'approve_preview',
+                                                        "approve_preview",
                                                         checked === true,
                                                     );
                                                     setStepError(null);
@@ -1425,8 +1434,8 @@ export default function CreateGift({
                                                 before we make it
                                             </span>
                                             {data.personalize_later
-                                                ? 'After you order, add your photos and details from your order page. We prepare your design and send it for your approval.'
-                                                : 'After your payment is verified, our designers prepare your design and post it to your account for approval.'}
+                                                ? "After you order, add your photos and details from your order page. We prepare your design and send it for your approval."
+                                                : "After your payment is verified, our designers prepare your design and post it to your account for approval."}
                                         </p>
                                     </div>
                                 )}
@@ -1437,7 +1446,7 @@ export default function CreateGift({
                             </StepShell>
                         )}
 
-                        {stepKey === 'checkout' && (
+                        {stepKey === "checkout" && (
                             <StepShell
                                 title="Delivery & payment"
                                 description="Almost there! Tell us where to send your gift."
@@ -1458,7 +1467,7 @@ export default function CreateGift({
                                         />
                                     ) : (
                                         <EmailConfirmation
-                                            email={auth.user?.email ?? ''}
+                                            email={auth.user?.email ?? ""}
                                             isVerified={isEmailVerified}
                                             isSent={verificationSent}
                                             isSending={sendingVerification}
@@ -1482,7 +1491,7 @@ export default function CreateGift({
                                                 value={data.customer_name}
                                                 onChange={(event) =>
                                                     setData(
-                                                        'customer_name',
+                                                        "customer_name",
                                                         event.target.value,
                                                     )
                                                 }
@@ -1498,7 +1507,7 @@ export default function CreateGift({
                                                 value={data.customer_phone}
                                                 onChange={(event) =>
                                                     setData(
-                                                        'customer_phone',
+                                                        "customer_phone",
                                                         event.target.value,
                                                     )
                                                 }
@@ -1518,7 +1527,7 @@ export default function CreateGift({
                                                 value={data.customer_email}
                                                 onChange={(event) =>
                                                     setData(
-                                                        'customer_email',
+                                                        "customer_email",
                                                         event.target.value,
                                                     )
                                                 }
@@ -1535,7 +1544,7 @@ export default function CreateGift({
                                                 value={data.address_line}
                                                 onChange={(event) =>
                                                     setData(
-                                                        'address_line',
+                                                        "address_line",
                                                         event.target.value,
                                                     )
                                                 }
@@ -1552,7 +1561,7 @@ export default function CreateGift({
                                                 value={data.city}
                                                 onChange={(event) =>
                                                     setData(
-                                                        'city',
+                                                        "city",
                                                         event.target.value,
                                                     )
                                                 }
@@ -1568,7 +1577,7 @@ export default function CreateGift({
                                                 value={data.province}
                                                 onChange={(event) =>
                                                     setData(
-                                                        'province',
+                                                        "province",
                                                         event.target.value,
                                                     )
                                                 }
@@ -1584,7 +1593,7 @@ export default function CreateGift({
                                                 value={data.postal_code}
                                                 onChange={(event) =>
                                                     setData(
-                                                        'postal_code',
+                                                        "postal_code",
                                                         event.target.value,
                                                     )
                                                 }
@@ -1597,7 +1606,7 @@ export default function CreateGift({
                                                 checked={data.save_details}
                                                 onCheckedChange={(checked) =>
                                                     setData(
-                                                        'save_details',
+                                                        "save_details",
                                                         checked === true,
                                                     )
                                                 }
@@ -1625,16 +1634,16 @@ export default function CreateGift({
                                                             type="button"
                                                             onClick={() =>
                                                                 setData(
-                                                                    'payment_method_id',
+                                                                    "payment_method_id",
                                                                     method.id,
                                                                 )
                                                             }
                                                             className={cn(
-                                                                'rounded-2xl border-2 bg-card p-4 text-left transition',
+                                                                "rounded-2xl border-2 bg-card p-4 text-left transition",
                                                                 data.payment_method_id ===
                                                                     method.id
-                                                                    ? 'border-rose bg-blush-light/40 dark:bg-rose/10'
-                                                                    : 'border-border hover:border-rose/40',
+                                                                    ? "border-rose bg-blush-light/40 dark:bg-rose/10"
+                                                                    : "border-border hover:border-rose/40",
                                                             )}
                                                         >
                                                             <span className="flex items-center justify-between gap-3">
@@ -1645,11 +1654,11 @@ export default function CreateGift({
                                                                 </span>
                                                                 <span
                                                                     className={cn(
-                                                                        'flex size-5 items-center justify-center rounded-full border-2',
+                                                                        "flex size-5 items-center justify-center rounded-full border-2",
                                                                         data.payment_method_id ===
                                                                             method.id
-                                                                            ? 'border-rose bg-rose text-white'
-                                                                            : 'border-border',
+                                                                            ? "border-rose bg-rose text-white"
+                                                                            : "border-border",
                                                                     )}
                                                                 >
                                                                     {data.payment_method_id ===
@@ -1694,7 +1703,7 @@ export default function CreateGift({
                                                     (method) =>
                                                         method.id ===
                                                         data.payment_method_id,
-                                                )?.driver ?? ''
+                                                )?.driver ?? ""
                                             ] ??
                                                 "You'll see the account details and upload your receipt on your order page right after placing the order."}
                                         </p>
@@ -1708,7 +1717,7 @@ export default function CreateGift({
                                             value={data.customer_notes}
                                             onChange={(event) =>
                                                 setData(
-                                                    'customer_notes',
+                                                    "customer_notes",
                                                     event.target.value,
                                                 )
                                             }
@@ -1733,7 +1742,7 @@ export default function CreateGift({
 
                     <aside className="hidden lg:block">
                         <div className="sticky top-28 space-y-5">
-                            {selectedProduct && stepKey !== 'product' && (
+                            {selectedProduct && stepKey !== "product" && (
                                 <div className="rounded-3xl bg-gradient-to-br from-blush-light to-cream-dark/70 p-6 dark:from-muted dark:to-background">
                                     <p className="mb-4 text-center text-xs font-semibold tracking-[0.2em] text-rose uppercase">
                                         Live preview
@@ -1756,10 +1765,10 @@ export default function CreateGift({
                                 price={price}
                                 pricing={pricing}
                                 designModeLabel={
-                                    designMode === 'self'
-                                        ? 'Customized by you'
-                                        : designMode === 'assisted'
-                                          ? 'Designed by Taptale'
+                                    designMode === "self"
+                                        ? "Customized by you"
+                                        : designMode === "assisted"
+                                          ? "Designed by Taptale"
                                           : null
                                 }
                             />
@@ -1790,7 +1799,7 @@ export default function CreateGift({
                                     />
                                 </div>
                             </div>
-                            {stepKey === 'customize' && (
+                            {stepKey === "customize" && (
                                 <button
                                     type="button"
                                     onClick={skipPersonalize}
@@ -1800,7 +1809,7 @@ export default function CreateGift({
                                 </button>
                             )}
                             <p className="flex items-center gap-2 px-2 text-xs text-muted-foreground">
-                                <BadgeCheck className="size-4 text-rose" />{' '}
+                                <BadgeCheck className="size-4 text-rose" />{" "}
                                 Nothing is produced until your design is
                                 approved.
                             </p>
@@ -1895,10 +1904,10 @@ function SelectableCard({
             onClick={onClick}
             disabled={loading}
             className={cn(
-                'relative overflow-hidden rounded-[1.25rem] border-2 bg-card p-4 text-left transition-all duration-200 hover:-translate-y-0.5',
+                "relative overflow-hidden rounded-[1.25rem] border-2 bg-card p-4 text-left transition-all duration-200 hover:-translate-y-0.5",
                 selected
-                    ? 'border-rose shadow-[0_14px_30px_-18px_rgb(184_111_131/0.9)]'
-                    : 'border-border/70 hover:border-rose/40',
+                    ? "border-rose shadow-[0_14px_30px_-18px_rgb(184_111_131/0.9)]"
+                    : "border-border/70 hover:border-rose/40",
                 className,
             )}
         >
@@ -1939,18 +1948,18 @@ function ModeCard({
             onClick={onClick}
             disabled={disabled}
             className={cn(
-                'flex gap-4 rounded-3xl border-2 bg-card p-5 text-left transition-all disabled:cursor-not-allowed disabled:opacity-50',
+                "flex gap-4 rounded-3xl border-2 bg-card p-5 text-left transition-all disabled:cursor-not-allowed disabled:opacity-50",
                 selected
-                    ? 'border-rose bg-blush-light/40 shadow-[0_14px_30px_-18px_rgb(184_111_131/0.9)] dark:bg-rose/10'
-                    : 'border-border hover:border-rose/40',
+                    ? "border-rose bg-blush-light/40 shadow-[0_14px_30px_-18px_rgb(184_111_131/0.9)] dark:bg-rose/10"
+                    : "border-border hover:border-rose/40",
             )}
         >
             <span
                 className={cn(
-                    'flex size-12 shrink-0 items-center justify-center rounded-2xl',
+                    "flex size-12 shrink-0 items-center justify-center rounded-2xl",
                     selected
-                        ? 'bg-rose text-white'
-                        : 'bg-blush-light text-plum dark:bg-rose/20 dark:text-blush',
+                        ? "bg-rose text-white"
+                        : "bg-blush-light text-plum dark:bg-rose/20 dark:text-blush",
                 )}
             >
                 <Icon className="size-6" />
@@ -1983,7 +1992,7 @@ function Field({
     children: ReactNode;
 }) {
     return (
-        <div className={cn('grid gap-2', className)}>
+        <div className={cn("grid gap-2", className)}>
             <div className="flex items-baseline justify-between">
                 <Label>
                     {label}
@@ -2018,10 +2027,10 @@ function GiftIdeas({
 
     const chipClass = (isActive: boolean) =>
         cn(
-            'inline-flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-medium transition-colors',
+            "inline-flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-medium transition-colors",
             isActive
-                ? 'border-rose bg-rose text-white'
-                : 'border-border/70 bg-card hover:border-rose/50',
+                ? "border-rose bg-rose text-white"
+                : "border-border/70 bg-card hover:border-rose/50",
         );
 
     return (
@@ -2096,7 +2105,7 @@ function EmailConfirmation({
     if (isVerified) {
         return (
             <p className="flex items-center gap-2 rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-800 dark:bg-green-950/40 dark:text-green-300">
-                <BadgeCheck className="size-4 shrink-0" /> Email confirmed:{' '}
+                <BadgeCheck className="size-4 shrink-0" /> Email confirmed:{" "}
                 {email}
             </p>
         );
@@ -2113,7 +2122,7 @@ function EmailConfirmation({
                     <p className="mt-1 text-sm text-muted-foreground">
                         {isSent ? (
                             <>
-                                We sent a link to{' '}
+                                We sent a link to{" "}
                                 <span className="font-medium text-foreground">
                                     {email}
                                 </span>
@@ -2122,10 +2131,10 @@ function EmailConfirmation({
                             </>
                         ) : (
                             <>
-                                We'll send a quick link to{' '}
+                                We'll send a quick link to{" "}
                                 <span className="font-medium text-foreground">
                                     {email}
-                                </span>{' '}
+                                </span>{" "}
                                 so we can send you order updates.
                             </>
                         )}
@@ -2133,7 +2142,7 @@ function EmailConfirmation({
                     <div className="mt-3 flex flex-wrap items-center gap-3">
                         <Button
                             type="button"
-                            variant={isSent ? 'outline' : 'default'}
+                            variant={isSent ? "outline" : "default"}
                             onClick={onSend}
                             disabled={isSending}
                             className="rounded-full"
@@ -2141,11 +2150,11 @@ function EmailConfirmation({
                             {isSending && (
                                 <Loader2 className="size-4 animate-spin" />
                             )}
-                            {isSent ? 'Resend link' : 'Send confirmation link'}
+                            {isSent ? "Resend link" : "Send confirmation link"}
                         </Button>
                         {isSent && (
                             <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
-                                <Loader2 className="size-3 animate-spin" />{' '}
+                                <Loader2 className="size-3 animate-spin" />{" "}
                                 Waiting for confirmation…
                             </span>
                         )}
@@ -2174,15 +2183,15 @@ function GuestAccount({
     onRegistered: () => void;
     onLoggedIn: () => void;
 }) {
-    const [mode, setMode] = useState<'register' | 'login'>('register');
+    const [mode, setMode] = useState<"register" | "login">("register");
     const form = useForm({
         name: defaultName,
         email: defaultEmail,
-        password: '',
-        password_confirmation: '',
+        password: "",
+        password_confirmation: "",
         remember: true,
     });
-    const isRegistering = mode === 'register';
+    const isRegistering = mode === "register";
 
     const submitAccount = () => {
         form.transform(
@@ -2196,7 +2205,7 @@ function GuestAccount({
             preserveState: true,
             preserveScroll: true,
             onSuccess: () => {
-                form.reset('password', 'password_confirmation');
+                form.reset("password", "password_confirmation");
 
                 if (isRegistering) {
                     onRegistered();
@@ -2217,8 +2226,8 @@ function GuestAccount({
                 <div className="min-w-0 flex-1">
                     <p className="font-display text-lg leading-tight">
                         {isRegistering
-                            ? 'Create your free account to place your order'
-                            : 'Welcome back! Log in to place your order'}
+                            ? "Create your free account to place your order"
+                            : "Welcome back! Log in to place your order"}
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
                         Everything you've made stays right here. Your account
@@ -2234,8 +2243,8 @@ function GuestAccount({
             >
                 {(
                     [
-                        ['register', 'New here'],
-                        ['login', 'I have an account'],
+                        ["register", "New here"],
+                        ["login", "I have an account"],
                     ] as const
                 ).map(([value, label]) => (
                     <button
@@ -2248,10 +2257,10 @@ function GuestAccount({
                             form.clearErrors();
                         }}
                         className={cn(
-                            'rounded-full px-3 py-2 transition',
+                            "rounded-full px-3 py-2 transition",
                             mode === value
-                                ? 'bg-plum text-white shadow-sm dark:bg-blush dark:text-plum-dark'
-                                : 'text-muted-foreground hover:text-foreground',
+                                ? "bg-plum text-white shadow-sm dark:bg-blush dark:text-plum-dark"
+                                : "text-muted-foreground hover:text-foreground",
                         )}
                     >
                         {label}
@@ -2276,7 +2285,7 @@ function GuestAccount({
                         <Input
                             value={form.data.name}
                             onChange={(event) =>
-                                form.setData('name', event.target.value)
+                                form.setData("name", event.target.value)
                             }
                             autoComplete="name"
                             required
@@ -2293,7 +2302,7 @@ function GuestAccount({
                         type="email"
                         value={form.data.email}
                         onChange={(event) =>
-                            form.setData('email', event.target.value)
+                            form.setData("email", event.target.value)
                         }
                         autoComplete="email"
                         required
@@ -2303,15 +2312,15 @@ function GuestAccount({
                     label="Password"
                     error={form.errors.password}
                     required
-                    className={isRegistering ? undefined : 'sm:col-span-2'}
+                    className={isRegistering ? undefined : "sm:col-span-2"}
                 >
                     <PasswordInput
                         value={form.data.password}
                         onChange={(event) =>
-                            form.setData('password', event.target.value)
+                            form.setData("password", event.target.value)
                         }
                         autoComplete={
-                            isRegistering ? 'new-password' : 'current-password'
+                            isRegistering ? "new-password" : "current-password"
                         }
                         passwordrules={
                             isRegistering
@@ -2331,7 +2340,7 @@ function GuestAccount({
                             value={form.data.password_confirmation}
                             onChange={(event) =>
                                 form.setData(
-                                    'password_confirmation',
+                                    "password_confirmation",
                                     event.target.value,
                                 )
                             }
@@ -2349,11 +2358,11 @@ function GuestAccount({
                         {form.processing && (
                             <Loader2 className="size-4 animate-spin" />
                         )}
-                        {isRegistering ? 'Create account' : 'Log in'}
+                        {isRegistering ? "Create account" : "Log in"}
                     </Button>
                     {isRegistering ? (
                         <p className="text-xs text-muted-foreground">
-                            By creating an account you agree to our{' '}
+                            By creating an account you agree to our{" "}
                             <a
                                 href={terms.url()}
                                 target="_blank"
@@ -2361,8 +2370,8 @@ function GuestAccount({
                                 className="underline underline-offset-2"
                             >
                                 Terms
-                            </a>{' '}
-                            and{' '}
+                            </a>{" "}
+                            and{" "}
                             <a
                                 href={privacy.url()}
                                 target="_blank"
@@ -2410,10 +2419,10 @@ function DraftNotice({
         <section
             role="status"
             className={cn(
-                'mb-6 flex flex-col gap-4 rounded-3xl p-5 sm:flex-row sm:items-center',
+                "mb-6 flex flex-col gap-4 rounded-3xl p-5 sm:flex-row sm:items-center",
                 isSubtle
-                    ? 'border border-border bg-card'
-                    : 'border-2 border-rose/40 bg-blush-light/50 dark:bg-rose/10',
+                    ? "border border-border bg-card"
+                    : "border-2 border-rose/40 bg-blush-light/50 dark:bg-rose/10",
             )}
         >
             <History className="size-5 shrink-0 text-rose" aria-hidden />
@@ -2434,7 +2443,7 @@ function DraftNotice({
                 </Button>
                 <Button
                     type="button"
-                    variant={isSubtle ? 'outline' : 'default'}
+                    variant={isSubtle ? "outline" : "default"}
                     className="rounded-full"
                     onClick={onAction}
                 >
@@ -2476,13 +2485,13 @@ function PrimaryAction({
             onClick={isLast ? onSubmit : onNext}
             disabled={processing || disabled}
             className={cn(
-                'rounded-full bg-plum text-white shadow-[0_10px_24px_-10px_rgb(113_61_80/0.7)] hover:bg-plum-dark dark:bg-blush dark:text-plum-dark',
-                compact ? 'h-12 px-6' : 'h-12 px-8 text-base',
+                "rounded-full bg-plum text-white shadow-[0_10px_24px_-10px_rgb(113_61_80/0.7)] hover:bg-plum-dark dark:bg-blush dark:text-plum-dark",
+                compact ? "h-12 px-6" : "h-12 px-8 text-base",
             )}
         >
             {processing && <Loader2 className="size-4 animate-spin" />}
             {isLast ? (
-                <>Place order{total && !compact ? ` · ${total}` : ''}</>
+                <>Place order{total && !compact ? ` · ${total}` : ""}</>
             ) : (
                 <>
                     Continue <ArrowRight className="size-4" />

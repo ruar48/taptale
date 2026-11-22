@@ -7,9 +7,9 @@ import {
     Shuffle,
     SkipBack,
     SkipForward,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { Palette } from '@/types';
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { Palette } from "@/types";
 
 export type LayoutText = {
     names: string;
@@ -37,11 +37,11 @@ export type DesignContent = {
     artist?: string | null;
 };
 
-const SAMPLE_TEXT = {
-    names: 'Ana & Leo',
-    date: '02 · 14 · 2026',
-    message: 'Every tap tells our story',
-    songTitle: 'Our Song',
+export const SAMPLE_TEXT = {
+    names: "Ana & Leo",
+    date: "02 · 14 · 2026",
+    message: "Every tap tells our story",
+    songTitle: "Our Song",
 };
 
 /**
@@ -88,7 +88,7 @@ export function Photo({
             <img
                 src={url}
                 alt=""
-                className={cn('object-cover', className)}
+                className={cn("object-cover", className)}
                 style={style}
                 draggable={false}
             />
@@ -97,7 +97,7 @@ export function Photo({
 
     return (
         <div
-            className={cn('flex items-center justify-center', className)}
+            className={cn("flex items-center justify-center", className)}
             style={{
                 background: `linear-gradient(135deg, ${accent}66, ${accent}22 55%, #ffffff55)`,
                 ...style,
@@ -105,7 +105,7 @@ export function Photo({
         >
             <Heart
                 className="opacity-70"
-                style={{ width: '12cqw', height: '12cqw', color: accent }}
+                style={{ width: "12cqw", height: "12cqw", color: accent }}
                 strokeWidth={1.5}
             />
         </div>
@@ -141,7 +141,7 @@ export function tracklist(message: string): string[] {
     return (
         lines.length > 1
             ? lines
-            : ['Intro', message, 'Our Song', 'Forever', 'Outro']
+            : ["Intro", message, "Our Song", "Forever", "Outro"]
     ).slice(0, 10);
 }
 
@@ -163,9 +163,9 @@ export function MiniCdCover({ colors, text, photoAt }: LayoutProps) {
             <p
                 className="absolute top-[5cqw] left-[6cqw] font-semibold tracking-[0.3em] uppercase"
                 style={{
-                    fontSize: '3.6cqw',
+                    fontSize: "3.6cqw",
                     color: colors.ink,
-                    textShadow: '0 1px 6px rgb(0 0 0 / 0.25)',
+                    textShadow: "0 1px 6px rgb(0 0 0 / 0.25)",
                 }}
             >
                 {text.artist}
@@ -173,13 +173,13 @@ export function MiniCdCover({ colors, text, photoAt }: LayoutProps) {
             <div className="absolute inset-x-[6cqw] bottom-[5cqw]">
                 <p
                     className="line-clamp-2 font-display leading-[0.95] font-semibold tracking-tight uppercase"
-                    style={{ fontSize: '12cqw', color: colors.ink }}
+                    style={{ fontSize: "12cqw", color: colors.ink }}
                 >
                     {text.songTitle}
                 </p>
                 <div
                     className="mt-[2cqw] flex items-center justify-between"
-                    style={{ fontSize: '3cqw', color: colors.ink }}
+                    style={{ fontSize: "3cqw", color: colors.ink }}
                 >
                     <span
                         className="block h-[0.8cqw] w-[14cqw]"
@@ -202,7 +202,7 @@ export function MiniCdBack({ colors, text, photoAt }: LayoutProps) {
             style={{
                 backgroundColor: colors.background,
                 color: colors.ink,
-                containerType: 'inline-size',
+                containerType: "inline-size",
             }}
         >
             <Photo
@@ -211,11 +211,11 @@ export function MiniCdBack({ colors, text, photoAt }: LayoutProps) {
                 className="h-[34%] w-full opacity-90"
             />
             <div className="flex flex-1 flex-col px-[7cqw] py-[4cqw]">
-                <ol className="space-y-[0.6cqw]" style={{ fontSize: '3.6cqw' }}>
+                <ol className="space-y-[0.6cqw]" style={{ fontSize: "3.6cqw" }}>
                     {tracks.map((track, index) => (
                         <li key={index} className="flex gap-[2cqw] truncate">
                             <span className="opacity-60">
-                                {String(index + 1).padStart(2, '0')}
+                                {String(index + 1).padStart(2, "0")}
                             </span>
                             <span className="truncate">{track}</span>
                         </li>
@@ -224,7 +224,7 @@ export function MiniCdBack({ colors, text, photoAt }: LayoutProps) {
                 <div className="mt-auto flex items-end justify-between">
                     <span
                         className="font-semibold tracking-[0.2em] uppercase"
-                        style={{ fontSize: '2.8cqw', color: colors.accent }}
+                        style={{ fontSize: "2.8cqw", color: colors.accent }}
                     >
                         {text.artist}
                     </span>
@@ -235,8 +235,8 @@ export function MiniCdBack({ colors, text, photoAt }: LayoutProps) {
                                 className="block bg-black"
                                 style={{
                                     width:
-                                        index % 3 === 0 ? '0.8cqw' : '0.4cqw',
-                                    height: '100%',
+                                        index % 3 === 0 ? "0.8cqw" : "0.4cqw",
+                                    height: "100%",
                                 }}
                             />
                         ))}
@@ -257,11 +257,11 @@ export function MiniCdDisc({
     return (
         <div
             className={cn(
-                'relative aspect-square overflow-hidden rounded-full shadow-[0_6px_18px_rgb(0_0_0/0.3)]',
+                "relative aspect-square overflow-hidden rounded-full shadow-[0_6px_18px_rgb(0_0_0/0.3)]",
                 className,
             )}
             style={{
-                containerType: 'inline-size',
+                containerType: "inline-size",
                 backgroundColor: colors.background,
             }}
         >
@@ -276,9 +276,9 @@ export function MiniCdDisc({
             <p
                 className="absolute inset-x-0 bottom-[12%] truncate px-[20%] text-center font-semibold tracking-[0.2em] uppercase"
                 style={{
-                    fontSize: '5cqw',
+                    fontSize: "5cqw",
                     color: colors.ink,
-                    textShadow: '0 1px 4px rgb(0 0 0 / 0.3)',
+                    textShadow: "0 1px 4px rgb(0 0 0 / 0.3)",
                 }}
             >
                 {text.songTitle}
@@ -302,13 +302,13 @@ export function MusicPlayerCard({ colors, text, photoAt }: LayoutProps) {
                 <div className="min-w-0">
                     <p
                         className="truncate font-bold"
-                        style={{ fontSize: '7cqw', lineHeight: 1.15 }}
+                        style={{ fontSize: "7cqw", lineHeight: 1.15 }}
                     >
                         {text.songTitle}
                     </p>
                     <p
                         className="truncate opacity-70"
-                        style={{ fontSize: '4.6cqw' }}
+                        style={{ fontSize: "4.6cqw" }}
                     >
                         {text.artist}
                     </p>
@@ -316,8 +316,8 @@ export function MusicPlayerCard({ colors, text, photoAt }: LayoutProps) {
                 <Heart
                     className="shrink-0"
                     style={{
-                        width: '7cqw',
-                        height: '7cqw',
+                        width: "7cqw",
+                        height: "7cqw",
                         color: colors.accent,
                         fill: colors.accent,
                     }}
@@ -339,7 +339,7 @@ export function MusicPlayerCard({ colors, text, photoAt }: LayoutProps) {
                 </div>
                 <div
                     className="mt-[1.5cqw] flex justify-between opacity-70"
-                    style={{ fontSize: '3.2cqw' }}
+                    style={{ fontSize: "3.2cqw" }}
                 >
                     <span>1:24</span>
                     <span>3:45</span>
@@ -348,15 +348,15 @@ export function MusicPlayerCard({ colors, text, photoAt }: LayoutProps) {
             <div className="mt-[2cqw] flex items-center justify-between">
                 <Shuffle
                     style={{
-                        width: '6cqw',
-                        height: '6cqw',
+                        width: "6cqw",
+                        height: "6cqw",
                         color: colors.accent,
                     }}
                 />
                 <SkipBack
                     style={{
-                        width: '7.5cqw',
-                        height: '7.5cqw',
+                        width: "7.5cqw",
+                        height: "7.5cqw",
                         fill: colors.ink,
                     }}
                 />
@@ -366,8 +366,8 @@ export function MusicPlayerCard({ colors, text, photoAt }: LayoutProps) {
                 >
                     <Pause
                         style={{
-                            width: '7cqw',
-                            height: '7cqw',
+                            width: "7cqw",
+                            height: "7cqw",
                             color: colors.background,
                             fill: colors.background,
                         }}
@@ -375,13 +375,13 @@ export function MusicPlayerCard({ colors, text, photoAt }: LayoutProps) {
                 </span>
                 <SkipForward
                     style={{
-                        width: '7.5cqw',
-                        height: '7.5cqw',
+                        width: "7.5cqw",
+                        height: "7.5cqw",
                         fill: colors.ink,
                     }}
                 />
                 <Repeat
-                    style={{ width: '6cqw', height: '6cqw', opacity: 0.6 }}
+                    style={{ width: "6cqw", height: "6cqw", opacity: 0.6 }}
                 />
             </div>
             <div className="mt-auto flex items-center gap-[3cqw] pt-[3cqw]">
@@ -391,8 +391,8 @@ export function MusicPlayerCard({ colors, text, photoAt }: LayoutProps) {
                 >
                     <Music2
                         style={{
-                            width: '5cqw',
-                            height: '5cqw',
+                            width: "5cqw",
+                            height: "5cqw",
                             color: colors.background,
                         }}
                     />
@@ -404,7 +404,7 @@ export function MusicPlayerCard({ colors, text, photoAt }: LayoutProps) {
                                 key={index}
                                 className="block rounded-full"
                                 style={{
-                                    width: '1.3cqw',
+                                    width: "1.3cqw",
                                     height: `${height}%`,
                                     backgroundColor: colors.ink,
                                 }}
@@ -432,13 +432,13 @@ export function PhotoStripLayout({ colors, text, photoAt }: LayoutProps) {
             <div className="text-center">
                 <p
                     className="truncate font-display italic"
-                    style={{ fontSize: '9cqw', lineHeight: 1.1 }}
+                    style={{ fontSize: "9cqw", lineHeight: 1.1 }}
                 >
                     {text.names}
                 </p>
                 <p
                     className="tracking-[0.25em] uppercase opacity-70"
-                    style={{ fontSize: '4.5cqw', color: colors.accent }}
+                    style={{ fontSize: "4.5cqw", color: colors.accent }}
                 >
                     {text.date}
                 </p>
@@ -460,7 +460,7 @@ export function TapTagLayout({ colors, text, photoAt }: LayoutProps) {
         >
             <p
                 className="font-semibold tracking-[0.4em] uppercase opacity-80"
-                style={{ fontSize: '5cqw' }}
+                style={{ fontSize: "5cqw" }}
             >
                 Tap me
             </p>
@@ -474,20 +474,20 @@ export function TapTagLayout({ colors, text, photoAt }: LayoutProps) {
             ) : (
                 <span className="my-[4cqw] flex size-[38%] items-center justify-center rounded-full bg-white/15 ring-[1cqw] ring-white/40">
                     <Nfc
-                        style={{ width: '22cqw', height: '22cqw' }}
+                        style={{ width: "22cqw", height: "22cqw" }}
                         strokeWidth={1.6}
                     />
                 </span>
             )}
             <p
                 className="max-w-[78%] truncate font-bold"
-                style={{ fontSize: '8.5cqw' }}
+                style={{ fontSize: "8.5cqw" }}
             >
                 {text.names}
             </p>
             <p
                 className="max-w-[70%] truncate opacity-80"
-                style={{ fontSize: '4.5cqw' }}
+                style={{ fontSize: "4.5cqw" }}
             >
                 {text.message}
             </p>
@@ -516,8 +516,8 @@ export function EngravedLayout({ colors, text, photoAt }: LayoutProps) {
                         alt=""
                         className="size-full object-cover"
                         style={{
-                            filter: 'grayscale(1) sepia(1) contrast(1.7) brightness(0.85)',
-                            mixBlendMode: 'multiply',
+                            filter: "grayscale(1) sepia(1) contrast(1.7) brightness(0.85)",
+                            mixBlendMode: "multiply",
                             opacity: 0.85,
                         }}
                         draggable={false}
@@ -526,8 +526,8 @@ export function EngravedLayout({ colors, text, photoAt }: LayoutProps) {
                     <div className="flex size-full items-center justify-center">
                         <Heart
                             style={{
-                                width: '30cqw',
-                                height: '30cqw',
+                                width: "30cqw",
+                                height: "30cqw",
                                 color: colors.ink,
                                 opacity: 0.7,
                             }}
@@ -539,16 +539,16 @@ export function EngravedLayout({ colors, text, photoAt }: LayoutProps) {
             <p
                 className="line-clamp-2 font-display italic"
                 style={{
-                    fontSize: '6.4cqw',
+                    fontSize: "6.4cqw",
                     lineHeight: 1.15,
-                    textShadow: '0 1px 0 rgb(255 255 255 / 0.25)',
+                    textShadow: "0 1px 0 rgb(255 255 255 / 0.25)",
                 }}
             >
                 {text.message}
             </p>
             <p
                 className="tracking-[0.3em] uppercase opacity-80"
-                style={{ fontSize: '3.6cqw' }}
+                style={{ fontSize: "3.6cqw" }}
             >
                 {text.names}
             </p>
@@ -571,16 +571,16 @@ export function DieCutLayout({
                     ? undefined
                     : {
                           backgroundImage: `radial-gradient(${colors.accent}33 1.2px, transparent 1.2px)`,
-                          backgroundSize: '6cqw 6cqw',
+                          backgroundSize: "6cqw 6cqw",
                       }
             }
         >
             <div
                 className="aspect-square w-[74%] overflow-hidden border-white"
                 style={{
-                    borderWidth: '3.5cqw',
-                    borderRadius: '46% 54% 42% 58% / 52% 44% 56% 48%',
-                    filter: 'drop-shadow(0 2cqw 3cqw rgb(0 0 0 / 0.25))',
+                    borderWidth: "3.5cqw",
+                    borderRadius: "46% 54% 42% 58% / 52% 44% 56% 48%",
+                    filter: "drop-shadow(0 2cqw 3cqw rgb(0 0 0 / 0.25))",
                 }}
             >
                 <Photo
@@ -592,14 +592,234 @@ export function DieCutLayout({
             <p
                 className="-mt-[5cqw] max-w-full truncate px-[3cqw] font-black tracking-tight"
                 style={{
-                    fontSize: '11cqw',
+                    fontSize: "11cqw",
                     color: colors.accent,
                     textShadow:
-                        '0.8cqw 0 #fff, -0.8cqw 0 #fff, 0 0.8cqw #fff, 0 -0.8cqw #fff, 0.6cqw 0.6cqw #fff, -0.6cqw -0.6cqw #fff, 0.6cqw -0.6cqw #fff, -0.6cqw 0.6cqw #fff, 0 1.6cqw 2cqw rgb(0 0 0 / 0.2)',
+                        "0.8cqw 0 #fff, -0.8cqw 0 #fff, 0 0.8cqw #fff, 0 -0.8cqw #fff, 0.6cqw 0.6cqw #fff, -0.6cqw -0.6cqw #fff, 0.6cqw -0.6cqw #fff, -0.6cqw 0.6cqw #fff, 0 1.6cqw 2cqw rgb(0 0 0 / 0.2)",
                 }}
             >
                 {text.names}
             </p>
+        </div>
+    );
+}
+
+const CALENDAR_MONTHS = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+];
+
+const CALENDAR_WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+const CALENDAR_SAMPLE_MESSAGE = "Years na kitang mahal";
+
+export type CalendarDate = {
+    year: number;
+    /** 0-based month index. */
+    month: number;
+    day: number | null;
+};
+
+/**
+ * Reads the month (and day, when present) from the free-text date the
+ * customer typed, e.g. "11 · 14 · 2026", "2026-11-14" or "Nov 14, 2026".
+ * Falls back to the current month when nothing usable is found.
+ */
+export function parseCalendarDate(value: string): CalendarDate {
+    const build = (year: number, month: number, day: number | null) => {
+        const daysInMonth = new Date(year, month, 0).getDate();
+
+        return {
+            year,
+            month: month - 1,
+            day: day !== null && day >= 1 && day <= daysInMonth ? day : null,
+        };
+    };
+
+    const isoDate = value.match(/(\d{4})\D+(\d{1,2})(?:\D+(\d{1,2}))?/);
+
+    if (isoDate && +isoDate[2] >= 1 && +isoDate[2] <= 12) {
+        return build(+isoDate[1], +isoDate[2], isoDate[3] ? +isoDate[3] : null);
+    }
+
+    const numericDate = value.match(/(\d{1,2})\D+(\d{1,2})\D+(\d{4})/);
+
+    if (numericDate) {
+        let [month, day] = [+numericDate[1], +numericDate[2]];
+
+        if (month > 12 && day <= 12) {
+            [month, day] = [day, month];
+        }
+
+        if (month >= 1 && month <= 12) {
+            return build(+numericDate[3], month, day);
+        }
+    }
+
+    const upper = value.toUpperCase();
+    const namedMonth = CALENDAR_MONTHS.findIndex((name) =>
+        upper.includes(name.slice(0, 3).toUpperCase()),
+    );
+    const today = new Date();
+
+    if (namedMonth >= 0) {
+        const year = value.match(/\d{4}/);
+        const day = value.replace(/\d{4}/, "").match(/\d{1,2}/);
+
+        return build(
+            year ? +year[0] : today.getFullYear(),
+            namedMonth + 1,
+            day ? +day[0] : null,
+        );
+    }
+
+    return { year: today.getFullYear(), month: today.getMonth(), day: null };
+}
+
+/**
+ * Word-wraps a message into rows of week-sized letter boxes. Words share a
+ * row only when they fit with a blank box between them; longer words are
+ * split across rows.
+ */
+export function calendarLines(message: string, maxRows = 4): string[] {
+    const words = message
+        .toUpperCase()
+        .split(/\s+/)
+        .flatMap((word) => word.match(/.{1,7}/gu) ?? []);
+    const lines: string[] = [];
+
+    for (const word of words) {
+        const last = lines[lines.length - 1];
+
+        if (last !== undefined && last.length + 1 + word.length <= 7) {
+            lines[lines.length - 1] = `${last} ${word}`;
+        } else {
+            lines.push(word);
+        }
+    }
+
+    return lines.slice(0, maxRows);
+}
+
+/**
+ * Pinoy calendar keychain (3:4): photo on top, the month of the special
+ * date and the customer's message spelled out letter by letter in the
+ * calendar boxes.
+ */
+export function CalendarLayout({ colors, text, photoAt }: LayoutProps) {
+    const { year, month, day } = parseCalendarDate(text.date);
+    const firstWeekday = new Date(year, month, 1).getDay();
+    const message =
+        text.message === SAMPLE_TEXT.message
+            ? CALENDAR_SAMPLE_MESSAGE
+            : text.message;
+    const lines = calendarLines(message);
+    const rows = [
+        Array.from({ length: 7 }, (_, column) =>
+            column >= firstWeekday ? String(column - firstWeekday + 1) : "",
+        ),
+        ...Array.from({ length: 4 }, (_, row) => {
+            const line = lines[row] ?? "";
+            const start = Math.floor((7 - line.length) / 2);
+
+            return Array.from(
+                { length: 7 },
+                (_, column) => line[column - start]?.trim() ?? "",
+            );
+        }),
+    ];
+    const gridLine = `color-mix(in oklab, ${colors.ink} 70%, transparent)`;
+
+    return (
+        <div className="flex size-full flex-col p-[5cqw]">
+            <Photo
+                url={photoAt(0)}
+                accent={colors.accent}
+                className="min-h-0 w-full flex-1"
+            />
+            <div
+                className="mt-[2.5cqw] flex items-stretch font-bold tracking-[0.08em] uppercase"
+                style={{
+                    fontSize: "3.6cqw",
+                    border: `0.4cqw solid ${gridLine}`,
+                }}
+            >
+                <span className="flex flex-1 items-center justify-center">
+                    {year}
+                </span>
+                <span
+                    className="flex flex-[2] items-center justify-center py-[0.8cqw]"
+                    style={{
+                        backgroundColor: colors.accent,
+                        color: colors.background,
+                        fontSize: "4.4cqw",
+                    }}
+                >
+                    {CALENDAR_MONTHS[month]}
+                </span>
+                <span className="flex flex-1 items-center justify-center">
+                    {year}
+                </span>
+            </div>
+            <div
+                className="mt-[1.5cqw] grid grid-cols-7 gap-[0.4cqw] p-[0.4cqw]"
+                style={{ backgroundColor: gridLine }}
+            >
+                {CALENDAR_WEEKDAYS.map((weekday, column) => (
+                    <span
+                        key={weekday}
+                        className="flex items-center justify-center py-[0.6cqw] font-bold uppercase"
+                        style={{
+                            fontSize: "2.4cqw",
+                            backgroundColor: colors.background,
+                            color: column === 0 ? colors.accent : colors.ink,
+                        }}
+                    >
+                        {weekday}
+                    </span>
+                ))}
+                {rows.flatMap((cells, row) =>
+                    cells.map((cell, column) => {
+                        const isEventDay = row === 0 && cell === String(day);
+                        const isAccented =
+                            cell !== "" &&
+                            (row === 0
+                                ? column === 0
+                                : column === 0 || cells[column - 1] === "");
+
+                        return (
+                            <span
+                                key={`${row}-${column}`}
+                                className="flex aspect-[7/5] items-center justify-center font-black"
+                                style={{
+                                    fontSize: row === 0 ? "4.4cqw" : "6cqw",
+                                    lineHeight: 1,
+                                    backgroundColor: isEventDay
+                                        ? colors.accent
+                                        : colors.background,
+                                    color: isEventDay
+                                        ? colors.background
+                                        : isAccented
+                                          ? colors.accent
+                                          : colors.ink,
+                                }}
+                            >
+                                {cell}
+                            </span>
+                        );
+                    }),
+                )}
+            </div>
         </div>
     );
 }

@@ -34,6 +34,7 @@ test('templates are only offered for the product shape they were designed for', 
     'tap tag' => ['nfc-social-tap-tag', TemplateLayout::TapTag],
     'wooden' => ['engraved-wooden-keychain', TemplateLayout::Engraved],
     'die-cut' => ['die-cut-photo-keychain', TemplateLayout::DieCut],
+    'calendar' => ['pinoy-calendar-keychain', TemplateLayout::Calendar],
 ]);
 
 test('the seeder can run twice without duplicating the catalog', function () {

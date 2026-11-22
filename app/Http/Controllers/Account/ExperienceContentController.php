@@ -68,6 +68,8 @@ class ExperienceContentController extends Controller
             $validated = $request->validate(['value' => self::MOMENT_FIELDS[$matches[2]]]);
             $moments[$index][$matches[2]] = $this->clean($validated['value'] ?? null);
             $experience->update(['moments' => $moments]);
+        } elseif (preg_match('/^sections\.([a-z0-9]+)\.(title|text|slots\.(\d+)\.caption)$/', $field, $matches) === 1) {
+            $this->updateSectionText($request, $experience, $matches[1], $matches[2], isset($matches[3]) ? (int) $matches[3] : null);
         } else {
             throw ValidationException::withMessages(['field' => 'This text cannot be edited here.']);
         }
@@ -75,6 +77,30 @@ class ExperienceContentController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Saved.')]);
 
         return back();
+    }
+
+    /**
+     * Save an extra section's title or text, or one of its photo captions when a slot is given.
+     */
+    private function updateSectionText(Request $request, DigitalExperience $experience, string $sectionId, string $part, ?int $slot): void
+    {
+        $sections = $experience->custom_sections ?? [];
+        $index = collect($sections)->search(fn (array $section): bool => $section['id'] === $sectionId);
+
+        if ($index === false || ($slot !== null && ! isset($sections[$index]['slots'][$slot]))) {
+            throw ValidationException::withMessages(['field' => 'That section no longer exists.']);
+        }
+
+        $validated = $request->validate(['value' => ['nullable', 'string', $part === 'text' ? 'max:2000' : 'max:80']]);
+        $value = $this->clean($validated['value'] ?? null);
+
+        if ($slot !== null) {
+            $sections[$index]['slots'][$slot]['caption'] = $value;
+        } else {
+            $sections[$index][$part] = $value;
+        }
+
+        $experience->update(['custom_sections' => $sections]);
     }
 
     private function clean(mixed $value): ?string

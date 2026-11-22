@@ -1,29 +1,34 @@
-import { Head, Link, router } from '@inertiajs/react';
-import { Camera, Eye, Pencil, Sparkles, X } from 'lucide-react';
-import { useState } from 'react';
-import { toast } from 'sonner';
-import ExperienceContentController from '@/actions/App/Http/Controllers/Account/ExperienceContentController';
-import ExperiencePhotoController from '@/actions/App/Http/Controllers/Account/ExperiencePhotoController';
+import { Head, Link, router } from "@inertiajs/react";
+import { Camera, Eye, Pencil, Sparkles, X } from "lucide-react";
+import { Fragment, useState } from "react";
+import { toast } from "sonner";
+import ExperienceContentController from "@/actions/App/Http/Controllers/Account/ExperienceContentController";
+import ExperiencePhotoController from "@/actions/App/Http/Controllers/Account/ExperiencePhotoController";
 import {
     presetFor,
     themeFor,
     themeStyle,
-} from '@/components/taptale/experience/config';
-import { Gate } from '@/components/taptale/experience/gates';
-import { ExperienceSection } from '@/components/taptale/experience/sections';
+} from "@/components/taptale/experience/config";
+import {
+    AddSectionButton,
+    CustomSection,
+} from "@/components/taptale/experience/custom-sections";
+import { Gate } from "@/components/taptale/experience/gates";
+import { ExperienceSection } from "@/components/taptale/experience/sections";
 import {
     AddPhotoButton,
     AudioProvider,
     ExperienceContext,
     MusicButton,
-} from '@/components/taptale/experience/shared';
-import { DesignSwitcher } from '@/components/taptale/experience/design-switcher';
-import type { DesignOptions } from '@/components/taptale/experience/design-switcher';
-import { home } from '@/routes';
-import { edit as editExperience } from '@/routes/account/experiences';
-import { templates as memoryPages } from '@/routes/experiences';
-import { create as startOrder } from '@/routes/orders';
-import type { DigitalExperience } from '@/types';
+} from "@/components/taptale/experience/shared";
+import type { PhotoSlot } from "@/components/taptale/experience/shared";
+import { DesignSwitcher } from "@/components/taptale/experience/design-switcher";
+import type { DesignOptions } from "@/components/taptale/experience/design-switcher";
+import { home } from "@/routes";
+import { edit as editExperience } from "@/routes/account/experiences";
+import { templates as memoryPages } from "@/routes/experiences";
+import { create as startOrder } from "@/routes/orders";
+import type { DigitalExperience } from "@/types";
 
 export default function Experience({
     experience,
@@ -43,14 +48,28 @@ export default function Experience({
     const [opened, setOpened] = useState(
         () =>
             preset.gate === null ||
-            (typeof window !== 'undefined' &&
-                new URLSearchParams(window.location.search).get('intro') ===
-                    '0'),
+            (typeof window !== "undefined" &&
+                new URLSearchParams(window.location.search).get("intro") ===
+                    "0"),
     );
     const [lightbox, setLightbox] = useState<string | null>(null);
     const [uploading, setUploading] = useState(false);
 
     const photos = experience.photos.map((photo) => photo.url);
+
+    /*
+     * The owner's extra sections, placed after the given number of template
+     * sections. Positions past the end (after switching to a template with
+     * fewer sections) fall back to the last slot.
+     */
+    const customSectionsAt = (position: number) =>
+        (experience.custom_sections ?? []).filter(
+            (customSection) =>
+                Math.min(
+                    Math.max(customSection.position, 1),
+                    preset.sections.length,
+                ) === position,
+        );
 
     /*
      * Visitors see photos repeat so every frame is filled. The owner sees
@@ -64,7 +83,7 @@ export default function Experience({
         return photos.length > 0 ? photos[index % photos.length] : null;
     };
 
-    const addPhotos = (files: File[], moment?: number) => {
+    const addPhotos = (files: File[], moment?: number, slot?: PhotoSlot) => {
         if (!canEdit || uploading) {
             return;
         }
@@ -74,6 +93,7 @@ export default function Experience({
             {
                 photos: files,
                 ...(moment !== undefined ? { moment } : {}),
+                ...(slot ? { section: slot.section, slot: slot.slot } : {}),
             },
             {
                 forceFormData: true,
@@ -84,7 +104,7 @@ export default function Experience({
                 onError: (errors) => {
                     toast.error(
                         Object.values(errors)[0] ??
-                            'The photo could not be added. Please try again.',
+                            "The photo could not be added. Please try again.",
                     );
                 },
             },
@@ -111,7 +131,7 @@ export default function Experience({
                 onError: (errors) => {
                     toast.error(
                         Object.values(errors)[0] ??
-                            'The photo could not be changed. Please try again.',
+                            "The photo could not be changed. Please try again.",
                     );
                 },
             },
@@ -130,7 +150,7 @@ export default function Experience({
                     onError: (errors) => {
                         toast.error(
                             Object.values(errors)[0] ??
-                                'Your text could not be saved.',
+                                "Your text could not be saved.",
                         );
                         resolve(false);
                     },
@@ -191,8 +211,8 @@ export default function Experience({
                                         <Camera className="size-4" />
                                     )}
                                     {isPreview
-                                        ? 'Preview — only you can see this page until you publish it.'
-                                        : 'This is your page.'}
+                                        ? "Preview — only you can see this page until you publish it."
+                                        : "This is your page."}
                                     {canEdit && (
                                         <span>
                                             Tap any empty frame to add a photo.
@@ -206,8 +226,8 @@ export default function Experience({
                                             <span className="inline-flex items-center gap-1 font-semibold underline underline-offset-2">
                                                 <Camera className="size-3.5" />
                                                 {uploading
-                                                    ? 'Uploading…'
-                                                    : 'Add photos'}
+                                                    ? "Uploading…"
+                                                    : "Add photos"}
                                             </span>
                                         </AddPhotoButton>
                                     )}
@@ -241,11 +261,21 @@ export default function Experience({
                     )}
 
                     <main>
-                        {preset.sections.map((section) => (
-                            <ExperienceSection
-                                key={section}
-                                section={section}
-                            />
+                        {preset.sections.map((section, index) => (
+                            <Fragment key={section}>
+                                <ExperienceSection section={section} />
+                                {customSectionsAt(index + 1).map(
+                                    (customSection) => (
+                                        <CustomSection
+                                            key={customSection.id}
+                                            section={customSection}
+                                        />
+                                    ),
+                                )}
+                                {canEdit && (
+                                    <AddSectionButton position={index + 1} />
+                                )}
+                            </Fragment>
                         ))}
                     </main>
 

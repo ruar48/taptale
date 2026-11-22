@@ -51,7 +51,8 @@ export type ArtStyle =
     | "strip"
     | "tag"
     | "wood"
-    | "diecut";
+    | "diecut"
+    | "calendar";
 
 export type Product = {
     id: number;
@@ -93,7 +94,8 @@ export type TemplateLayout =
     | "photo_strip"
     | "tap_tag"
     | "engraved"
-    | "die_cut";
+    | "die_cut"
+    | "calendar";
 
 export type Palette = {
     background: string;
@@ -245,6 +247,27 @@ export type ExperienceMoment = {
     photo_url: string | null;
 };
 
+export type ExperienceSectionType =
+    "timeline" | "film_strip" | "scrapbook" | "album" | "note";
+
+/** An extra section the owner added between the template's own sections. */
+export type ExperienceCustomSection = {
+    id: string;
+    type: ExperienceSectionType;
+    /** How many template sections come before this one. */
+    position: number;
+    title: string | null;
+    /** The note message, or the caption line of a film strip or scrapbook. */
+    text: string | null;
+    /** A hex color, or null to follow the page theme. */
+    background: string | null;
+    slots: {
+        photo: number | null;
+        photo_url: string | null;
+        caption: string | null;
+    }[];
+};
+
 /** Album art, preview and lyrics saved from the iTunes and LRCLIB APIs. */
 export type SongDetails = {
     title: string;
@@ -278,6 +301,7 @@ export type DigitalExperience = {
     audio_url: string | null;
     photos: { index: number; url: string }[];
     moments: ExperienceMoment[];
+    custom_sections: ExperienceCustomSection[];
     nfc_tag_uid: string | null;
     is_published: boolean;
     view_count: number;

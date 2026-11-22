@@ -247,6 +247,22 @@ class CatalogSeeder extends Seeder
                     ...$this->packagingOptions(),
                 ],
             ],
+            'calendar-keychain' => [
+                'name' => 'Pinoy Calendar Keychain',
+                'short' => 'Your photo above a calendar of your special month, with your sweetest line spelled out in the date boxes.',
+                'art' => 'calendar', 'price' => 9900, 'fee' => 4000, 'days' => [3, 5],
+                'featured' => true, 'bestseller' => true, 'photos' => 1, 'experience' => false,
+                'options' => [
+                    [OptionGroup::Size, 'Standard (45 × 60 mm)', 0, true],
+                    [OptionGroup::Size, 'Large (54 × 72 mm)', 2500],
+                    [OptionGroup::Material, 'Single-sided print', 0, true],
+                    [OptionGroup::Material, 'Double-sided print', 1500],
+                    [OptionGroup::Color, 'Gold ring', 0, true, '#D4AF37'],
+                    [OptionGroup::Color, 'Silver ring', 0, false, '#C0C0C0'],
+                    [OptionGroup::AddOn, 'Matching pair (2 pcs)', 8000],
+                    ...$this->packagingOptions(),
+                ],
+            ],
         ];
 
         $products = [];
@@ -347,14 +363,14 @@ class CatalogSeeder extends Seeder
     {
         $everyday = ['personalized-acrylic-keychain', 'nfc-memory-keychain', 'personalized-qr-keepsake', 'acrylic-photo-souvenir'];
         $music = ['mini-cd-album-keychain', 'music-player-acrylic-keychain'];
-        $fun = ['photobooth-strip-keychain', 'die-cut-photo-keychain'];
+        $fun = ['photobooth-strip-keychain', 'die-cut-photo-keychain', 'pinoy-calendar-keychain'];
 
         $map = [
-            'Couple Gifts' => [...$music, ...$everyday, 'matching-couple-keychains', 'photobooth-strip-keychain', 'engraved-wooden-keychain'],
+            'Couple Gifts' => [...$music, ...$everyday, 'matching-couple-keychains', 'photobooth-strip-keychain', 'engraved-wooden-keychain', 'pinoy-calendar-keychain'],
             'Wedding Souvenirs' => ['event-souvenir-keychains', 'personalized-qr-keepsake', 'nfc-memory-keychain', 'acrylic-photo-souvenir', 'photobooth-strip-keychain'],
             'Baptism Souvenirs' => ['event-souvenir-keychains', 'personalized-acrylic-keychain', 'acrylic-photo-souvenir'],
             'Birthday Gifts' => [...$music, ...$everyday, ...$fun],
-            'Anniversary Gifts' => [...$music, ...$everyday, 'matching-couple-keychains', 'engraved-wooden-keychain'],
+            'Anniversary Gifts' => [...$music, ...$everyday, 'matching-couple-keychains', 'engraved-wooden-keychain', 'pinoy-calendar-keychain'],
             'Graduation Gifts' => ['personalized-acrylic-keychain', 'acrylic-photo-souvenir', 'nfc-memory-keychain', 'event-souvenir-keychains', 'nfc-social-tap-tag', 'engraved-wooden-keychain'],
             "Teacher's Day Gifts" => ['teacher-appreciation-plaque', 'personalized-acrylic-keychain', 'acrylic-photo-souvenir', 'engraved-wooden-keychain'],
             'Friendship Gifts' => [...$music, ...$fun, ...$everyday, 'matching-couple-keychains', 'nfc-social-tap-tag'],
@@ -401,6 +417,9 @@ class CatalogSeeder extends Seeder
             ['Home Sweet Home', TemplateLayout::Engraved, ['#E2C49A', '#5B3A1E', '#8A5A32'], $everyOccasion, false, ['engraved-wooden-keychain']],
             ['Sticker Pop', TemplateLayout::DieCut, ['#FDF1F4', '#5A2E3E', '#B86F83'], $everyOccasion, true, ['die-cut-photo-keychain']],
             ['Cutie Cutout', TemplateLayout::DieCut, ['#EEF6FF', '#1E3A5F', '#5B8DEF'], $everyOccasion, false, ['die-cut-photo-keychain']],
+            ['Pinoy Calendar', TemplateLayout::Calendar, ['#F4F1EA', '#1E3A5F', '#D7263D'], $everyOccasion, true, ['pinoy-calendar-keychain']],
+            ['Blush Calendar', TemplateLayout::Calendar, ['#FBEFF1', '#5A2E3E', '#B86F83'], $everyOccasion, false, ['pinoy-calendar-keychain']],
+            ['Midnight Calendar', TemplateLayout::Calendar, ['#15171C', '#F5F5F5', '#E3A587'], $everyOccasion, false, ['pinoy-calendar-keychain']],
         ];
 
         $definitions = [

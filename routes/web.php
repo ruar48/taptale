@@ -125,6 +125,15 @@ Route::middleware('auth')->group(function () {
         Route::post('experiences/{experience}/photos', [Account\ExperiencePhotoController::class, 'store'])
             ->middleware('throttle:30,1')
             ->name('experiences.photos.store');
+        Route::post('experiences/{experience}/sections', [Account\ExperienceSectionController::class, 'store'])
+            ->middleware('throttle:30,1')
+            ->name('experiences.sections.store');
+        Route::patch('experiences/{experience}/sections/{section}', [Account\ExperienceSectionController::class, 'update'])
+            ->middleware('throttle:60,1')
+            ->name('experiences.sections.update');
+        Route::delete('experiences/{experience}/sections/{section}', [Account\ExperienceSectionController::class, 'destroy'])
+            ->middleware('throttle:30,1')
+            ->name('experiences.sections.destroy');
     });
 });
 

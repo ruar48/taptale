@@ -1,18 +1,18 @@
-import { KeychainMockup } from '@/components/taptale/keychain-mockup';
+import { KeychainMockup } from "@/components/taptale/keychain-mockup";
 import {
     DieCutMockup,
     MiniCdMockup,
     WoodenMockup,
-} from '@/components/taptale/product-mockups';
-import { TemplatePreview } from '@/components/taptale/template-preview';
-import { cn } from '@/lib/utils';
-import type { ArtStyle, Product } from '@/types';
+} from "@/components/taptale/product-mockups";
+import { TemplatePreview } from "@/components/taptale/template-preview";
+import { cn } from "@/lib/utils";
+import type { ArtStyle, Product } from "@/types";
 
 const PALETTES = [
-    { background: '#F8E6E8', ink: '#713D50', accent: '#B86F83' },
-    { background: '#FFFDF9', ink: '#343039', accent: '#B86F83' },
-    { background: '#1F1B2E', ink: '#F8F3ED', accent: '#E9C9C9' },
-    { background: '#FBF7F2', ink: '#4F5D4A', accent: '#C98D9D' },
+    { background: "#F8E6E8", ink: "#713D50", accent: "#B86F83" },
+    { background: "#FFFDF9", ink: "#343039", accent: "#B86F83" },
+    { background: "#1F1B2E", ink: "#F8F3ED", accent: "#E9C9C9" },
+    { background: "#FBF7F2", ink: "#4F5D4A", accent: "#C98D9D" },
 ];
 
 /**
@@ -24,7 +24,7 @@ export function ProductArt({
     className,
     accent,
 }: {
-    product: Pick<Product, 'name' | 'art_style' | 'id'> & {
+    product: Pick<Product, "name" | "art_style" | "id"> & {
         cover_image_url?: string | null;
     };
     className?: string;
@@ -32,7 +32,7 @@ export function ProductArt({
 }) {
     if (product.cover_image_url) {
         return (
-            <div className={cn('overflow-hidden', className)}>
+            <div className={cn("overflow-hidden", className)}>
                 <img
                     src={product.cover_image_url}
                     alt={product.name}
@@ -46,10 +46,10 @@ export function ProductArt({
     return (
         <div
             className={cn(
-                'relative flex items-center justify-center overflow-hidden bg-gradient-to-br from-blush-light via-cream to-cream-dark',
+                "relative flex items-center justify-center overflow-hidden bg-gradient-to-br from-blush-light via-cream to-cream-dark",
                 className,
             )}
-            style={{ containerType: 'inline-size' }}
+            style={{ containerType: "inline-size" }}
             aria-label={product.name}
             role="img"
         >
@@ -79,7 +79,7 @@ function Illustration({
     };
 
     switch (style) {
-        case 'qr':
+        case "qr":
             return (
                 <div className="relative w-[52%] rotate-[-6deg] transition-transform duration-700 group-hover:rotate-0">
                     <div className="rounded-[10%] bg-white p-[8%] shadow-[0_20px_40px_-18px_rgb(52_48_57/0.5)]">
@@ -91,7 +91,7 @@ function Illustration({
                 </div>
             );
 
-        case 'photo':
+        case "photo":
             return (
                 <div className="relative w-[50%] transition-transform duration-700 group-hover:-translate-y-1">
                     <div className="rounded-[4%] border-[1.4cqw] border-white/80 bg-white/40 shadow-[0_24px_40px_-16px_rgb(52_48_57/0.5)] backdrop-blur">
@@ -105,7 +105,7 @@ function Illustration({
                 </div>
             );
 
-        case 'keepsake':
+        case "keepsake":
             return (
                 <div className="relative flex w-[78%] items-start justify-center gap-[3%]">
                     <KeychainMockup className="w-1/2 -rotate-6" shape="heart">
@@ -124,7 +124,7 @@ function Illustration({
                 </div>
             );
 
-        case 'nfc':
+        case "nfc":
             return (
                 <div className="relative w-[46%] animate-float">
                     <TapWaves />
@@ -137,24 +137,24 @@ function Illustration({
                 </div>
             );
 
-        case 'cd':
+        case "cd":
             return (
                 <div className="relative w-[46%] -translate-x-[8%] rotate-[-4deg] transition-transform duration-700 group-hover:rotate-0">
                     <MiniCdMockup
                         content={{
                             palette: {
-                                background: '#1A1A1F',
-                                ink: '#F8F3ED',
-                                accent: '#E9C9C9',
+                                background: "#1A1A1F",
+                                ink: "#F8F3ED",
+                                accent: "#E9C9C9",
                             },
-                            songTitle: 'Golden Days',
-                            artist: 'Ana & Leo',
+                            songTitle: "Golden Days",
+                            artist: "Ana & Leo",
                         }}
                     />
                 </div>
             );
 
-        case 'music':
+        case "music":
             return (
                 <div className="relative flex w-[70%] items-start justify-center gap-[6%]">
                     <KeychainMockup
@@ -166,9 +166,9 @@ function Illustration({
                             layout="music_player"
                             fit={false}
                             palette={{
-                                background: '#FFFFFF',
-                                ink: '#1F1D22',
-                                accent: '#B86F83',
+                                background: "#FFFFFF",
+                                ink: "#1F1D22",
+                                accent: "#B86F83",
                             }}
                             songTitle="Our Song"
                             artist="Ana & Leo"
@@ -183,9 +183,9 @@ function Illustration({
                             layout="music_player"
                             fit={false}
                             palette={{
-                                background: '#121214',
-                                ink: '#F5F5F5',
-                                accent: '#E9C9C9',
+                                background: "#121214",
+                                ink: "#F5F5F5",
+                                accent: "#E9C9C9",
                             }}
                             songTitle="Forever Yours"
                             artist="Mia"
@@ -194,31 +194,31 @@ function Illustration({
                 </div>
             );
 
-        case 'strip':
+        case "strip":
             return (
                 <div className="relative flex h-[86%] items-start justify-center gap-[4%]">
                     {[
                         {
-                            background: '#FFFFFF',
-                            ink: '#343039',
-                            accent: '#B86F83',
+                            background: "#FFFFFF",
+                            ink: "#343039",
+                            accent: "#B86F83",
                         },
                         {
-                            background: '#F4E3EC',
-                            ink: '#5A2E3E',
-                            accent: '#B86F83',
+                            background: "#F4E3EC",
+                            ink: "#5A2E3E",
+                            accent: "#B86F83",
                         },
                         {
-                            background: '#141416',
-                            ink: '#F5F5F5',
-                            accent: '#E3A587',
+                            background: "#141416",
+                            ink: "#F5F5F5",
+                            accent: "#E3A587",
                         },
                     ].map((stripPalette, index) => (
                         <KeychainMockup
                             key={index}
                             className={cn(
-                                'w-[19cqw]',
-                                index === 1 ? 'mt-[6%]' : 'rotate-[-3deg]',
+                                "w-[19cqw]",
+                                index === 1 ? "mt-[6%]" : "rotate-[-3deg]",
                             )}
                             aspect={1 / 3}
                             ringColor="#C0C0C0"
@@ -233,7 +233,42 @@ function Illustration({
                 </div>
             );
 
-        case 'tag':
+        case "calendar":
+            return (
+                <div className="relative flex w-[66%] items-start justify-center gap-[6%]">
+                    {[
+                        {
+                            background: "#F4F1EA",
+                            ink: "#1E3A5F",
+                            accent: "#D7263D",
+                        },
+                        {
+                            background: "#FBEFF1",
+                            ink: "#5A2E3E",
+                            accent: "#B86F83",
+                        },
+                    ].map((calendarPalette, index) => (
+                        <KeychainMockup
+                            key={index}
+                            className={cn(
+                                "w-[47%]",
+                                index === 0 ? "-rotate-6" : "mt-[10%] rotate-6",
+                            )}
+                            aspect={3 / 4}
+                            ringColor="#D4AF37"
+                        >
+                            <TemplatePreview
+                                layout="calendar"
+                                fit={false}
+                                palette={calendarPalette}
+                                date="11 · 14 · 2026"
+                            />
+                        </KeychainMockup>
+                    ))}
+                </div>
+            );
+
+        case "tag":
             return (
                 <div className="relative w-[40%] animate-float">
                     <TapWaves />
@@ -242,9 +277,9 @@ function Illustration({
                             layout="tap_tag"
                             fit={false}
                             palette={{
-                                background: '#1F1D22',
-                                ink: '#FFFFFF',
-                                accent: '#B86F83',
+                                background: "#1F1D22",
+                                ink: "#FFFFFF",
+                                accent: "#B86F83",
                             }}
                             names="@ana.leo"
                             message="Tap to connect"
@@ -253,7 +288,7 @@ function Illustration({
                 </div>
             );
 
-        case 'wood':
+        case "wood":
             return (
                 <div className="relative w-[42%] rotate-[5deg] transition-transform duration-700 group-hover:rotate-0">
                     <WoodenMockup>
@@ -261,9 +296,9 @@ function Illustration({
                             layout="engraved"
                             fit={false}
                             palette={{
-                                background: '#C79B6D',
-                                ink: '#4A2C17',
-                                accent: '#7A4B2A',
+                                background: "#C79B6D",
+                                ink: "#4A2C17",
+                                accent: "#7A4B2A",
                             }}
                             message="Drive safe, I need you here with me"
                             names="Love, Ana"
@@ -272,7 +307,7 @@ function Illustration({
                 </div>
             );
 
-        case 'diecut':
+        case "diecut":
             return (
                 <div className="relative w-[50%] -rotate-3 transition-transform duration-700 group-hover:rotate-0">
                     <DieCutMockup>

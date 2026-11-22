@@ -29,6 +29,8 @@ class ExperiencePhotoController extends Controller
             'photos' => ['required', 'array', 'min:1', 'max:10'],
             'photos.*' => [File::image()->types(['jpg', 'jpeg', 'png', 'webp'])->max((int) config('taptale.max_upload_kilobytes'))],
             'moment' => ['nullable', 'integer', 'min:0'],
+            'section' => ['nullable', 'string', 'max:20'],
+            'slot' => ['nullable', 'required_with:section', 'integer', 'min:0'],
         ], [
             'photos.required' => 'Please choose a photo to add.',
         ], [
@@ -61,9 +63,20 @@ class ExperiencePhotoController extends Controller
             $moments[$momentIndex]['photo'] = $firstNewIndex;
         }
 
+        $sections = $experience->custom_sections ?? [];
+
+        if (isset($validated['section']) && count($photos) > $firstNewIndex) {
+            foreach ($sections as $index => $section) {
+                if ($section['id'] === $validated['section'] && isset($section['slots'][$validated['slot']])) {
+                    $sections[$index]['slots'][$validated['slot']]['photo'] = $firstNewIndex;
+                }
+            }
+        }
+
         $experience->update([
             'photos' => $photos,
             'moments' => $moments,
+            'custom_sections' => $sections,
         ]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Photo added to your page.')]);

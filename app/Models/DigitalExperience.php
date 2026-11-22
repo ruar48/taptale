@@ -37,6 +37,7 @@ use Illuminate\Support\Str;
  * @property string|null $audio_path
  * @property list<string>|null $photos
  * @property list<array{date?: string|null, title?: string|null, caption?: string|null, photo?: int|null}>|null $moments
+ * @property list<array{id: string, type: string, position: int, title: string|null, text?: string|null, background: string|null, slots: list<array{photo: int|null, caption: string|null}>}>|null $custom_sections
  * @property string $theme
  * @property string|null $nfc_tag_uid
  * @property bool $is_published
@@ -47,7 +48,7 @@ use Illuminate\Support\Str;
 #[RouteKey('code')]
 #[Fillable([
     'template', 'title', 'subtitle', 'recipient_name', 'sender_name', 'message', 'quote', 'flowers_note',
-    'photo_rain_layer', 'event_date', 'video_url', 'music_url', 'song_title', 'song_artist', 'photos', 'moments', 'theme',
+    'photo_rain_layer', 'event_date', 'video_url', 'music_url', 'song_title', 'song_artist', 'photos', 'moments', 'custom_sections', 'theme',
     'nfc_tag_uid', 'is_published',
 ])]
 class DigitalExperience extends Model
@@ -64,6 +65,16 @@ class DigitalExperience extends Model
      * Maximum number of timeline / polaroid moments.
      */
     public const MAX_MOMENTS = 12;
+
+    /**
+     * Maximum number of extra sections the owner can add to one page.
+     */
+    public const MAX_CUSTOM_SECTIONS = 6;
+
+    /**
+     * Maximum number of photo slots in one extra section.
+     */
+    public const MAX_SECTION_SLOTS = 12;
 
     /**
      * Visual themes for the public experience page.
@@ -114,6 +125,7 @@ class DigitalExperience extends Model
             'photo_rain_layer' => PhotoRainLayer::class,
             'photos' => 'array',
             'moments' => 'array',
+            'custom_sections' => 'array',
             'song_details' => 'array',
             'is_published' => 'boolean',
             'view_count' => 'integer',

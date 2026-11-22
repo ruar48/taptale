@@ -19,6 +19,7 @@ enum TemplateLayout: string
     case TapTag = 'tap_tag';
     case Engraved = 'engraved';
     case DieCut = 'die_cut';
+    case Calendar = 'calendar';
 
     /**
      * Human readable label.
@@ -38,6 +39,7 @@ enum TemplateLayout: string
             self::TapTag => 'NFC tap tag',
             self::Engraved => 'Laser engraved',
             self::DieCut => 'Die-cut sticker',
+            self::Calendar => 'Pinoy calendar',
         };
     }
 
