@@ -1,15 +1,15 @@
-import { router } from '@inertiajs/react';
-import { Check, Loader2, Palette, X } from 'lucide-react';
-import { useState } from 'react';
-import { toast } from 'sonner';
-import ExperienceController from '@/actions/App/Http/Controllers/Account/ExperienceController';
+import { router } from "@inertiajs/react";
+import { Check, Loader2, Palette, X } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import ExperienceController from "@/actions/App/Http/Controllers/Account/ExperienceController";
 import {
     EXPERIENCE_THEMES,
     themeFor,
     themeStyle,
-} from '@/components/taptale/experience/config';
-import { cn } from '@/lib/utils';
-import type { DigitalExperience, ExperienceTemplateOption } from '@/types';
+} from "@/components/taptale/experience/config";
+import { cn } from "@/lib/utils";
+import type { DigitalExperience, ExperienceTemplateOption } from "@/types";
 
 export type DesignOptions = {
     templates: ExperienceTemplateOption[];
@@ -42,7 +42,7 @@ export function DesignSwitcher({
                 onError: (errors) =>
                     toast.error(
                         Object.values(errors)[0] ??
-                            'The design could not be changed.',
+                            "The design could not be changed.",
                     ),
             },
         );
@@ -106,10 +106,10 @@ export function DesignSwitcher({
                                             )
                                         }
                                         className={cn(
-                                            'overflow-hidden rounded-2xl border-2 text-left transition disabled:opacity-60',
+                                            "overflow-hidden rounded-2xl border-2 text-left transition disabled:opacity-60",
                                             selected
-                                                ? 'border-[#B86F83] shadow-md'
-                                                : 'border-transparent hover:border-[#B86F83]/40',
+                                                ? "border-[#B86F83] shadow-md"
+                                                : "border-transparent hover:border-[#B86F83]/40",
                                         )}
                                     >
                                         <span
@@ -169,10 +169,10 @@ export function DesignSwitcher({
                                                 )
                                             }
                                             className={cn(
-                                                'flex items-center gap-2 rounded-full border-2 py-1 pr-3 pl-1 text-sm transition disabled:opacity-60',
+                                                "flex items-center gap-2 rounded-full border-2 py-1 pr-3 pl-1 text-sm transition disabled:opacity-60",
                                                 experience.theme === theme
-                                                    ? 'border-[#B86F83]'
-                                                    : 'border-[#EBE1D8] hover:border-[#B86F83]/40',
+                                                    ? "border-[#B86F83]"
+                                                    : "border-[#EBE1D8] hover:border-[#B86F83]/40",
                                             )}
                                         >
                                             <span

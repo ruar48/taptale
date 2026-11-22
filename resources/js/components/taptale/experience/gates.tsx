@@ -1,13 +1,13 @@
-import { Check, Gift, Heart, X } from 'lucide-react';
-import { useState } from 'react';
-import type { GateKind } from '@/components/taptale/experience/config';
+import { Check, Gift, Heart, X } from "lucide-react";
+import { useState } from "react";
+import type { GateKind } from "@/components/taptale/experience/config";
 import {
     FloatingHearts,
     PhotoFill,
     useExperience,
     useExperienceAudio,
-} from '@/components/taptale/experience/shared';
-import { cn } from '@/lib/utils';
+} from "@/components/taptale/experience/shared";
+import { cn } from "@/lib/utils";
 
 /**
  * The opening moment before the page is revealed. Opening it also starts
@@ -32,16 +32,16 @@ export function Gate({
     return (
         <div
             className={cn(
-                'fixed inset-0 z-50 flex items-center justify-center overflow-hidden transition-opacity duration-700',
-                leaving && 'pointer-events-none opacity-0',
+                "fixed inset-0 z-50 flex items-center justify-center overflow-hidden transition-opacity duration-700",
+                leaving && "pointer-events-none opacity-0",
             )}
-            style={{ background: 'var(--x-bg)' }}
+            style={{ background: "var(--x-bg)" }}
         >
-            {kind === 'envelope' && (
+            {kind === "envelope" && (
                 <EnvelopeGate opening={leaving} onOpen={open} />
             )}
-            {kind === 'question' && <QuestionGate onOpen={open} />}
-            {kind === 'tap' && <TapGate onOpen={open} />}
+            {kind === "question" && <QuestionGate onOpen={open} />}
+            {kind === "tap" && <TapGate onOpen={open} />}
         </div>
     );
 }
@@ -87,12 +87,12 @@ function EnvelopeGate({
                     <span className="absolute inset-x-0 bottom-0 h-full rounded-md bg-[linear-gradient(155deg,transparent_49.5%,#8C1118_50%),linear-gradient(205deg,transparent_49.5%,#951219_50%)]" />
                     <span
                         className={cn(
-                            'absolute inset-x-0 top-0 h-[58%] origin-top transition-transform duration-700 [clip-path:polygon(0_0,100%_0,50%_100%)]',
-                            opening ? '[transform:rotateX(180deg)]' : '',
+                            "absolute inset-x-0 top-0 h-[58%] origin-top transition-transform duration-700 [clip-path:polygon(0_0,100%_0,50%_100%)]",
+                            opening ? "[transform:rotateX(180deg)]" : "",
                         )}
                         style={{
                             background:
-                                'linear-gradient(180deg, #C21F28, #A3151D)',
+                                "linear-gradient(180deg, #C21F28, #A3151D)",
                         }}
                     />
                     <span className="absolute top-[46%] left-1/2 flex size-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[radial-gradient(circle_at_35%_30%,#F3D98B,#C9A043_60%,#8E6B22)] shadow-[0_4px_10px_rgb(0_0_0/0.4)] transition-transform group-hover:scale-110">
@@ -103,7 +103,7 @@ function EnvelopeGate({
                     </span>
                 </button>
                 <p className="mt-6 animate-pulse text-sm text-white/90">
-                    {preset.labels?.gateHint ?? 'Click the wax to open'}
+                    {preset.labels?.gateHint ?? "Click the wax to open"}
                 </p>
             </div>
         </>
@@ -124,12 +124,12 @@ function QuestionGate({ onOpen }: { onOpen: () => void }) {
     };
 
     const noLabels = [
-        'No',
-        'Are you sure?',
-        'Really?',
-        'Think again 🥺',
-        'Pretty please?',
-        'Okay fine…',
+        "No",
+        "Are you sure?",
+        "Really?",
+        "Think again 🥺",
+        "Pretty please?",
+        "Okay fine…",
     ];
 
     return (
@@ -143,7 +143,7 @@ function QuestionGate({ onOpen }: { onOpen: () => void }) {
             <p className="mt-2 text-sm tracking-[0.15em] text-[#8B1A22]/80 uppercase">
                 {preset.labels?.question ??
                     experience.subtitle ??
-                    'Would you like to see your gift?'}
+                    "Would you like to see your gift?"}
             </p>
             <div className="relative mt-8 flex h-20 items-center justify-center gap-6">
                 <button
@@ -174,7 +174,7 @@ function QuestionGate({ onOpen }: { onOpen: () => void }) {
             <p className="mt-4 h-5 text-xs text-[#8B1A22]/70">
                 {dodges > 0
                     ? noLabels[Math.min(dodges, noLabels.length - 1)]
-                    : ' '}
+                    : " "}
             </p>
         </div>
     );

@@ -1,15 +1,15 @@
-import { RotateCcw } from 'lucide-react';
-import { useEffect, useId, useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
+import { RotateCcw } from "lucide-react";
+import { useEffect, useId, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import {
     EditableText,
     useExperience,
-} from '@/components/taptale/experience/shared';
-import { cn } from '@/lib/utils';
+} from "@/components/taptale/experience/shared";
+import { cn } from "@/lib/utils";
 
 type Point = { x: number; y: number };
 
-type FlowerKind = 'rose' | 'tulip' | 'daisy';
+type FlowerKind = "rose" | "tulip" | "daisy";
 
 type Flower = {
     kind: FlowerKind;
@@ -24,52 +24,52 @@ const GATHER: Point = { x: 200, y: 440 };
 
 const FLOWERS: Flower[] = [
     {
-        kind: 'daisy',
+        kind: "daisy",
         tip: { x: 92, y: 262 },
         control: { x: 158, y: 360 },
-        color: '#FFF5F7',
+        color: "#FFF5F7",
         size: 30,
     },
     {
-        kind: 'daisy',
+        kind: "daisy",
         tip: { x: 310, y: 258 },
         control: { x: 246, y: 360 },
-        color: '#E6D4FF',
+        color: "#E6D4FF",
         size: 30,
     },
     {
-        kind: 'tulip',
+        kind: "tulip",
         tip: { x: 128, y: 196 },
         control: { x: 172, y: 320 },
-        color: '#FF9EB8',
+        color: "#FF9EB8",
         size: 30,
     },
     {
-        kind: 'tulip',
+        kind: "tulip",
         tip: { x: 274, y: 190 },
         control: { x: 230, y: 320 },
-        color: '#FFB38A',
+        color: "#FFB38A",
         size: 30,
     },
     {
-        kind: 'daisy',
+        kind: "daisy",
         tip: { x: 150, y: 112 },
         control: { x: 186, y: 290 },
-        color: '#FFD6E0',
+        color: "#FFD6E0",
         size: 24,
     },
     {
-        kind: 'rose',
+        kind: "rose",
         tip: { x: 248, y: 120 },
         control: { x: 214, y: 290 },
-        color: '#FF8FA3',
+        color: "#FF8FA3",
         size: 27,
     },
     {
-        kind: 'rose',
+        kind: "rose",
         tip: { x: 200, y: 160 },
         control: { x: 196, y: 310 },
-        color: '#F2557F',
+        color: "#F2557F",
         size: 36,
     },
 ];
@@ -149,13 +149,13 @@ function shade(hex: string, amount: number): string {
 
     return `rgb(${channels
         .map((channel) => Math.round(channel + (target - channel) * weight))
-        .join(' ')})`;
+        .join(" ")})`;
 }
 
 function delayStyle(seconds: number, origin?: string): CSSProperties {
     return {
-        '--bq-delay': `${seconds.toFixed(2)}s`,
-        ...(origin ? { '--bq-origin': origin } : {}),
+        "--bq-delay": `${seconds.toFixed(2)}s`,
+        ...(origin ? { "--bq-origin": origin } : {}),
     } as CSSProperties;
 }
 
@@ -181,7 +181,7 @@ function Daisy({ flower, delay }: { flower: Flower; delay: number }) {
             ))}
             <circle
                 className="bq-pop"
-                style={delayStyle(delay + 0.5, '50% 50%')}
+                style={delayStyle(delay + 0.5, "50% 50%")}
                 r={size * 0.3}
                 fill="#FFC94D"
                 stroke="#E9A62B"
@@ -195,7 +195,7 @@ function Daisy({ flower, delay }: { flower: Flower; delay: number }) {
                     r={1.3}
                     fill="#C9861D"
                     className="bq-pop"
-                    style={delayStyle(delay + 0.7, '50% 50%')}
+                    style={delayStyle(delay + 0.7, "50% 50%")}
                 />
             ))}
         </>
@@ -262,7 +262,7 @@ function Rose({ flower, delay }: { flower: Flower; delay: number }) {
                                 className="bq-pop"
                                 style={delayStyle(
                                     delay + layerIndex * 0.25 + index * 0.04,
-                                    '50% 100%',
+                                    "50% 100%",
                                 )}
                                 cx={0}
                                 cy={-size * layer.distance}
@@ -277,7 +277,7 @@ function Rose({ flower, delay }: { flower: Flower; delay: number }) {
             )}
             <path
                 className="bq-pop"
-                style={delayStyle(delay + 0.9, '50% 50%')}
+                style={delayStyle(delay + 0.9, "50% 50%")}
                 d={`M0 0 m ${-size * 0.12} 0 a ${size * 0.12} ${size * 0.12} 0 1 1 ${size * 0.2} ${size * 0.06} a ${size * 0.2} ${size * 0.2} 0 1 1 ${-size * 0.34} ${-size * 0.16}`}
                 fill="none"
                 stroke={shade(flower.color, 0.4)}
@@ -350,7 +350,7 @@ function BouquetSvg({ glowId }: { glowId: string }) {
                                     className="bq-pop"
                                     style={delayStyle(
                                         delay + 1.4 + dot * 0.06,
-                                        '50% 50%',
+                                        "50% 50%",
                                     )}
                                     cx={
                                         sprig.x +
@@ -415,7 +415,7 @@ function BouquetSvg({ glowId }: { glowId: string }) {
                                 >
                                     <path
                                         className="bq-pop"
-                                        style={delayStyle(leaf.delay, '0% 50%')}
+                                        style={delayStyle(leaf.delay, "0% 50%")}
                                         d="M0 0 Q 14 -9 30 0 Q 14 9 0 0 Z"
                                         fill="#5DAA74"
                                         stroke="#3F8A5A"
@@ -484,7 +484,7 @@ function BouquetSvg({ glowId }: { glowId: string }) {
  */
 export function BloomingBouquet() {
     const { experience, opened } = useExperience();
-    const glowId = `bq-${useId().replace(/:/g, '')}`;
+    const glowId = `bq-${useId().replace(/:/g, "")}`;
     const sectionRef = useRef<HTMLElement>(null);
     const [inView, setInView] = useState(false);
     const [cycle, setCycle] = useState(0);
@@ -492,7 +492,7 @@ export function BloomingBouquet() {
     useEffect(() => {
         const element = sectionRef.current;
 
-        if (!element || typeof IntersectionObserver === 'undefined') {
+        if (!element || typeof IntersectionObserver === "undefined") {
             setInView(true);
 
             return;
@@ -519,8 +519,8 @@ export function BloomingBouquet() {
         <section
             ref={sectionRef}
             className={cn(
-                'bouquet-scene relative flex min-h-svh flex-col items-center justify-end overflow-hidden px-5 pt-14 pb-10 text-center',
-                playing && 'is-playing',
+                "bouquet-scene relative flex min-h-svh flex-col items-center justify-end overflow-hidden px-5 pt-14 pb-10 text-center",
+                playing && "is-playing",
             )}
         >
             <div className="pointer-events-none absolute inset-0" aria-hidden>
@@ -545,7 +545,7 @@ export function BloomingBouquet() {
                             {
                                 left: firefly.left,
                                 bottom: firefly.bottom,
-                                '--bq-drift': firefly.drift,
+                                "--bq-drift": firefly.drift,
                                 animationDelay: firefly.delay,
                                 animationDuration: firefly.duration,
                             } as CSSProperties

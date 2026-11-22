@@ -1,17 +1,17 @@
-import { Heart, Image as ImageIcon, RotateCcw } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
-import '../../../../css/night-garden.css';
+import { Heart, Image as ImageIcon, RotateCcw } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import "../../../../css/night-garden.css";
 import type {
     GardenOptions,
     GardenVariant,
-} from '@/components/taptale/experience/config';
+} from "@/components/taptale/experience/config";
 import {
     EditableText,
     useExperience,
-} from '@/components/taptale/experience/shared';
-import { cn } from '@/lib/utils';
-import type { PhotoRainLayer } from '@/types';
+} from "@/components/taptale/experience/shared";
+import { cn } from "@/lib/utils";
+import type { PhotoRainLayer } from "@/types";
 
 /*
  * Night garden scene adapted from "Flower" by Naveen Kumawat (MIT),
@@ -21,110 +21,110 @@ import type { PhotoRainLayer } from '@/types';
 
 type Palette = Partial<
     Record<
-        | 'petalLight'
-        | 'petalDark'
-        | 'petalMid'
-        | 'glow'
-        | 'stemDark'
-        | 'stemSoft'
-        | 'stemLight'
-        | 'spark1'
-        | 'spark2'
-        | 'center1'
-        | 'center2'
-        | 'leaf'
-        | 'leafDeep'
-        | 'leafBright'
-        | 'grass',
+        | "petalLight"
+        | "petalDark"
+        | "petalMid"
+        | "glow"
+        | "stemDark"
+        | "stemSoft"
+        | "stemLight"
+        | "spark1"
+        | "spark2"
+        | "center1"
+        | "center2"
+        | "leaf"
+        | "leafDeep"
+        | "leafBright"
+        | "grass",
         string
     >
 >;
 
 /** Green foliage for every version except the original all-teal garden. */
 const GREEN_FOLIAGE: Palette = {
-    stemDark: '#1d6b3e',
-    stemSoft: 'rgba(29, 107, 62, 0.4)',
-    stemLight: '#43c27a',
-    leaf: '#1f9e5a',
-    leafDeep: '#0f7a40',
-    leafBright: '#3fe08a',
+    stemDark: "#1d6b3e",
+    stemSoft: "rgba(29, 107, 62, 0.4)",
+    stemLight: "#43c27a",
+    leaf: "#1f9e5a",
+    leafDeep: "#0f7a40",
+    leafBright: "#3fe08a",
 };
 
 const PALETTES: Record<GardenVariant, Palette> = {
     teal: {},
     pink: {
         ...GREEN_FOLIAGE,
-        petalLight: '#ffd6e6',
-        petalDark: '#ff6f9f',
-        petalMid: '#ff8fb6',
-        glow: '#ff7eb6',
-        spark1: '#ffe27a',
-        spark2: '#ff9ccc',
+        petalLight: "#ffd6e6",
+        petalDark: "#ff6f9f",
+        petalMid: "#ff8fb6",
+        glow: "#ff7eb6",
+        spark1: "#ffe27a",
+        spark2: "#ff9ccc",
     },
     lavender: {
         ...GREEN_FOLIAGE,
-        petalLight: '#efe4ff',
-        petalDark: '#9b7be8',
-        petalMid: '#b89cf5',
-        glow: '#b993ff',
-        spark1: '#fff1a8',
-        spark2: '#cdb4ff',
+        petalLight: "#efe4ff",
+        petalDark: "#9b7be8",
+        petalMid: "#b89cf5",
+        glow: "#b993ff",
+        spark1: "#fff1a8",
+        spark2: "#cdb4ff",
     },
     golden: {
         ...GREEN_FOLIAGE,
-        petalLight: '#fff4c2',
-        petalDark: '#f0a72b',
-        petalMid: '#f7c45a',
-        glow: '#ffc94d',
-        spark1: '#fff6a0',
-        spark2: '#ffb347',
-        center1: '#ff9a3c',
-        center2: '#f2711c',
+        petalLight: "#fff4c2",
+        petalDark: "#f0a72b",
+        petalMid: "#f7c45a",
+        glow: "#ffc94d",
+        spark1: "#fff6a0",
+        spark2: "#ffb347",
+        center1: "#ff9a3c",
+        center2: "#f2711c",
     },
     red: {
         ...GREEN_FOLIAGE,
-        petalLight: '#ffb3b8',
-        petalDark: '#c8102e',
-        petalMid: '#e5384f',
-        glow: '#ff3d5a',
-        spark1: '#ffd36b',
-        spark2: '#ff6b81',
+        petalLight: "#ffb3b8",
+        petalDark: "#c8102e",
+        petalMid: "#e5384f",
+        glow: "#ff3d5a",
+        spark1: "#ffd36b",
+        spark2: "#ff6b81",
     },
     white: {
         ...GREEN_FOLIAGE,
-        petalLight: '#ffffff',
-        petalDark: '#c3cfe2',
-        petalMid: '#dde6f3',
-        glow: '#e3edff',
-        spark1: '#fff7c2',
-        spark2: '#cfe3ff',
+        petalLight: "#ffffff",
+        petalDark: "#c3cfe2",
+        petalMid: "#dde6f3",
+        glow: "#e3edff",
+        spark1: "#fff7c2",
+        spark2: "#cfe3ff",
     },
     blue: {
         ...GREEN_FOLIAGE,
-        petalLight: '#d9ecff',
-        petalDark: '#3d7bf2',
-        petalMid: '#6fa0ff',
-        glow: '#5c9dff',
-        spark1: '#fff3a3',
-        spark2: '#8fc2ff',
+        petalLight: "#d9ecff",
+        petalDark: "#3d7bf2",
+        petalMid: "#6fa0ff",
+        glow: "#5c9dff",
+        spark1: "#fff3a3",
+        spark2: "#8fc2ff",
     },
     peach: {
         ...GREEN_FOLIAGE,
-        petalLight: '#ffe6d6',
-        petalDark: '#ff8a5c',
-        petalMid: '#ffa982',
-        glow: '#ff9f7a',
-        spark1: '#fff0a0',
-        spark2: '#ffc2a8',
+        petalLight: "#ffe6d6",
+        petalDark: "#ff8a5c",
+        petalMid: "#ffa982",
+        glow: "#ff9f7a",
+        spark1: "#fff0a0",
+        spark2: "#ffc2a8",
     },
     mixed: {
         ...GREEN_FOLIAGE,
-        petalLight: '#ffd6e6',
-        petalDark: '#ff6f9f',
-        petalMid: '#ff8fb6',
-        glow: '#ff9ad0',
-        spark1: '#ffe27a',
-        spark2: '#cdb4ff',
+        petalLight: "#ffd6e6",
+        petalDark: "#ff6f9f",
+        petalMid: "#ff8fb6",
+        glow: "#ff9ad0",
+        spark1: "#ffe27a",
+        spark2: "#cdb4ff",
     },
 };
 
@@ -135,42 +135,42 @@ const PALETTES: Record<GardenVariant, Palette> = {
 const FLOWER_PALETTES: Partial<Record<GardenVariant, Palette[]>> = {
     mixed: [
         {
-            petalLight: '#ffd6e6',
-            petalDark: '#ff6f9f',
-            petalMid: '#ff8fb6',
-            glow: '#ff7eb6',
+            petalLight: "#ffd6e6",
+            petalDark: "#ff6f9f",
+            petalMid: "#ff8fb6",
+            glow: "#ff7eb6",
         },
         {
-            petalLight: '#efe4ff',
-            petalDark: '#9b7be8',
-            petalMid: '#b89cf5',
-            glow: '#b993ff',
+            petalLight: "#efe4ff",
+            petalDark: "#9b7be8",
+            petalMid: "#b89cf5",
+            glow: "#b993ff",
         },
         {
-            petalLight: '#fff4c2',
-            petalDark: '#f0a72b',
-            petalMid: '#f7c45a',
-            glow: '#ffc94d',
+            petalLight: "#fff4c2",
+            petalDark: "#f0a72b",
+            petalMid: "#f7c45a",
+            glow: "#ffc94d",
         },
     ],
 };
 
 const PALETTE_VARIABLES: Record<keyof Palette, string> = {
-    petalLight: '--ng-petal-light',
-    petalDark: '--ng-petal-dark',
-    petalMid: '--ng-petal-mid',
-    glow: '--ng-glow',
-    stemDark: '--ng-stem-dark',
-    stemSoft: '--ng-stem-soft',
-    stemLight: '--ng-stem-light',
-    spark1: '--ng-spark-1',
-    spark2: '--ng-spark-2',
-    center1: '--ng-center-1',
-    center2: '--ng-center-2',
-    leaf: '--ng-leaf',
-    leafDeep: '--ng-leaf-deep',
-    leafBright: '--ng-leaf-bright',
-    grass: '--ng-grass',
+    petalLight: "--ng-petal-light",
+    petalDark: "--ng-petal-dark",
+    petalMid: "--ng-petal-mid",
+    glow: "--ng-glow",
+    stemDark: "--ng-stem-dark",
+    stemSoft: "--ng-stem-soft",
+    stemLight: "--ng-stem-light",
+    spark1: "--ng-spark-1",
+    spark2: "--ng-spark-2",
+    center1: "--ng-center-1",
+    center2: "--ng-center-2",
+    leaf: "--ng-leaf",
+    leafDeep: "--ng-leaf-deep",
+    leafBright: "--ng-leaf-bright",
+    grass: "--ng-grass",
 };
 
 function paletteStyle(palette: Palette | undefined): CSSProperties {
@@ -205,7 +205,7 @@ function Grow({ delay, children }: { delay: number; children: ReactNode }) {
     return (
         <div
             className="grow-ans"
-            style={{ '--d': `${delay}s` } as CSSProperties}
+            style={{ "--d": `${delay}s` } as CSSProperties}
         >
             {children}
         </div>
@@ -373,11 +373,11 @@ function fallStyle(drop: {
 }): CSSProperties {
     return {
         left: drop.left,
-        '--ng-fall-delay': `${drop.delay}s`,
-        '--ng-fall-duration': `${drop.duration}s`,
-        '--ng-fall-drift': `${drop.drift}px`,
-        '--ng-fall-spin': `${drop.spin}deg`,
-        '--ng-tilt': `${drop.tilt ?? 0}deg`,
+        "--ng-fall-delay": `${drop.delay}s`,
+        "--ng-fall-duration": `${drop.duration}s`,
+        "--ng-fall-drift": `${drop.drift}px`,
+        "--ng-fall-spin": `${drop.spin}deg`,
+        "--ng-tilt": `${drop.tilt ?? 0}deg`,
     } as CSSProperties;
 }
 
@@ -410,12 +410,12 @@ function FlowerRain({
     rain,
     photoLayer,
 }: {
-    rain: GardenOptions['rain'];
+    rain: GardenOptions["rain"];
     photoLayer: PhotoRainLayer;
 }) {
     const { photos, openPhoto } = useExperience();
-    const showPetals = rain === 'petals' || rain === 'both';
-    const showPhotos = rain === 'photos' || rain === 'both';
+    const showPetals = rain === "petals" || rain === "both";
+    const showPhotos = rain === "photos" || rain === "both";
 
     return (
         <>
@@ -444,8 +444,8 @@ function FlowerRain({
             </div>
             <div
                 className={cn(
-                    'pointer-events-none absolute inset-0 overflow-hidden',
-                    photoLayer === 'front' ? 'z-[5]' : 'z-0',
+                    "pointer-events-none absolute inset-0 overflow-hidden",
+                    photoLayer === "front" ? "z-[5]" : "z-0",
                 )}
             >
                 {showPhotos &&
@@ -513,7 +513,7 @@ function PhotoLayerSwitch({ layer }: { layer: PhotoRainLayer }) {
         }
 
         setSaving(true);
-        await saveText('photo_rain_layer', value);
+        await saveText("photo_rain_layer", value);
         setSaving(false);
     };
 
@@ -526,8 +526,8 @@ function PhotoLayerSwitch({ layer }: { layer: PhotoRainLayer }) {
             <ImageIcon className="mx-1.5 size-3.5" aria-hidden />
             {(
                 [
-                    ['front', 'In front'],
-                    ['back', 'Behind flowers'],
+                    ["front", "In front"],
+                    ["back", "Behind flowers"],
                 ] as const
             ).map(([value, label]) => (
                 <button
@@ -538,10 +538,10 @@ function PhotoLayerSwitch({ layer }: { layer: PhotoRainLayer }) {
                     disabled={saving}
                     onClick={() => choose(value)}
                     className={cn(
-                        'rounded-full px-3 py-1 transition-colors disabled:opacity-60',
+                        "rounded-full px-3 py-1 transition-colors disabled:opacity-60",
                         layer === value
-                            ? 'bg-[var(--ng-petal-light)] text-black'
-                            : 'hover:text-white',
+                            ? "bg-[var(--ng-petal-light)] text-black"
+                            : "hover:text-white",
                     )}
                 >
                     {label}
@@ -560,8 +560,8 @@ function PhotoLayerSwitch({ layer }: { layer: PhotoRainLayer }) {
 export function NightGarden({ options }: { options: GardenOptions }) {
     const { variant, rain } = options;
     const { experience, opened, editable } = useExperience();
-    const photoLayer = experience.photo_rain_layer ?? 'front';
-    const hasPhotoRain = rain === 'photos' || rain === 'both';
+    const photoLayer = experience.photo_rain_layer ?? "front";
+    const hasPhotoRain = rain === "photos" || rain === "both";
     const stageRef = useRef<HTMLElement>(null);
     const [inView, setInView] = useState(false);
     const [cycle, setCycle] = useState(0);
@@ -569,7 +569,7 @@ export function NightGarden({ options }: { options: GardenOptions }) {
     useEffect(() => {
         const element = stageRef.current;
 
-        if (!element || typeof IntersectionObserver === 'undefined') {
+        if (!element || typeof IntersectionObserver === "undefined") {
             setInView(true);
 
             return;
@@ -594,8 +594,8 @@ export function NightGarden({ options }: { options: GardenOptions }) {
         <section
             ref={stageRef}
             className={cn(
-                'ng-stage relative overflow-hidden text-center text-white',
-                opened && inView && 'is-playing',
+                "ng-stage relative overflow-hidden text-center text-white",
+                opened && inView && "is-playing",
             )}
             style={paletteStyle(PALETTES[variant])}
         >
@@ -606,7 +606,7 @@ export function NightGarden({ options }: { options: GardenOptions }) {
                 {experience.recipient_name && (
                     <p
                         className="ng-text text-xs font-semibold tracking-[0.35em] text-[var(--ng-petal-light)] uppercase"
-                        style={{ '--ng-text-delay': '0.4s' } as CSSProperties}
+                        style={{ "--ng-text-delay": "0.4s" } as CSSProperties}
                     >
                         <EditableText
                             field="recipient_name"
@@ -620,7 +620,7 @@ export function NightGarden({ options }: { options: GardenOptions }) {
                 )}
                 <h1
                     className="ng-text mt-3 font-script text-5xl leading-[1.05] drop-shadow-[0_0_18px_var(--ng-glow)] sm:text-7xl"
-                    style={{ '--ng-text-delay': '0.8s' } as CSSProperties}
+                    style={{ "--ng-text-delay": "0.8s" } as CSSProperties}
                 >
                     <EditableText
                         field="title"
@@ -631,7 +631,7 @@ export function NightGarden({ options }: { options: GardenOptions }) {
                 </h1>
                 <div
                     className="ng-text"
-                    style={{ '--ng-text-delay': '4.6s' } as CSSProperties}
+                    style={{ "--ng-text-delay": "4.6s" } as CSSProperties}
                 >
                     <EditableText
                         block
@@ -650,7 +650,7 @@ export function NightGarden({ options }: { options: GardenOptions }) {
                 <GardenScene variant={variant} />
             </div>
 
-            {rain !== 'none' && (
+            {rain !== "none" && (
                 <FlowerRain
                     key={`rain-${cycle}`}
                     rain={rain}
@@ -666,7 +666,7 @@ export function NightGarden({ options }: { options: GardenOptions }) {
                 type="button"
                 onClick={() => setCycle((value) => value + 1)}
                 className="ng-text absolute right-4 bottom-4 z-20 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-4 py-2 text-xs tracking-[0.2em] text-white/70 uppercase backdrop-blur transition-colors hover:text-white"
-                style={{ '--ng-text-delay': '5.5s' } as CSSProperties}
+                style={{ "--ng-text-delay": "5.5s" } as CSSProperties}
                 aria-label="Let the flowers bloom again"
             >
                 <RotateCcw className="size-3.5" /> Bloom again

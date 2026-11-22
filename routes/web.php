@@ -37,6 +37,9 @@ Route::name('pages.')->group(function () {
 */
 Route::get('memory-pages', [Storefront\ExperienceController::class, 'templates'])->name('experiences.templates');
 Route::get('memory-pages/{template}', [Storefront\ExperienceController::class, 'demo'])->name('experiences.demo');
+Route::get('song-lookup', Storefront\SongLookupController::class)
+    ->middleware('throttle:30,1')
+    ->name('songs.lookup');
 Route::get('t/{experience}', [Storefront\ExperienceController::class, 'show'])->name('experiences.show');
 Route::get('t/{experience}/audio', [Storefront\ExperienceController::class, 'audio'])->name('experiences.audio');
 Route::get('t/{experience}/qr', [Storefront\ExperienceController::class, 'qr'])->name('experiences.qr');
