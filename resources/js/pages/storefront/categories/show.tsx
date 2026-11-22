@@ -96,7 +96,7 @@ export default function CategoryShow({
                 <section className="bg-blush-light/50 py-16 dark:bg-muted/30">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                         <SectionHeading
-                            eyebrow="Design templates"
+                            eyebrow="Keychain designs"
                             title="Designs made for this moment"
                             description="Pick one when you personalize your gift — you'll see a live preview with your own photos."
                         />

@@ -32,10 +32,10 @@ export default function TemplatesGallery({
 
     return (
         <>
-            <Head title="Design Templates" />
+            <Head title="Keychain Designs" />
             <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
                 <SectionHeading
-                    eyebrow="Design templates"
+                    eyebrow="Keychain designs"
                     title="Find the design that feels like them"
                     description="Every template is a starting point. Add your photos, names and message — or ask our designers to adapt it for you."
                 />

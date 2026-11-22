@@ -113,7 +113,9 @@ function SiteHeader() {
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                    <NavLink href={templatesIndex().url}>Templates</NavLink>
+                    <NavLink href={templatesIndex().url}>
+                        Keychain designs
+                    </NavLink>
                     <NavLink href={memoryPages().url}>Memory pages</NavLink>
                     <NavLink href={`${home().url}#how-it-works`}>
                         How it works
@@ -209,7 +211,7 @@ function SiteHeader() {
                                         onClick={() => setOpen(false)}
                                         className="rounded-xl px-3 py-2.5 hover:bg-plum/5"
                                     >
-                                        Design templates
+                                        Keychain designs
                                     </Link>
                                     <Link
                                         href={memoryPages()}
@@ -426,7 +428,7 @@ function SiteFooter() {
                                 href={templatesIndex()}
                                 className="hover:text-white"
                             >
-                                Design templates
+                                Keychain designs
                             </Link>
                         </li>
                         <li>
