@@ -27,7 +27,7 @@ class StoreOrderRequest extends FormRequest
         $isSelf = $this->input('design_mode') === DesignMode::SelfCustomized->value;
 
         return [
-            'category_id' => ['required', 'integer', Rule::exists('categories', 'id')->where('is_active', true)],
+            'category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')->where('is_active', true)],
             'product_id' => ['required', 'integer', Rule::exists('products', 'id')->where('is_active', true)],
             'template_id' => [Rule::requiredIf($isSelf), 'nullable', 'integer', Rule::exists('templates', 'id')->where('is_active', true)],
             'design_mode' => ['required', Rule::enum(DesignMode::class)],
@@ -71,18 +71,23 @@ class StoreOrderRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
+                if (! $this->user()->hasVerifiedEmail()) {
+                    $validator->errors()->add('email_verification', 'Please confirm your email address before placing your order.');
+                }
+            },
+            function (Validator $validator): void {
                 if ($validator->errors()->hasAny(['category_id', 'product_id', 'template_id'])) {
                     return;
                 }
 
                 $product = $this->product();
-                $category = Category::find($this->integer('category_id'));
+                $category = $this->filled('category_id') ? Category::find($this->integer('category_id')) : null;
 
-                if ($product === null || $category === null) {
+                if ($product === null) {
                     return;
                 }
 
-                if (! $product->categories()->whereKey($category->id)->exists()) {
+                if ($category !== null && ! $product->categories()->whereKey($category->id)->exists()) {
                     $validator->errors()->add('product_id', 'This product is not available in the selected category.');
 
                     return;

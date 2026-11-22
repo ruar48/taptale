@@ -83,16 +83,20 @@ class Template extends Model
     }
 
     /**
-     * Templates usable for the given category and product. A template with
-     * no product restrictions is available to every product in its category.
+     * Templates usable for the given product, optionally narrowed to one
+     * category. Without a category, any of the product's categories match.
+     * A template with no product restrictions is available to every product
+     * in its categories.
      *
      * @param  Builder<self>  $query
      */
     #[Scope]
-    protected function availableFor(Builder $query, Category $category, Product $product): void
+    protected function availableFor(Builder $query, ?Category $category, Product $product): void
     {
         $query
-            ->whereHas('categories', fn (Builder $categories) => $categories->whereKey($category->id))
+            ->whereHas('categories', fn (Builder $categories) => $category !== null
+                ? $categories->whereKey($category->id)
+                : $categories->whereHas('products', fn (Builder $products) => $products->whereKey($product->id)))
             ->where(fn (Builder $scoped) => $scoped
                 ->whereDoesntHave('products')
                 ->orWhereHas('products', fn (Builder $products) => $products->whereKey($product->id)));

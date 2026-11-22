@@ -14,7 +14,7 @@ import PasskeyVerify from '@/components/passkey-verify';
 export default function ConfirmPassword() {
     return (
         <>
-            <Head title="Confirm password" />
+            <Head title="Confirm Password" />
 
             <PasskeyVerify
                 routes={{

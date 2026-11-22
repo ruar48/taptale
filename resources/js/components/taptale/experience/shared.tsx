@@ -1,4 +1,4 @@
-import { Camera, Heart, Loader2, Music, Pause } from 'lucide-react';
+import { Camera, Heart, Loader2, Music, Pause, Pencil } from 'lucide-react';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import type {
@@ -20,6 +20,8 @@ export type ExperienceContextValue = {
     editable: boolean;
     uploading: boolean;
     addPhotos: (files: File[], moment?: number) => void;
+    replacePhoto: (index: number, file: File) => void;
+    saveText: (field: string, value: string) => Promise<boolean>;
 };
 
 export const ExperienceContext = createContext<ExperienceContextValue | null>(
@@ -309,6 +311,57 @@ export function PhotoFill({
         );
     }
 
+    const photoIndex = src
+        ? Number(src.match(/\/photos\/(\d+)/)?.[1] ?? NaN)
+        : NaN;
+
+    if (src && context?.editable && !Number.isNaN(photoIndex)) {
+        return (
+            <span
+                className={cn(
+                    'group/photo relative block overflow-hidden',
+                    className,
+                )}
+                style={style}
+            >
+                <img
+                    src={src}
+                    alt=""
+                    loading="lazy"
+                    onClick={onClick}
+                    className={cn(
+                        'size-full rounded-[inherit] object-cover',
+                        onClick && 'cursor-zoom-in',
+                    )}
+                />
+                <label className="absolute right-2 bottom-2 inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-[#3A2A30] shadow-lg transition sm:opacity-0 sm:group-hover/photo:opacity-100">
+                    <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="sr-only"
+                        disabled={context.uploading}
+                        onChange={(event) => {
+                            const file = event.target.files?.[0];
+
+                            if (file) {
+                                context.replacePhoto(photoIndex, file);
+                            }
+
+                            event.target.value = '';
+                        }}
+                        aria-label="Change photo"
+                    />
+                    {context.uploading ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                        <Camera className="size-3.5" />
+                    )}
+                    Change photo
+                </label>
+            </span>
+        );
+    }
+
     if (src) {
         return (
             <img
@@ -463,5 +516,148 @@ export function ScriptHeading({
         >
             {children}
         </h2>
+    );
+}
+
+/**
+ * Text the owner can tap to edit in place. Visitors just see the text.
+ */
+export function EditableText({
+    field,
+    value,
+    placeholder,
+    label,
+    multiline = false,
+    block = false,
+    className,
+    children,
+}: {
+    field: string;
+    value: string | null | undefined;
+    placeholder: string;
+    label?: string;
+    multiline?: boolean;
+    block?: boolean;
+    className?: string;
+    children?: ReactNode;
+}) {
+    const context = useContext(ExperienceContext);
+    const [editing, setEditing] = useState(false);
+    const [draft, setDraft] = useState(value ?? '');
+    const [saving, setSaving] = useState(false);
+    const Tag = block ? 'div' : 'span';
+
+    if (!context?.editable) {
+        if (!value) {
+            return null;
+        }
+
+        return <Tag className={className}>{children ?? value}</Tag>;
+    }
+
+    const open = () => {
+        setDraft(value ?? '');
+        setEditing(true);
+    };
+
+    const save = async () => {
+        setSaving(true);
+        const ok = await context.saveText(field, draft);
+        setSaving(false);
+
+        if (ok) {
+            setEditing(false);
+        }
+    };
+
+    return (
+        <>
+            <Tag
+                role="button"
+                tabIndex={0}
+                onClick={open}
+                onKeyDown={(event) => {
+                    if (event.key === 'Enter' && !multiline) {
+                        open();
+                    }
+                }}
+                title="Tap to edit"
+                className={cn(
+                    'relative cursor-text rounded-md outline-2 outline-offset-4 outline-current/0 transition outline-dashed hover:outline-current/50',
+                    !value && 'italic opacity-60',
+                    className,
+                )}
+            >
+                {value ? (children ?? value) : placeholder}
+                <Pencil className="ml-1.5 inline size-[0.6em] align-baseline opacity-60" />
+            </Tag>
+
+            {editing && (
+                <div
+                    className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 backdrop-blur-sm sm:items-center sm:p-6"
+                    onClick={() => !saving && setEditing(false)}
+                >
+                    <div
+                        className="w-full max-w-lg rounded-t-3xl bg-white p-5 text-left font-sans text-base font-normal tracking-normal text-[#343039] normal-case not-italic shadow-2xl sm:rounded-3xl"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <p className="text-sm font-semibold">
+                            {label ?? 'Edit text'}
+                        </p>
+                        {multiline ? (
+                            <textarea
+                                autoFocus
+                                value={draft}
+                                onChange={(event) =>
+                                    setDraft(event.target.value)
+                                }
+                                rows={8}
+                                placeholder={placeholder}
+                                className="mt-3 w-full rounded-xl border border-[#E4D8CE] p-3 text-[15px] leading-relaxed outline-none focus:border-[#B86F83]"
+                            />
+                        ) : (
+                            <input
+                                autoFocus
+                                value={draft}
+                                onChange={(event) =>
+                                    setDraft(event.target.value)
+                                }
+                                onKeyDown={(event) =>
+                                    event.key === 'Enter' && void save()
+                                }
+                                placeholder={placeholder}
+                                className="mt-3 w-full rounded-xl border border-[#E4D8CE] p-3 text-[15px] outline-none focus:border-[#B86F83]"
+                            />
+                        )}
+                        {multiline && (
+                            <p className="mt-1 text-xs text-[#776D75]">
+                                Leave a blank line between paragraphs.
+                            </p>
+                        )}
+                        <div className="mt-4 flex justify-end gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setEditing(false)}
+                                disabled={saving}
+                                className="rounded-full px-4 py-2 text-sm hover:bg-black/5"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => void save()}
+                                disabled={saving}
+                                className="inline-flex items-center gap-2 rounded-full bg-[#713D50] px-5 py-2 text-sm font-medium text-white disabled:opacity-60"
+                            >
+                                {saving && (
+                                    <Loader2 className="size-4 animate-spin" />
+                                )}
+                                Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     );
 }

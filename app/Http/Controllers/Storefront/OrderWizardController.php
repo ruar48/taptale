@@ -11,6 +11,7 @@ use App\Http\Resources\ProductResource;
 use App\Http\Resources\TemplateResource;
 use App\Models\Category;
 use App\Models\PaymentMethod;
+use App\Models\Product;
 use App\Models\Template;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,7 +21,8 @@ use Inertia\Response;
 class OrderWizardController extends Controller
 {
     /**
-     * Show the step-by-step personalization and checkout wizard.
+     * Show the step-by-step personalization and checkout wizard. Occasions
+     * are optional gift ideas that only narrow the list of gifts.
      */
     public function create(Request $request): Response
     {
@@ -28,22 +30,26 @@ class OrderWizardController extends Controller
             ? Category::active()->where('slug', $request->string('category'))->first()
             : null;
 
-        $product = $category !== null && $request->filled('product')
-            ? $category->products()->active()->where('slug', $request->string('product'))->first()
+        $product = $request->filled('product')
+            ? Product::active()->where('slug', $request->string('product'))->first()
             : null;
 
+        if ($category !== null && $product !== null && ! $product->categories()->whereKey($category->id)->exists()) {
+            $category = null;
+        }
+
         $product?->load(['images', 'options' => fn ($query) => $query->where('is_active', true)]);
+
+        $products = $category !== null ? $category->products()->active() : Product::active();
 
         $user = $request->user();
 
         return Inertia::render('storefront/create', [
             'categories' => CategoryResource::collection(Category::active()->get()),
             'selectedCategory' => $category ? new CategoryResource($category) : null,
-            'products' => $category
-                ? ProductResource::collection($category->products()->active()->with('images')->get())
-                : [],
+            'products' => ProductResource::collection($products->with('images')->get()),
             'selectedProduct' => $product ? new ProductResource($product) : null,
-            'templates' => $category && $product
+            'templates' => $product
                 ? TemplateResource::collection(Template::active()->availableFor($category, $product)->get())
                 : [],
             'initialTemplate' => $request->string('template')->toString() ?: null,

@@ -10,7 +10,7 @@ export default function CategoriesIndex({
 }) {
     return (
         <>
-            <Head title="Shop by occasion" />
+            <Head title="Shop by Occasion" />
             <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
                 <SectionHeading
                     eyebrow="Shop by occasion"

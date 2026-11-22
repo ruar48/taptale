@@ -2,6 +2,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Camera, Eye, Pencil, Sparkles, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import ExperienceContentController from '@/actions/App/Http/Controllers/Account/ExperienceContentController';
 import ExperiencePhotoController from '@/actions/App/Http/Controllers/Account/ExperiencePhotoController';
 import {
     presetFor,
@@ -16,6 +17,8 @@ import {
     ExperienceContext,
     MusicButton,
 } from '@/components/taptale/experience/shared';
+import { DesignSwitcher } from '@/components/taptale/experience/design-switcher';
+import type { DesignOptions } from '@/components/taptale/experience/design-switcher';
 import { home } from '@/routes';
 import { edit as editExperience } from '@/routes/account/experiences';
 import { templates as memoryPages } from '@/routes/experiences';
@@ -27,11 +30,13 @@ export default function Experience({
     isPreview,
     isDemo = false,
     canEdit = false,
+    designOptions = null,
 }: {
     experience: DigitalExperience;
     isPreview: boolean;
     isDemo?: boolean;
     canEdit?: boolean;
+    designOptions?: DesignOptions | null;
 }) {
     const theme = themeFor(experience.theme);
     const preset = presetFor(experience.template);
@@ -86,6 +91,53 @@ export default function Experience({
         );
     };
 
+    const replacePhoto = (index: number, file: File) => {
+        if (!canEdit || uploading) {
+            return;
+        }
+
+        router.post(
+            ExperiencePhotoController.replace.url({
+                experience: experience.code,
+                index,
+            }),
+            { photo: file },
+            {
+                forceFormData: true,
+                preserveScroll: true,
+                preserveState: true,
+                onStart: () => setUploading(true),
+                onFinish: () => setUploading(false),
+                onError: (errors) => {
+                    toast.error(
+                        Object.values(errors)[0] ??
+                            'The photo could not be changed. Please try again.',
+                    );
+                },
+            },
+        );
+    };
+
+    const saveText = (field: string, value: string): Promise<boolean> =>
+        new Promise((resolve) => {
+            router.patch(
+                ExperienceContentController.update.url(experience.code),
+                { field, value },
+                {
+                    preserveScroll: true,
+                    preserveState: true,
+                    onSuccess: () => resolve(true),
+                    onError: (errors) => {
+                        toast.error(
+                            Object.values(errors)[0] ??
+                                'Your text could not be saved.',
+                        );
+                        resolve(false);
+                    },
+                },
+            );
+        });
+
     return (
         <ExperienceContext.Provider
             value={{
@@ -99,6 +151,8 @@ export default function Experience({
                 editable: canEdit,
                 uploading,
                 addPhotos,
+                replacePhoto,
+                saveText,
             }}
         >
             <AudioProvider src={experience.audio_url}>
@@ -113,7 +167,8 @@ export default function Experience({
                                 <>
                                     <Sparkles className="size-4" /> Demo of the
                                     “{experience.title}” design with sample
-                                    words.
+                                    words. You can edit every word and photo
+                                    once you create yours.
                                     <Link
                                         href={memoryPages()}
                                         className="font-semibold underline underline-offset-2"
@@ -154,6 +209,12 @@ export default function Experience({
                                                     : 'Add photos'}
                                             </span>
                                         </AddPhotoButton>
+                                    )}
+                                    {canEdit && designOptions && (
+                                        <DesignSwitcher
+                                            experience={experience}
+                                            options={designOptions}
+                                        />
                                     )}
                                     {canEdit && (
                                         <Link

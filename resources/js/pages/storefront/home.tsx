@@ -65,7 +65,7 @@ export default function Home({
 }: Props) {
     return (
         <>
-            <Head title="Personalized NFC & photo keepsakes" />
+            <Head title="Personalized NFC & Photo Keepsakes" />
 
             <Hero />
 

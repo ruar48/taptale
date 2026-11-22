@@ -61,11 +61,17 @@ class ExperienceController extends Controller
             $experience->increment('view_count');
         }
 
+        $canEdit = $request->user()?->can('update', $experience) ?? false;
+
         return Inertia::render('storefront/experience', [
             'experience' => new DigitalExperienceResource($experience),
             'isPreview' => ! $experience->is_published,
             'isDemo' => false,
-            'canEdit' => $request->user()?->can('update', $experience) ?? false,
+            'canEdit' => $canEdit,
+            'designOptions' => $canEdit ? [
+                'templates' => ExperienceTemplate::options(),
+                'themes' => DigitalExperience::THEMES,
+            ] : null,
         ]);
     }
 

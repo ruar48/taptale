@@ -53,7 +53,7 @@ export default function ProductForm({
             { title: 'Products', href: index() },
             product
                 ? { title: product.name, href: edit(product.slug) }
-                : { title: 'New product', href: create() },
+                : { title: 'New Product', href: create() },
         ],
     });
 

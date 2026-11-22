@@ -7,10 +7,14 @@ import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import StorefrontLayout from '@/layouts/storefront-layout';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Taptale';
+/**
+ * The brand is fixed so tabs never show the framework default ("Laravel")
+ * when APP_NAME is not set on the server.
+ */
+const brand = 'Taptale';
 
 void createInertiaApp({
-    title: (title) => (title ? `${title} - ${appName}` : appName),
+    title: (title) => (title ? `${brand} | ${title}` : brand),
     layout: (name) => {
         switch (true) {
             case name === 'storefront/experience':

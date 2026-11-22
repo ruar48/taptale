@@ -19,7 +19,7 @@ export default function OrdersIndex({ orders }: { orders: Paginated<Order> }) {
 
     return (
         <>
-            <Head title="My orders" />
+            <Head title="My Orders" />
             <div className="p-4 sm:p-6">
                 <Heading
                     title="My orders"

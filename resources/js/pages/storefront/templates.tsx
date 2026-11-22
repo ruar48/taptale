@@ -32,7 +32,7 @@ export default function TemplatesGallery({
 
     return (
         <>
-            <Head title="Design templates" />
+            <Head title="Design Templates" />
             <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
                 <SectionHeading
                     eyebrow="Design templates"

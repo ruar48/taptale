@@ -64,6 +64,50 @@ test('guests must sign in before personalizing a gift', function () {
     $this->post(route('orders.store'), [])->assertRedirect(route('login'));
 });
 
+test('the wizard starts with every gift and an occasion only narrows the list', function () {
+    $otherProduct = Product::factory()->create();
+    Product::factory()->inactive()->create();
+
+    $this->actingAs($this->customer)->get(route('orders.create'))
+        ->assertInertia(fn ($page) => $page
+            ->component('storefront/create')
+            ->where('selectedCategory', null)
+            ->has('products', 2));
+
+    $this->actingAs($this->customer)->get(route('orders.create', ['category' => $this->category->slug]))
+        ->assertInertia(fn ($page) => $page
+            ->where('selectedCategory.id', $this->category->id)
+            ->has('products', 1)
+            ->where('products.0.id', $this->product->id));
+
+    $this->actingAs($this->customer)->get(route('orders.create', ['product' => $otherProduct->slug]))
+        ->assertInertia(fn ($page) => $page->where('selectedProduct.id', $otherProduct->id));
+});
+
+test('a new customer can personalize a gift before confirming their email', function () {
+    $newCustomer = User::factory()->unverified()->create();
+
+    $this->actingAs($newCustomer)->get(route('orders.create'))->assertOk();
+    $this->actingAs($newCustomer)->get(route('dashboard'))->assertOk();
+});
+
+test('the email must be confirmed before the order is placed', function () {
+    $newCustomer = User::factory()->unverified()->create();
+
+    $this->actingAs($newCustomer)->post(route('orders.store'), orderPayload($this))
+        ->assertSessionHasErrors(['email_verification' => 'Please confirm your email address before placing your order.']);
+
+    expect(Order::count())->toBe(0);
+});
+
+test('a gift can be ordered without choosing an occasion', function () {
+    $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
+        'category_id' => null,
+    ]))->assertSessionHasNoErrors()->assertRedirect();
+
+    expect(Order::sole()->category_id)->toBe($this->category->id);
+});
+
 test('a customer places a self-customized order priced on the server', function () {
     $photo = UploadedFile::fake()->image('us.jpg');
 

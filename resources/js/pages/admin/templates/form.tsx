@@ -42,7 +42,7 @@ export default function TemplateForm({
             { title: 'Templates', href: index() },
             template
                 ? { title: template.name, href: edit(template.slug) }
-                : { title: 'New template', href: create() },
+                : { title: 'New Template', href: create() },
         ],
     });
 

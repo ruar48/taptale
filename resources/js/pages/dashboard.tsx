@@ -29,7 +29,7 @@ export default function Dashboard({
 
     return (
         <>
-            <Head title="My account" />
+            <Head title="My Account" />
             <div className="flex flex-1 flex-col gap-6 p-4 sm:p-6">
                 <div className="relative overflow-hidden rounded-3xl bg-plum p-6 text-white sm:p-8">
                     <div className="absolute -top-16 -right-10 size-56 rounded-full bg-rose/40 blur-2xl" />

@@ -40,7 +40,7 @@ export default function AdminDashboard({
 
     return (
         <>
-            <Head title="Studio dashboard" />
+            <Head title="Studio Dashboard" />
             <AdminPage>
                 <PageHeader
                     title="Studio dashboard"

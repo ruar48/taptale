@@ -1,7 +1,6 @@
 export type DesignMode = 'self' | 'assisted';
 
 export const WIZARD_STEPS = [
-    { key: 'category', title: 'Occasion', description: 'Who is it for?' },
     { key: 'product', title: 'Gift', description: 'Choose your keepsake' },
     { key: 'template', title: 'Template', description: 'Pick a design' },
     { key: 'customize', title: 'Personalize', description: 'Add your story' },

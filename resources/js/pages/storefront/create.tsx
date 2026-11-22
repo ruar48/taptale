@@ -6,6 +6,7 @@ import {
     Brush,
     Check,
     Loader2,
+    MailCheck,
     Minus,
     Nfc,
     Plus,
@@ -38,6 +39,7 @@ import { cn } from '@/lib/utils';
 import { WIZARD_STEPS } from '@/lib/wizard';
 import type { DesignMode } from '@/lib/wizard';
 import { create as wizardRoute, store as storeOrder } from '@/routes/orders';
+import { send as sendVerification } from '@/routes/verification';
 import type {
     Category,
     PaymentMethod,
@@ -98,12 +100,11 @@ const COLOR_CHOICES = [
 ];
 
 const ERROR_STEPS: [RegExp, number][] = [
-    [/^category_id/, 0],
-    [/^product_id/, 1],
-    [/^template_id/, 2],
-    [/^(design_mode|personalization|photos)/, 3],
-    [/^(option_ids|quantity)/, 4],
-    [/^approve_preview/, 5],
+    [/^(category_id|product_id)/, 0],
+    [/^template_id/, 1],
+    [/^(design_mode|personalization|photos)/, 2],
+    [/^(option_ids|quantity)/, 3],
+    [/^approve_preview/, 4],
 ];
 
 export default function CreateGift({
@@ -118,11 +119,13 @@ export default function CreateGift({
     customer,
 }: Props) {
     const money = useMoney();
-    const symbol = usePage().props.storefront?.currencySymbol ?? '₱';
+    const { storefront, auth } = usePage().props;
+    const symbol = storefront?.currencySymbol ?? '₱';
+    const isEmailVerified = Boolean(auth.user?.email_verified_at);
     const preselectedTemplate =
         templates.find((template) => template.slug === initialTemplate) ?? null;
 
-    const initialStep = selectedProduct ? 2 : selectedCategory ? 1 : 0;
+    const initialStep = selectedProduct ? 1 : 0;
     const [step, setStep] = useState(initialStep);
     const [furthest, setFurthest] = useState(initialStep);
     const [templateSkipped, setTemplateSkipped] = useState(false);
@@ -130,6 +133,9 @@ export default function CreateGift({
         null,
     );
     const [stepError, setStepError] = useState<string | null>(null);
+    const [loadingIdea, setLoadingIdea] = useState<number | null>(null);
+    const [verificationSent, setVerificationSent] = useState(false);
+    const [sendingVerification, setSendingVerification] = useState(false);
 
     const form = useForm<WizardForm>({
         category_id: selectedCategory?.id ?? null,
@@ -259,26 +265,34 @@ export default function CreateGift({
         );
     };
 
-    const chooseCategory = (category: Category) => {
-        setData((current) => ({
-            ...current,
-            category_id: category.id,
-            product_id: null,
-            template_id: null,
-        }));
-        setTemplateSkipped(false);
-        reloadSelection({ category: category.slug }, 1, category.id);
+    /**
+     * Occasions are optional gift ideas: picking one only narrows the gift list.
+     */
+    const browseOccasion = (category: Category | null) => {
+        setStepError(null);
+        setLoadingIdea(category?.id ?? 0);
+        router.get(
+            wizardRoute.url({
+                query: category ? { category: category.slug } : {},
+            }),
+            {},
+            {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                only: ['selectedCategory', 'products'],
+                onFinish: () => setLoadingIdea(null),
+            },
+        );
     };
 
     const chooseProduct = (product: Product) => {
-        if (!selectedCategory) {
-            return;
-        }
-
         setTemplateSkipped(false);
         reloadSelection(
-            { category: selectedCategory.slug, product: product.slug },
-            2,
+            selectedCategory
+                ? { category: selectedCategory.slug, product: product.slug }
+                : { product: product.slug },
+            1,
             product.id,
         );
     };
@@ -286,14 +300,12 @@ export default function CreateGift({
     const validateStep = (index: number): string | null => {
         switch (index) {
             case 0:
-                return data.category_id ? null : 'Please choose an occasion.';
-            case 1:
                 return selectedProduct ? null : 'Please choose a gift.';
-            case 2:
+            case 1:
                 return data.template_id || templateSkipped
                     ? null
                     : 'Please choose a template, or let our designers start from scratch.';
-            case 3:
+            case 2:
                 if (!designMode) {
                     return 'Please choose how you would like to create your design.';
                 }
@@ -313,7 +325,7 @@ export default function CreateGift({
                 }
 
                 return null;
-            case 4: {
+            case 3: {
                 const missing = groupOptions(selectedProduct?.options ?? [])
                     .filter((group) => !group.multiple)
                     .find(
@@ -337,7 +349,7 @@ export default function CreateGift({
 
                 return null;
             }
-            case 5:
+            case 4:
                 return designMode === 'self' && !data.approve_preview
                     ? 'Please approve your design preview to continue.'
                     : null;
@@ -358,6 +370,43 @@ export default function CreateGift({
         goTo(step + 1);
     };
 
+    const isAwaitingVerification =
+        step === WIZARD_STEPS.length - 1 &&
+        !isEmailVerified &&
+        verificationSent;
+
+    // Once the link is sent, quietly check until the customer clicks it.
+    useEffect(() => {
+        if (!isAwaitingVerification) {
+            return;
+        }
+
+        const interval = window.setInterval(
+            () => router.reload({ only: ['auth'] }),
+            5000,
+        );
+
+        return () => window.clearInterval(interval);
+    }, [isAwaitingVerification]);
+
+    const sendVerificationLink = () => {
+        setSendingVerification(true);
+        router.post(
+            sendVerification.url(),
+            {},
+            {
+                preserveState: true,
+                preserveScroll: true,
+                only: ['auth'],
+                onSuccess: () => {
+                    setVerificationSent(true);
+                    setStepError(null);
+                },
+                onFinish: () => setSendingVerification(false),
+            },
+        );
+    };
+
     const submit = () => {
         for (let index = 0; index < WIZARD_STEPS.length - 1; index++) {
             const error = validateStep(index);
@@ -370,6 +419,23 @@ export default function CreateGift({
             }
         }
 
+        if (!isEmailVerified) {
+            setStepError(
+                'Please confirm your email address before placing your order.',
+            );
+
+            return;
+        }
+
+        const isGiftInOccasion =
+            selectedCategory !== null &&
+            products.some((product) => product.id === data.product_id);
+
+        form.transform((values) => ({
+            ...values,
+            category_id: isGiftInOccasion ? selectedCategory.id : null,
+        }));
+
         form.post(storeOrder.url(), {
             forceFormData: true,
             preserveScroll: true,
@@ -378,7 +444,7 @@ export default function CreateGift({
                 const target =
                     ERROR_STEPS.find(([pattern]) =>
                         pattern.test(firstKey),
-                    )?.[1] ?? 6;
+                    )?.[1] ?? WIZARD_STEPS.length - 1;
 
                 if (target !== step) {
                     goTo(target);
@@ -398,7 +464,7 @@ export default function CreateGift({
 
     return (
         <>
-            <Head title="Create your personalized gift" />
+            <Head title="Order Your Gift" />
 
             <div className="mx-auto max-w-7xl px-4 pt-8 pb-36 sm:px-6 lg:px-8 lg:pb-16">
                 <div className="mb-8">
@@ -413,62 +479,24 @@ export default function CreateGift({
                     <div key={step} className="animate-fade-up">
                         {step === 0 && (
                             <StepShell
-                                title="What's the occasion?"
-                                description="Each occasion has gifts and templates made just for it."
-                            >
-                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                                    {categories.map((category) => (
-                                        <SelectableCard
-                                            key={category.id}
-                                            selected={
-                                                data.category_id === category.id
-                                            }
-                                            loading={
-                                                loadingSelection === category.id
-                                            }
-                                            onClick={() =>
-                                                chooseCategory(category)
-                                            }
-                                        >
-                                            <span
-                                                className="flex size-11 items-center justify-center rounded-2xl text-white"
-                                                style={{
-                                                    backgroundColor:
-                                                        category.accent_color,
-                                                }}
-                                            >
-                                                <CategoryIcon
-                                                    name={category.icon}
-                                                    className="size-5"
-                                                />
-                                            </span>
-                                            <span className="mt-3 block font-display text-lg leading-tight">
-                                                {category.name}
-                                            </span>
-                                            {category.tagline && (
-                                                <span className="mt-1 line-clamp-2 block text-xs text-muted-foreground">
-                                                    {category.tagline}
-                                                </span>
-                                            )}
-                                        </SelectableCard>
-                                    ))}
-                                </div>
-                            </StepShell>
-                        )}
-
-                        {step === 1 && (
-                            <StepShell
-                                title="Choose your keepsake"
+                                title="Choose your gift"
                                 description={
                                     selectedCategory
-                                        ? `Gifts for ${selectedCategory.name.toLowerCase()}.`
-                                        : undefined
+                                        ? `Gift ideas for ${selectedCategory.name.toLowerCase()}. Tap a gift to start.`
+                                        : 'Tap a gift to start. Need ideas? Pick an occasion below.'
                                 }
                             >
+                                <GiftIdeas
+                                    categories={categories}
+                                    selected={selectedCategory}
+                                    loadingId={loadingIdea}
+                                    onSelect={browseOccasion}
+                                />
                                 {products.length === 0 ? (
                                     <EmptyNote>
-                                        There are no gifts in this occasion yet.
-                                        Please choose another occasion.
+                                        No gifts for this occasion yet. Tap
+                                        &ldquo;All gifts&rdquo; to see
+                                        everything.
                                     </EmptyNote>
                                 ) : (
                                     <div className="grid gap-4 sm:grid-cols-2">
@@ -540,7 +568,7 @@ export default function CreateGift({
                             </StepShell>
                         )}
 
-                        {step === 2 && selectedProduct && (
+                        {step === 1 && selectedProduct && (
                             <StepShell
                                 title="Pick a template"
                                 description="Tap a design to preview it. You'll personalize it in the next step."
@@ -647,7 +675,7 @@ export default function CreateGift({
                             </StepShell>
                         )}
 
-                        {step === 3 && selectedProduct && (
+                        {step === 2 && selectedProduct && (
                             <StepShell
                                 title="Add your story"
                                 description="Choose how you'd like to create your design."
@@ -974,7 +1002,7 @@ export default function CreateGift({
                             </StepShell>
                         )}
 
-                        {step === 4 && selectedProduct && (
+                        {step === 3 && selectedProduct && (
                             <StepShell
                                 title="Size, finish & quantity"
                                 description="Your price updates as you choose."
@@ -1067,7 +1095,7 @@ export default function CreateGift({
                             </StepShell>
                         )}
 
-                        {step === 5 && selectedProduct && (
+                        {step === 4 && selectedProduct && (
                             <StepShell
                                 title="Preview your design"
                                 description={
@@ -1188,12 +1216,26 @@ export default function CreateGift({
                             </StepShell>
                         )}
 
-                        {step === 6 && (
+                        {step === 5 && (
                             <StepShell
                                 title="Delivery & payment"
                                 description="Almost there! Tell us where to send your gift."
                             >
                                 <div className="space-y-8">
+                                    <EmailConfirmation
+                                        email={auth.user?.email ?? ''}
+                                        isVerified={isEmailVerified}
+                                        isSent={verificationSent}
+                                        isSending={sendingVerification}
+                                        onSend={sendVerificationLink}
+                                        error={
+                                            (
+                                                errors as Partial<
+                                                    Record<string, string>
+                                                >
+                                            ).email_verification
+                                        }
+                                    />
                                     <section className="grid gap-4 sm:grid-cols-2">
                                         <Field
                                             label="Full name"
@@ -1451,22 +1493,20 @@ export default function CreateGift({
                             >
                                 <ArrowLeft className="size-4" /> Back
                             </Button>
-                            {step >= 1 && (
-                                <PrimaryAction
-                                    isLast={isLastStep}
-                                    processing={form.processing}
-                                    onNext={next}
-                                    onSubmit={submit}
-                                    total={price ? money(price.total) : null}
-                                    disabled={step === 1 && !selectedProduct}
-                                />
-                            )}
+                            <PrimaryAction
+                                isLast={isLastStep}
+                                processing={form.processing}
+                                onNext={next}
+                                onSubmit={submit}
+                                total={price ? money(price.total) : null}
+                                disabled={step === 0 && !selectedProduct}
+                            />
                         </div>
                     </div>
 
                     <aside className="hidden lg:block">
                         <div className="sticky top-28 space-y-5">
-                            {selectedProduct && step >= 2 && (
+                            {selectedProduct && step >= 1 && (
                                 <div className="rounded-3xl bg-gradient-to-br from-blush-light to-cream-dark/70 p-6 dark:from-muted dark:to-background">
                                     <p className="mb-4 text-center text-xs font-semibold tracking-[0.2em] text-rose uppercase">
                                         Live preview
@@ -1486,7 +1526,7 @@ export default function CreateGift({
                                 product={selectedProduct}
                                 template={template}
                                 quantity={data.quantity}
-                                price={step >= 1 ? price : null}
+                                price={price}
                                 pricing={pricing}
                                 designModeLabel={
                                     designMode === 'self'
@@ -1521,7 +1561,7 @@ export default function CreateGift({
                         <ArrowLeft className="size-5" />
                     </Button>
                     <div className="min-w-0 flex-1">
-                        {price && step >= 1 ? (
+                        {price ? (
                             <>
                                 <p className="text-xs text-muted-foreground">
                                     Total
@@ -1536,17 +1576,15 @@ export default function CreateGift({
                             </p>
                         )}
                     </div>
-                    {step >= 1 && (
-                        <PrimaryAction
-                            isLast={isLastStep}
-                            processing={form.processing}
-                            onNext={next}
-                            onSubmit={submit}
-                            total={null}
-                            disabled={step === 1 && !selectedProduct}
-                            compact
-                        />
-                    )}
+                    <PrimaryAction
+                        isLast={isLastStep}
+                        processing={form.processing}
+                        onNext={next}
+                        onSubmit={submit}
+                        total={null}
+                        disabled={step === 0 && !selectedProduct}
+                        compact
+                    />
                 </div>
             </div>
         </>
@@ -1697,6 +1735,162 @@ function Field({
             {children}
             <InputError message={error} />
         </div>
+    );
+}
+
+function GiftIdeas({
+    categories,
+    selected,
+    loadingId,
+    onSelect,
+}: {
+    categories: Category[];
+    selected: Category | null;
+    loadingId: number | null;
+    onSelect: (category: Category | null) => void;
+}) {
+    if (categories.length === 0) {
+        return null;
+    }
+
+    const chipClass = (isActive: boolean) =>
+        cn(
+            'inline-flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-medium transition-colors',
+            isActive
+                ? 'border-rose bg-rose text-white'
+                : 'border-border/70 bg-card hover:border-rose/50',
+        );
+
+    return (
+        <div className="mb-6">
+            <p className="mb-2 text-xs font-semibold tracking-[0.2em] text-rose uppercase">
+                Gift ideas
+            </p>
+            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+                <button
+                    type="button"
+                    onClick={() => onSelect(null)}
+                    className={chipClass(selected === null)}
+                >
+                    {loadingId === 0 && (
+                        <Loader2 className="size-3.5 animate-spin" />
+                    )}
+                    All gifts
+                </button>
+                {categories.map((category) => {
+                    const isActive = selected?.id === category.id;
+
+                    return (
+                        <button
+                            key={category.id}
+                            type="button"
+                            title={category.tagline ?? undefined}
+                            onClick={() => onSelect(isActive ? null : category)}
+                            className={chipClass(isActive)}
+                        >
+                            {loadingId === category.id ? (
+                                <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                                <CategoryIcon
+                                    name={category.icon}
+                                    className="size-3.5"
+                                    style={
+                                        isActive
+                                            ? undefined
+                                            : { color: category.accent_color }
+                                    }
+                                />
+                            )}
+                            {category.name}
+                        </button>
+                    );
+                })}
+            </div>
+            {selected?.tagline && (
+                <p className="mt-2 text-sm text-muted-foreground italic">
+                    {selected.tagline}
+                </p>
+            )}
+        </div>
+    );
+}
+
+function EmailConfirmation({
+    email,
+    isVerified,
+    isSent,
+    isSending,
+    onSend,
+    error,
+}: {
+    email: string;
+    isVerified: boolean;
+    isSent: boolean;
+    isSending: boolean;
+    onSend: () => void;
+    error?: string;
+}) {
+    if (isVerified) {
+        return (
+            <p className="flex items-center gap-2 rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-800 dark:bg-green-950/40 dark:text-green-300">
+                <BadgeCheck className="size-4 shrink-0" /> Email confirmed:{' '}
+                {email}
+            </p>
+        );
+    }
+
+    return (
+        <section className="rounded-3xl border-2 border-rose/40 bg-blush-light/50 p-5 dark:bg-rose/10">
+            <div className="flex items-start gap-3">
+                <MailCheck className="mt-0.5 size-5 shrink-0 text-rose" />
+                <div className="min-w-0 flex-1">
+                    <p className="font-display text-lg leading-tight">
+                        Confirm your email to place your order
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        {isSent ? (
+                            <>
+                                We sent a link to{' '}
+                                <span className="font-medium text-foreground">
+                                    {email}
+                                </span>
+                                . Open it, then come back here. This page
+                                updates on its own.
+                            </>
+                        ) : (
+                            <>
+                                We'll send a quick link to{' '}
+                                <span className="font-medium text-foreground">
+                                    {email}
+                                </span>{' '}
+                                so we can send you order updates.
+                            </>
+                        )}
+                    </p>
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                        <Button
+                            type="button"
+                            variant={isSent ? 'outline' : 'default'}
+                            onClick={onSend}
+                            disabled={isSending}
+                            className="rounded-full"
+                        >
+                            {isSending && (
+                                <Loader2 className="size-4 animate-spin" />
+                            )}
+                            {isSent ? 'Resend link' : 'Send confirmation link'}
+                        </Button>
+                        {isSent && (
+                            <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+                                <Loader2 className="size-3 animate-spin" />{' '}
+                                Waiting for confirmation…
+                            </span>
+                        )}
+                    </div>
+                    <InputError message={error} className="mt-2" />
+                </div>
+            </div>
+        </section>
     );
 }
 

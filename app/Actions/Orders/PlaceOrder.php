@@ -31,8 +31,10 @@ class PlaceOrder
      */
     public function handle(User $customer, array $data, array $photos): Order
     {
-        $category = Category::query()->whereKey($data['category_id'])->firstOrFail();
         $product = Product::query()->whereKey($data['product_id'])->firstOrFail();
+        $category = isset($data['category_id'])
+            ? Category::query()->whereKey($data['category_id'])->firstOrFail()
+            : $product->categories()->where('is_active', true)->orderBy('sort_order')->first();
         $template = isset($data['template_id']) ? Template::query()->whereKey($data['template_id'])->first() : null;
         $designMode = DesignMode::from($data['design_mode']);
         $quantity = (int) $data['quantity'];
@@ -42,7 +44,7 @@ class PlaceOrder
         $order = DB::transaction(function () use ($customer, $data, $category, $product, $template, $designMode, $quantity, $pricing): Order {
             $order = $customer->orders()->create([
                 'status' => OrderStatus::AwaitingPayment,
-                'category_id' => $category->id,
+                'category_id' => $category?->id,
                 'product_id' => $product->id,
                 'template_id' => $template?->id,
                 'product_name' => $product->name,
@@ -77,7 +79,7 @@ class PlaceOrder
             );
 
             if ($pricing['enables_digital_experience']) {
-                $template = ExperienceTemplate::forCategory($category->slug);
+                $template = ExperienceTemplate::forCategory($category?->slug);
 
                 $experience = new DigitalExperience([
                     'template' => $template,

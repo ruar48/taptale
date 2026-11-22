@@ -7,6 +7,7 @@ use App\Models\DigitalExperience;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\File;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -66,6 +67,39 @@ class ExperiencePhotoController extends Controller
         ]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Photo added to your page.')]);
+
+        return back();
+    }
+
+    /**
+     * Swap one existing photo for a new one, keeping its place on the page.
+     */
+    public function replace(Request $request, DigitalExperience $experience, int $index): RedirectResponse
+    {
+        Gate::authorize('update', $experience);
+
+        $photos = $experience->photos ?? [];
+
+        abort_unless(isset($photos[$index]), 404);
+
+        $validated = $request->validate([
+            'photo' => ['required', File::image()->types(['jpg', 'jpeg', 'png', 'webp'])->max((int) config('taptale.max_upload_kilobytes'))],
+        ], [
+            'photo.required' => 'Please choose a photo.',
+        ]);
+
+        $disk = (string) config('taptale.uploads_disk');
+        $stored = $validated['photo']->store("experiences/{$experience->id}", $disk);
+
+        if ($stored === false) {
+            throw ValidationException::withMessages(['photo' => 'The photo could not be saved. Please try again.']);
+        }
+
+        Storage::disk($disk)->delete($photos[$index]);
+        $photos[$index] = $stored;
+        $experience->update(['photos' => $photos]);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Photo changed.')]);
 
         return back();
     }

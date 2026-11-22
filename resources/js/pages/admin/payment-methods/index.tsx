@@ -35,7 +35,7 @@ export default function AdminPaymentMethods({
 
     return (
         <>
-            <Head title="Payment methods" />
+            <Head title="Payment Methods" />
             <AdminPage>
                 <PageHeader
                     title="Payment methods"

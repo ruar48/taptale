@@ -30,7 +30,11 @@ Route::get('t/{experience}/photos/{index}', [Storefront\ExperienceController::cl
     ->whereNumber('index')
     ->name('experiences.photo');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+/*
+| Customers can browse and personalize right after registering. Their email
+| is only confirmed at checkout (see StoreOrderRequest).
+*/
+Route::middleware('auth')->group(function () {
     Route::get('create', [Storefront\OrderWizardController::class, 'create'])->name('orders.create');
     Route::post('orders', [Storefront\OrderWizardController::class, 'store'])
         ->middleware('throttle:10,1')
@@ -49,7 +53,7 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware('auth')->group(function () {
     Route::get('dashboard', Account\DashboardController::class)->name('dashboard');
 
     Route::prefix('account')->name('account.')->group(function () {
@@ -63,6 +67,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('experiences/{experience}', [Account\ExperienceController::class, 'edit'])->name('experiences.edit');
         Route::put('experiences/{experience}', [Account\ExperienceController::class, 'update'])->name('experiences.update');
+        Route::patch('experiences/{experience}/content', [Account\ExperienceContentController::class, 'update'])
+            ->middleware('throttle:60,1')
+            ->name('experiences.content');
+        Route::post('experiences/{experience}/photos/{index}', [Account\ExperiencePhotoController::class, 'replace'])
+            ->whereNumber('index')
+            ->middleware('throttle:30,1')
+            ->name('experiences.photos.replace');
+        Route::put('experiences/{experience}/design', [Account\ExperienceController::class, 'updateDesign'])->name('experiences.design');
         Route::post('experiences/{experience}/photos', [Account\ExperiencePhotoController::class, 'store'])
             ->middleware('throttle:30,1')
             ->name('experiences.photos.store');

@@ -23,6 +23,7 @@ import {
 import type { SectionKey } from '@/components/taptale/experience/config';
 import {
     AddPhotoButton,
+    EditableText,
     Eyebrow,
     FloatingHearts,
     PhotoFill,
@@ -125,18 +126,33 @@ function HeroPhoto() {
             <FloatingHearts count={cover ? 8 : 14} />
             <Reveal className="relative">
                 <h1 className="font-script text-6xl leading-[1.05] drop-shadow-[0_4px_20px_rgb(0_0_0/0.45)] sm:text-8xl">
-                    {experience.title}
+                    <EditableText
+                        field="title"
+                        value={experience.title}
+                        placeholder="Add a headline"
+                        label="Headline"
+                    />
                 </h1>
-                {experience.subtitle && (
-                    <p className="mt-3 font-script text-3xl drop-shadow sm:text-5xl">
-                        {experience.subtitle}
-                    </p>
-                )}
-                {experience.recipient_name && (
-                    <p className="mt-6 text-sm tracking-[0.3em] uppercase opacity-90">
-                        For {experience.recipient_name}
-                    </p>
-                )}
+                <EditableText
+                    block
+                    field="subtitle"
+                    value={experience.subtitle}
+                    placeholder="Add a sub-headline"
+                    label="Sub-headline"
+                    className="mt-3 font-script text-3xl drop-shadow sm:text-5xl"
+                >
+                    {experience.subtitle}
+                </EditableText>
+                <EditableText
+                    block
+                    field="recipient_name"
+                    value={experience.recipient_name}
+                    placeholder="Add their name"
+                    label="Their name"
+                    className="mt-6 text-sm tracking-[0.3em] uppercase opacity-90"
+                >
+                    For {experience.recipient_name}
+                </EditableText>
                 {!cover && (
                     <AddPhotoButton
                         label="Add a cover photo"
@@ -161,18 +177,33 @@ function HeroScript() {
                     fill="currentColor"
                 />
                 <h1 className="font-script text-6xl leading-[1.05] sm:text-8xl">
-                    {experience.title}
+                    <EditableText
+                        field="title"
+                        value={experience.title}
+                        placeholder="Add a headline"
+                        label="Headline"
+                    />
                 </h1>
-                {experience.subtitle && (
-                    <p className="mt-4 font-display text-xl text-[var(--x-muted)] italic sm:text-2xl">
-                        {experience.subtitle}
-                    </p>
-                )}
-                {experience.event_date && (
-                    <p className="mt-6 text-sm tracking-[0.3em] text-[var(--x-accent)] uppercase">
-                        {experience.event_date}
-                    </p>
-                )}
+                <EditableText
+                    block
+                    field="subtitle"
+                    value={experience.subtitle}
+                    placeholder="Add a sub-headline"
+                    label="Sub-headline"
+                    className="mt-4 font-display text-xl text-[var(--x-muted)] italic sm:text-2xl"
+                >
+                    {experience.subtitle}
+                </EditableText>
+                <EditableText
+                    block
+                    field="event_date"
+                    value={experience.event_date}
+                    placeholder="Add a date"
+                    label="Date or tagline"
+                    className="mt-6 text-sm tracking-[0.3em] text-[var(--x-accent)] uppercase"
+                >
+                    {experience.event_date}
+                </EditableText>
             </Reveal>
             <ScrollHint />
         </section>
@@ -196,13 +227,23 @@ function HeroDoily() {
                 <div className="relative flex aspect-square w-[min(84vw,30rem)] items-center justify-center rounded-full border-[14px] border-dotted border-white bg-[#FFFBF5] p-6 text-center text-[#B23A62] shadow-[0_30px_60px_-20px_rgb(120_30_60/0.45)]">
                     <div className="flex size-full flex-col items-center justify-center rounded-full border-2 border-dashed border-[#F2A5BC] p-6">
                         <h1 className="font-display text-4xl leading-tight font-medium tracking-wide uppercase sm:text-5xl">
-                            {experience.title}
+                            <EditableText
+                                field="title"
+                                value={experience.title}
+                                placeholder="Add a headline"
+                                label="Headline"
+                            />
                         </h1>
-                        {experience.subtitle && (
-                            <p className="mt-3 font-script text-3xl">
-                                {experience.subtitle}
-                            </p>
-                        )}
+                        <EditableText
+                            block
+                            field="subtitle"
+                            value={experience.subtitle}
+                            placeholder="Add a sub-headline"
+                            label="Sub-headline"
+                            className="mt-3 font-script text-3xl"
+                        >
+                            {experience.subtitle}
+                        </EditableText>
                     </div>
                 </div>
                 <Flower2
@@ -219,10 +260,10 @@ function HeroDoily() {
 }
 
 function Note() {
-    const { experience, preset, photoAt } = useExperience();
+    const { experience, preset, photoAt, editable } = useExperience();
     const parts = paragraphs(experience.message);
 
-    if (parts.length === 0) {
+    if (parts.length === 0 && !editable) {
         return null;
     }
 
@@ -238,18 +279,31 @@ function Note() {
                 </Reveal>
                 <Reveal delay={150}>
                     <Eyebrow>{preset.labels?.note ?? 'A little note'}</Eyebrow>
-                    {experience.recipient_name && (
-                        <h2 className="mt-3 font-display text-4xl">
-                            To {experience.recipient_name},
-                        </h2>
-                    )}
-                    <div className="mt-4 space-y-3 leading-relaxed text-[var(--x-muted)]">
+                    <EditableText
+                        block
+                        field="recipient_name"
+                        value={experience.recipient_name}
+                        placeholder="Add their name"
+                        label="Their name"
+                        className="mt-3 font-display text-4xl"
+                    >
+                        To {experience.recipient_name},
+                    </EditableText>
+                    <EditableText
+                        block
+                        multiline
+                        field="message"
+                        value={experience.message}
+                        placeholder="Tap to write your letter"
+                        label="Your letter"
+                        className="mt-4 space-y-3 leading-relaxed text-[var(--x-muted)]"
+                    >
                         {parts.map((part, index) => (
                             <p key={index} className="whitespace-pre-line">
                                 {part}
                             </p>
                         ))}
-                    </div>
+                    </EditableText>
                 </Reveal>
             </div>
         </SectionShell>
@@ -257,10 +311,10 @@ function Note() {
 }
 
 function LetterCard() {
-    const { experience, photoAt } = useExperience();
+    const { experience, photoAt, editable } = useExperience();
     const parts = paragraphs(experience.message);
 
-    if (parts.length === 0) {
+    if (parts.length === 0 && !editable) {
         return null;
     }
 
@@ -281,9 +335,22 @@ function LetterCard() {
                                 fill="currentColor"
                             />
                             <h2 className="mt-3 font-display text-2xl font-semibold uppercase">
-                                {experience.title}
+                                <EditableText
+                                    field="title"
+                                    value={experience.title}
+                                    placeholder="Add a headline"
+                                    label="Headline"
+                                />
                             </h2>
-                            <div className="mt-4 space-y-3 font-display leading-relaxed">
+                            <EditableText
+                                block
+                                multiline
+                                field="message"
+                                value={experience.message}
+                                placeholder="Tap to write your letter"
+                                label="Your letter"
+                                className="mt-4 space-y-3 font-display leading-relaxed"
+                            >
                                 {parts.slice(0, 2).map((part, index) => (
                                     <p
                                         key={index}
@@ -292,7 +359,7 @@ function LetterCard() {
                                         {part}
                                     </p>
                                 ))}
-                            </div>
+                            </EditableText>
                         </div>
                     </div>
                 </Reveal>
@@ -312,10 +379,10 @@ function LetterCard() {
 }
 
 function LetterPaper() {
-    const { experience, photoAt } = useExperience();
+    const { experience, photoAt, editable } = useExperience();
     const parts = paragraphs(experience.message);
 
-    if (parts.length === 0) {
+    if (parts.length === 0 && !editable) {
         return null;
     }
 
@@ -357,24 +424,43 @@ function LetterPaper() {
                         }}
                     >
                         <span className="absolute top-0 right-0 size-9 bg-[linear-gradient(225deg,transparent_50%,rgb(0_0_0/0.12)_50%)]" />
-                        {experience.recipient_name && (
-                            <p className="font-display text-lg italic">
-                                Dear {experience.recipient_name},
-                            </p>
-                        )}
-                        {parts.map((part, index) => (
-                            <p
-                                key={index}
-                                className="mb-[32px] font-display whitespace-pre-line italic last:mb-0"
-                            >
-                                {part}
-                            </p>
-                        ))}
-                        {experience.sender_name && (
-                            <p className="mt-2 text-right font-script text-3xl">
-                                — {experience.sender_name}
-                            </p>
-                        )}
+                        <EditableText
+                            block
+                            field="recipient_name"
+                            value={experience.recipient_name}
+                            placeholder="Add their name"
+                            label="Their name"
+                            className="font-display text-lg italic"
+                        >
+                            Dear {experience.recipient_name},
+                        </EditableText>
+                        <EditableText
+                            block
+                            multiline
+                            field="message"
+                            value={experience.message}
+                            placeholder="Tap to write your letter"
+                            label="Your letter"
+                        >
+                            {parts.map((part, index) => (
+                                <p
+                                    key={index}
+                                    className="mb-[32px] font-display whitespace-pre-line italic last:mb-0"
+                                >
+                                    {part}
+                                </p>
+                            ))}
+                        </EditableText>
+                        <EditableText
+                            block
+                            field="sender_name"
+                            value={experience.sender_name}
+                            placeholder="Add your name"
+                            label="Your name"
+                            className="mt-2 text-right font-script text-3xl"
+                        >
+                            — {experience.sender_name}
+                        </EditableText>
                     </div>
                 </Reveal>
             </div>
@@ -411,7 +497,12 @@ function PolaroidWall() {
         <SectionShell surface>
             <Reveal className="text-center">
                 <ScriptHeading>
-                    {experience.event_date ?? 'Our moments together'}
+                    <EditableText
+                        field="event_date"
+                        value={experience.event_date ?? 'Our moments together'}
+                        placeholder="Our moments together"
+                        label="Section title"
+                    />
                 </ScriptHeading>
             </Reveal>
             <div className="relative mt-12">
@@ -572,21 +663,37 @@ function Timeline() {
                                         : 'md:order-1 md:pr-12 md:text-right',
                                 )}
                             >
-                                {moment.date && (
-                                    <p className="text-xs font-semibold tracking-[0.3em] text-[var(--x-accent)] uppercase">
-                                        {moment.date}
-                                    </p>
-                                )}
-                                {moment.title && (
-                                    <h3 className="mt-1 font-display text-2xl">
-                                        {moment.title}
-                                    </h3>
-                                )}
-                                {moment.caption && (
-                                    <p className="mt-2 leading-relaxed text-[var(--x-muted)]">
-                                        {moment.caption}
-                                    </p>
-                                )}
+                                <EditableText
+                                    block
+                                    field={`moments.${index}.date`}
+                                    value={moment.date}
+                                    placeholder="Add a date"
+                                    label="Moment date"
+                                    className="text-xs font-semibold tracking-[0.3em] text-[var(--x-accent)] uppercase"
+                                >
+                                    {moment.date}
+                                </EditableText>
+                                <EditableText
+                                    block
+                                    field={`moments.${index}.title`}
+                                    value={moment.title}
+                                    placeholder="Add a headline"
+                                    label="Headline"
+                                    className="mt-1 font-display text-2xl"
+                                >
+                                    {moment.title}
+                                </EditableText>
+                                <EditableText
+                                    block
+                                    multiline
+                                    field={`moments.${index}.caption`}
+                                    value={moment.caption}
+                                    placeholder="What happened?"
+                                    label="Moment caption"
+                                    className="mt-2 leading-relaxed text-[var(--x-muted)]"
+                                >
+                                    {moment.caption}
+                                </EditableText>
                             </Reveal>
                         </li>
                     ))}
@@ -638,11 +745,16 @@ function Gifts() {
                 <ScriptHeading>
                     {preset.labels?.gifts ?? experience.title}
                 </ScriptHeading>
-                {experience.subtitle && (
-                    <p className="mt-2 font-display text-[var(--x-muted)]">
-                        {experience.subtitle}
-                    </p>
-                )}
+                <EditableText
+                    block
+                    field="subtitle"
+                    value={experience.subtitle}
+                    placeholder="Add a sub-headline"
+                    label="Sub-headline"
+                    className="mt-2 font-display text-[var(--x-muted)]"
+                >
+                    {experience.subtitle}
+                </EditableText>
             </Reveal>
             <div className="mt-12 grid gap-8 sm:grid-cols-3">
                 {gifts.map((gift, index) => (
@@ -699,11 +811,16 @@ function Gifts() {
                         )}
                         {open === 'letter' && (
                             <div>
-                                {experience.recipient_name && (
-                                    <p className="font-display text-lg italic">
-                                        Dear {experience.recipient_name},
-                                    </p>
-                                )}
+                                <EditableText
+                                    block
+                                    field="recipient_name"
+                                    value={experience.recipient_name}
+                                    placeholder="Add their name"
+                                    label="Their name"
+                                    className="font-display text-lg italic"
+                                >
+                                    Dear {experience.recipient_name},
+                                </EditableText>
                                 {paragraphs(experience.message).map(
                                     (part, index) => (
                                         <p
@@ -714,11 +831,16 @@ function Gifts() {
                                         </p>
                                     ),
                                 )}
-                                {experience.sender_name && (
-                                    <p className="mt-4 text-right font-script text-3xl">
-                                        — {experience.sender_name}
-                                    </p>
-                                )}
+                                <EditableText
+                                    block
+                                    field="sender_name"
+                                    value={experience.sender_name}
+                                    placeholder="Add your name"
+                                    label="Your name"
+                                    className="mt-4 text-right font-script text-3xl"
+                                >
+                                    — {experience.sender_name}
+                                </EditableText>
                             </div>
                         )}
                         {open === 'song' && <SongCard compact />}
@@ -824,14 +946,26 @@ function SongCard({ compact = false }: { compact?: boolean }) {
                 <Vinyl spinning={playing} label={experience.song_title} />
             </div>
             <div className="text-center md:text-left">
-                {experience.song_title && (
-                    <p className="font-display text-2xl">
-                        {experience.song_title}
-                    </p>
-                )}
-                {experience.song_artist && (
-                    <p className="opacity-75">{experience.song_artist}</p>
-                )}
+                <EditableText
+                    block
+                    field="song_title"
+                    value={experience.song_title}
+                    placeholder="Add the song title"
+                    label="Song title"
+                    className="font-display text-2xl"
+                >
+                    {experience.song_title}
+                </EditableText>
+                <EditableText
+                    block
+                    field="song_artist"
+                    value={experience.song_artist}
+                    placeholder="Add the artist"
+                    label="Artist"
+                    className="opacity-75"
+                >
+                    {experience.song_artist}
+                </EditableText>
                 {available && (
                     <button
                         type="button"
@@ -1055,11 +1189,16 @@ function Scrapbook() {
                             }}
                         />
                     ))}
-                    {experience.quote && (
-                        <p className="mt-8 text-center font-script text-4xl text-[#8B1A22]">
-                            {experience.quote}
-                        </p>
-                    )}
+                    <EditableText
+                        block
+                        field="quote"
+                        value={experience.quote}
+                        placeholder="Add a favorite line"
+                        label="Favorite line"
+                        className="mt-8 text-center font-script text-4xl text-[#8B1A22]"
+                    >
+                        {experience.quote}
+                    </EditableText>
                 </div>
             </Reveal>
         </SectionShell>
@@ -1147,9 +1286,9 @@ function VideoSection() {
 }
 
 function QuoteBanner() {
-    const { experience } = useExperience();
+    const { experience, editable } = useExperience();
 
-    if (!experience.quote) {
+    if (!experience.quote && !editable) {
         return null;
     }
 
@@ -1162,14 +1301,26 @@ function QuoteBanner() {
             }}
         >
             <Reveal>
-                <p className="mx-auto max-w-3xl font-display text-3xl leading-snug italic sm:text-4xl">
+                <EditableText
+                    block
+                    field="quote"
+                    value={experience.quote}
+                    placeholder="Tap to add a favorite line"
+                    label="Favorite line"
+                    className="mx-auto max-w-3xl font-display text-3xl leading-snug italic sm:text-4xl"
+                >
                     “{experience.quote}”
-                </p>
-                {experience.sender_name && (
-                    <p className="mt-3 text-sm tracking-[0.3em] uppercase opacity-80">
-                        — {experience.sender_name}
-                    </p>
-                )}
+                </EditableText>
+                <EditableText
+                    block
+                    field="sender_name"
+                    value={experience.sender_name}
+                    placeholder="Add your name"
+                    label="Your name"
+                    className="mt-3 text-sm tracking-[0.3em] uppercase opacity-80"
+                >
+                    — {experience.sender_name}
+                </EditableText>
             </Reveal>
         </section>
     );
@@ -1203,7 +1354,12 @@ function Countdown() {
             <Reveal>
                 <Eyebrow>{preset.labels?.countdown ?? 'Counting down'}</Eyebrow>
                 <p className="mt-3 font-display text-3xl">
-                    {experience.event_date}
+                    <EditableText
+                        field="event_date"
+                        value={experience.event_date}
+                        placeholder="Add the date"
+                        label="Event date"
+                    />
                 </p>
                 {remaining > 0 ? (
                     <div className="mx-auto mt-8 grid max-w-xl grid-cols-4 gap-3">
@@ -1232,10 +1388,10 @@ function Countdown() {
 }
 
 function Details() {
-    const { experience } = useExperience();
+    const { experience, editable } = useExperience();
     const parts = paragraphs(experience.message);
 
-    if (parts.length === 0) {
+    if (parts.length === 0 && !editable) {
         return null;
     }
 
@@ -1248,28 +1404,51 @@ function Details() {
                             className="mx-auto size-7 text-[var(--x-accent)]"
                             fill="currentColor"
                         />
-                        {experience.subtitle && (
-                            <p className="mt-4 text-sm tracking-[0.3em] uppercase opacity-70">
-                                {experience.subtitle}
-                            </p>
-                        )}
-                        {experience.event_date && (
-                            <p className="mt-3 font-display text-3xl">
-                                {experience.event_date}
-                            </p>
-                        )}
-                        <div className="mt-6 space-y-3 font-display leading-relaxed">
+                        <EditableText
+                            block
+                            field="subtitle"
+                            value={experience.subtitle}
+                            placeholder="Add a sub-headline"
+                            label="Sub-headline"
+                            className="mt-4 text-sm tracking-[0.3em] uppercase opacity-70"
+                        >
+                            {experience.subtitle}
+                        </EditableText>
+                        <EditableText
+                            block
+                            field="event_date"
+                            value={experience.event_date}
+                            placeholder="Add a date"
+                            label="Date or tagline"
+                            className="mt-3 font-display text-3xl"
+                        >
+                            {experience.event_date}
+                        </EditableText>
+                        <EditableText
+                            block
+                            multiline
+                            field="message"
+                            value={experience.message}
+                            placeholder="Tap to write the invitation details"
+                            label="Invitation details"
+                            className="mt-6 space-y-3 font-display leading-relaxed"
+                        >
                             {parts.map((part, index) => (
                                 <p key={index} className="whitespace-pre-line">
                                     {part}
                                 </p>
                             ))}
-                        </div>
-                        {experience.sender_name && (
-                            <p className="mt-6 font-script text-4xl">
-                                {experience.sender_name}
-                            </p>
-                        )}
+                        </EditableText>
+                        <EditableText
+                            block
+                            field="sender_name"
+                            value={experience.sender_name}
+                            placeholder="Add your name"
+                            label="Your name"
+                            className="mt-6 font-script text-4xl"
+                        >
+                            {experience.sender_name}
+                        </EditableText>
                     </div>
                 </div>
             </Reveal>
@@ -1287,11 +1466,16 @@ function Closing({ children }: { children?: ReactNode }) {
                 <p className="font-script text-5xl sm:text-6xl">
                     {preset.labels?.closing ?? 'I love you'}
                 </p>
-                {experience.sender_name && (
-                    <p className="mt-3 font-display text-lg text-[var(--x-muted)] italic">
-                        — {experience.sender_name}
-                    </p>
-                )}
+                <EditableText
+                    block
+                    field="sender_name"
+                    value={experience.sender_name}
+                    placeholder="Add your name"
+                    label="Your name"
+                    className="mt-3 font-display text-lg text-[var(--x-muted)] italic"
+                >
+                    — {experience.sender_name}
+                </EditableText>
                 {children}
             </Reveal>
         </section>

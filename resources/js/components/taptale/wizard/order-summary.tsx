@@ -28,7 +28,7 @@ export function OrderSummary({
                 Your gift
             </p>
             <dl className="mt-4 space-y-2.5 text-sm">
-                <Row label="Occasion" value={category?.name} />
+                {category && <Row label="Occasion" value={category.name} />}
                 <Row label="Gift" value={product?.name} />
                 <Row
                     label="Template"

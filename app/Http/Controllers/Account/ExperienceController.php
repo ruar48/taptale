@@ -8,13 +8,34 @@ use App\Http\Requests\Account\UpdateExperienceRequest;
 use App\Http\Resources\DigitalExperienceResource;
 use App\Models\DigitalExperience;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ExperienceController extends Controller
 {
+    /**
+     * Switch the page design (template and color theme) from the page itself.
+     */
+    public function updateDesign(Request $request, DigitalExperience $experience): RedirectResponse
+    {
+        Gate::authorize('update', $experience);
+
+        $validated = $request->validate([
+            'template' => ['required', Rule::enum(ExperienceTemplate::class)],
+            'theme' => ['required', Rule::in(DigitalExperience::THEMES)],
+        ]);
+
+        $experience->update($validated);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Design updated.')]);
+
+        return back();
+    }
+
     /**
      * Show the editor for a customer's NFC / QR digital experience.
      */

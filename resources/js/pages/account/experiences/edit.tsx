@@ -191,7 +191,7 @@ export default function EditExperience({
 
     return (
         <>
-            <Head title="Memory page" />
+            <Head title="My Memory Page" />
             <form
                 className="mx-auto w-full max-w-6xl space-y-6 p-4 sm:p-6"
                 onSubmit={submit}
