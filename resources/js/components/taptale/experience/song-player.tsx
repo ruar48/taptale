@@ -513,7 +513,7 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                 'grid items-center',
                 compact
                     ? 'gap-10'
-                    : 'grid-cols-2 gap-x-4 gap-y-6 sm:gap-x-8 md:grid-cols-[0.85fr_1.15fr] md:gap-14',
+                    : 'grid-cols-12 gap-y-6 md:grid-cols-[0.85fr_1.15fr] md:gap-14',
             )}
         >
             {source === 'preview' && details?.preview_url && (
@@ -535,8 +535,8 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                 <div
                     className={place(
                         hasMedia
-                            ? 'max-md:col-start-1 max-md:row-start-1'
-                            : 'max-md:col-span-2 max-md:row-start-1 max-md:mx-auto max-md:w-full max-md:max-w-[16rem]',
+                            ? 'max-md:col-span-4 max-md:col-start-1 max-md:row-start-1'
+                            : 'max-md:col-span-12 max-md:row-start-1 max-md:mx-auto max-md:w-full max-md:max-w-[16rem]',
                     )}
                 >
                     <Vinyl
@@ -546,11 +546,12 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                     />
                 </div>
 
+                {/* On phones the waveform runs faded behind the title and lyrics. */}
                 <div
                     className={cn(
                         'mt-8',
                         place(
-                            'max-md:col-span-2 max-md:row-start-3 max-md:mt-0',
+                            'max-md:col-span-12 max-md:row-start-2 max-md:mt-0 max-md:self-center max-md:opacity-30',
                         ),
                     )}
                 >
@@ -560,13 +561,20 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                         playing={playing}
                         onSeek={canPlay && duration > 0 ? seek : undefined}
                     />
-                    <div className="mt-1 flex justify-between text-xs tabular-nums opacity-60">
-                        <span>{formatTime(clock.current)}</span>
-                        <span>
-                            {source === 'preview' && 'Preview · '}
-                            {formatTime(duration)}
-                        </span>
-                    </div>
+                </div>
+                <div
+                    className={cn(
+                        'mt-1 flex justify-between text-xs tabular-nums opacity-60',
+                        place(
+                            'max-md:col-span-12 max-md:row-start-3 max-md:-mt-3',
+                        ),
+                    )}
+                >
+                    <span>{formatTime(clock.current)}</span>
+                    <span>
+                        {source === 'preview' && 'Preview · '}
+                        {formatTime(duration)}
+                    </span>
                 </div>
 
                 <div
@@ -574,10 +582,10 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                         'mt-6 flex min-w-0 items-center gap-4',
                         place(
                             cn(
-                                'max-md:row-start-2 max-md:mt-0 max-md:gap-3',
+                                'max-md:relative max-md:z-10 max-md:row-start-2 max-md:mt-0 max-md:gap-3',
                                 showsLyricsColumn
-                                    ? 'max-md:col-start-1'
-                                    : 'max-md:col-span-2',
+                                    ? 'max-md:col-span-6 max-md:col-start-1'
+                                    : 'max-md:col-span-12',
                             ),
                         ),
                     )}
@@ -647,7 +655,9 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                     <div
                         className={cn(
                             'min-w-0',
-                            place('max-md:col-start-2 max-md:row-start-2'),
+                            place(
+                                'max-md:relative max-md:z-10 max-md:col-span-6 max-md:col-start-7 max-md:row-start-2 max-md:pl-3',
+                            ),
                         )}
                     >
                         {loading && !details && (
@@ -681,7 +691,7 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                         className={cn(
                             'mt-6 min-w-0',
                             place(
-                                'max-md:col-start-2 max-md:row-start-1 max-md:mt-0',
+                                'max-md:col-span-8 max-md:col-start-5 max-md:row-start-1 max-md:mt-0 max-md:pl-3',
                             ),
                         )}
                     >
@@ -724,7 +734,7 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                 <div
                     className={cn(
                         'min-w-0',
-                        place('max-md:col-span-2 max-md:row-start-4'),
+                        place('max-md:col-span-12 max-md:row-start-4'),
                     )}
                 >
                     {!embed && experience.music_url && (
