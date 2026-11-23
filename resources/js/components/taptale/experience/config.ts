@@ -175,8 +175,17 @@ export function themeStyle(theme: ExperienceTheme): CSSProperties {
     } as CSSProperties;
 }
 
+/** Flowers drawn as their own scene rather than in the night garden. */
+export const SCENE_STYLES = ["lotus", "heart", "crimson"] as const;
+
+export type SceneStyle = (typeof SCENE_STYLES)[number];
+
+export function isSceneStyle(style: FlowerStyle): style is SceneStyle {
+    return (SCENE_STYLES as readonly string[]).includes(style);
+}
+
 /** Colors of the glowing flowers that grow in the night garden. */
-export type GardenVariant = Exclude<FlowerStyle, "bouquet">;
+export type GardenVariant = Exclude<FlowerStyle, "bouquet" | SceneStyle>;
 
 /**
  * Flowers the bouquet page can show. The swatch previews the petal color
@@ -191,6 +200,21 @@ export const FLOWER_STYLES: {
         value: "bouquet",
         label: "Bouquet",
         swatch: "conic-gradient(#F2557F 0 25%, #FF9EB8 0 50%, #FFB38A 0 75%, #E6D4FF 0)",
+    },
+    {
+        value: "lotus",
+        label: "Lotus",
+        swatch: "radial-gradient(circle at 50% 60%, #fff 0 20%, #ffb3d1 45%, #ff6fa8 100%)",
+    },
+    {
+        value: "heart",
+        label: "Heart bouquet",
+        swatch: "conic-gradient(#ff4f8b 0 20%, #ffd23f 0 40%, #4fa8ff 0 60%, #b38cff 0 80%, #ffffff 0)",
+    },
+    {
+        value: "crimson",
+        label: "Crimson",
+        swatch: "radial-gradient(circle, #ff6b81 0 30%, #c8102e 70%)",
     },
     { value: "pink", label: "Pink", swatch: "#ff8fb6" },
     { value: "red", label: "Red", swatch: "#e5384f" },

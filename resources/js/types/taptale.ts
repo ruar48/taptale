@@ -203,6 +203,9 @@ export type PhotoRainLayer = 'front' | 'back';
 /** The flowers on a bouquet page: the wrapped bouquet or glowing garden flowers. */
 export type FlowerStyle =
     | 'bouquet'
+    | 'lotus'
+    | 'heart'
+    | 'crimson'
     | 'teal'
     | 'pink'
     | 'lavender'

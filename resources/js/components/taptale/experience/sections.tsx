@@ -18,6 +18,7 @@ import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { BloomingBouquet } from '@/components/taptale/experience/blooming-bouquet';
 import { FlowerPicker } from '@/components/taptale/experience/flower-picker';
+import { FlowerScene } from '@/components/taptale/experience/flower-scenes';
 import { NightGarden } from '@/components/taptale/experience/night-garden';
 import { SongPlayer } from '@/components/taptale/experience/song-player';
 import {
@@ -28,6 +29,7 @@ import {
 } from '@/components/taptale/experience/song-section-style';
 import {
     embedFor,
+    isSceneStyle,
     parseEventDate,
 } from '@/components/taptale/experience/config';
 import type { SectionKey } from '@/components/taptale/experience/config';
@@ -122,6 +124,8 @@ export function FlowersSection({
         <div id="page-flowers" className="relative scroll-mt-16">
             {style === 'bouquet' ? (
                 <BloomingBouquet rain={rain} isAddon={isAddon} />
+            ) : isSceneStyle(style) ? (
+                <FlowerScene style={style} rain={rain} isAddon={isAddon} />
             ) : (
                 <NightGarden variant={style} rain={rain} isAddon={isAddon} />
             )}

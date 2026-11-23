@@ -82,6 +82,9 @@ export const MOMENT_TEXT_LIMITS = {
 export const PAGE_CHOICES = {
     flower_style: [
         'bouquet',
+        'lotus',
+        'heart',
+        'crimson',
         'teal',
         'pink',
         'lavender',

@@ -18,6 +18,8 @@ import ExperienceController from '@/actions/App/Http/Controllers/Account/Experie
 import InputError from '@/components/input-error';
 import {
     EXPERIENCE_THEMES,
+    FLOWER_RAINS,
+    FLOWER_STYLES,
     presetFor,
     themeFor,
     themeStyle,
@@ -40,6 +42,9 @@ import type {
     DigitalExperience,
     ExperienceTemplateKey,
     ExperienceTemplateOption,
+    FlowerRain,
+    FlowerStyle,
+    PhotoRainLayer,
 } from '@/types';
 
 type Props = {
@@ -105,6 +110,9 @@ type ExperienceForm = {
     message: string;
     quote: string;
     flowers_note: string;
+    flower_style: FlowerStyle;
+    flower_rain: FlowerRain;
+    photo_rain_layer: PhotoRainLayer;
     event_date: string;
     video_url: string;
     music_url: string;
@@ -150,6 +158,9 @@ export default function EditExperience({
         message: experience.message ?? '',
         quote: experience.quote ?? '',
         flowers_note: experience.flowers_note ?? '',
+        flower_style: experience.flower_style,
+        flower_rain: experience.flower_rain,
+        photo_rain_layer: experience.photo_rain_layer,
         event_date: experience.event_date ?? '',
         video_url: experience.video_url ?? '',
         music_url: experience.music_url ?? '',
@@ -176,6 +187,12 @@ export default function EditExperience({
     );
     const usesGifts = preset.sections.includes('gifts');
     const usesCountdown = preset.sections.includes('countdown');
+    // The bouquet design includes the flowers; other designs only show
+    // them when the flowers add-on was bought at checkout.
+    const showsFlowers =
+        data.template === 'digital_bouquet' || experience.flower_addon;
+    const hasPhotoRain =
+        data.flower_rain === 'photos' || data.flower_rain === 'both';
     const keptPhotos = experience.photos.filter(
         (photo) => !data.remove_photos.includes(photo.index),
     );
@@ -365,6 +382,108 @@ export default function EditExperience({
                                 </button>
                             ))}
                     </div>
+
+                    <p className="mt-6 mb-2 text-sm font-medium">Flowers</p>
+                    {showsFlowers ? (
+                        <div className="space-y-4">
+                            <div
+                                className="flex flex-wrap gap-2"
+                                role="radiogroup"
+                                aria-label="Flowers"
+                            >
+                                {FLOWER_STYLES.map((style) => (
+                                    <button
+                                        key={style.value}
+                                        type="button"
+                                        role="radio"
+                                        aria-checked={
+                                            data.flower_style === style.value
+                                        }
+                                        onClick={() =>
+                                            setData('flower_style', style.value)
+                                        }
+                                        className={cn(
+                                            'flex items-center gap-2 rounded-full border-2 py-1 pr-3 pl-1 text-sm transition',
+                                            data.flower_style === style.value
+                                                ? 'border-rose'
+                                                : 'border-border hover:border-rose/40',
+                                        )}
+                                    >
+                                        <span
+                                            className="size-7 rounded-full ring-1 ring-black/10"
+                                            style={{ background: style.swatch }}
+                                        />
+                                        {style.label}
+                                    </button>
+                                ))}
+                            </div>
+                            <InputError message={errors.flower_style} />
+
+                            <div>
+                                <p className="mb-2 text-sm text-muted-foreground">
+                                    Raining down
+                                </p>
+                                <div
+                                    className="flex flex-wrap gap-2"
+                                    role="radiogroup"
+                                    aria-label="Raining down"
+                                >
+                                    {FLOWER_RAINS.map((option) => (
+                                        <button
+                                            key={option.value}
+                                            type="button"
+                                            role="radio"
+                                            aria-checked={
+                                                data.flower_rain ===
+                                                option.value
+                                            }
+                                            onClick={() =>
+                                                setData(
+                                                    'flower_rain',
+                                                    option.value,
+                                                )
+                                            }
+                                            className={cn(
+                                                'rounded-full border-2 px-3 py-1 text-sm transition',
+                                                data.flower_rain ===
+                                                    option.value
+                                                    ? 'border-rose'
+                                                    : 'border-border hover:border-rose/40',
+                                            )}
+                                        >
+                                            {option.label}
+                                        </button>
+                                    ))}
+                                </div>
+                                <InputError message={errors.flower_rain} />
+                            </div>
+
+                            {hasPhotoRain && (
+                                <label className="flex items-center gap-2 text-sm">
+                                    <Checkbox
+                                        checked={
+                                            data.photo_rain_layer === 'back'
+                                        }
+                                        onCheckedChange={(checked) =>
+                                            setData(
+                                                'photo_rain_layer',
+                                                checked === true
+                                                    ? 'back'
+                                                    : 'front',
+                                            )
+                                        }
+                                    />
+                                    Let the photos fall behind the flowers
+                                </label>
+                            )}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-muted-foreground">
+                            The blooming flowers come with the “A Bouquet For
+                            You” design. On other designs they are an add-on you
+                            can choose when ordering.
+                        </p>
+                    )}
                 </Panel>
 
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -489,7 +608,7 @@ export default function EditExperience({
                                         placeholder="We are together in every situation."
                                     />
                                 </Field>
-                                {usesGifts && (
+                                {(usesGifts || showsFlowers) && (
                                     <Field
                                         label='"Flowers for you" note'
                                         error={errors.flowers_note}

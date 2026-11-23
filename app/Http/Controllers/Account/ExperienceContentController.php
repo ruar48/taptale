@@ -28,7 +28,7 @@ class ExperienceContentController extends Controller
         'message' => ['nullable', 'string', 'max:5000'],
         'quote' => ['nullable', 'string', 'max:255'],
         'flowers_note' => ['nullable', 'string', 'max:500'],
-        'flower_style' => ['required', 'string', 'in:bouquet,teal,pink,lavender,golden,red,white,blue,peach,mixed'],
+        'flower_style' => ['required', 'string', 'in:bouquet,lotus,heart,crimson,teal,pink,lavender,golden,red,white,blue,peach,mixed'],
         'flower_rain' => ['required', 'string', 'in:none,petals,photos,both'],
         'photo_rain_layer' => ['required', 'string', 'in:front,back'],
         'event_date' => ['nullable', 'string', 'max:60'],

@@ -305,6 +305,9 @@ export default function CreateGift({
             return;
         }
 
+        // Flowers added on the demo come along (and are charged) at checkout.
+        setData('flower_addon', Boolean(found.content.flower_addon));
+
         let isCurrent = true;
 
         void loadPagePhotos(found.template).then((photos) => {
@@ -483,6 +486,17 @@ export default function CreateGift({
         router.visit(wizardRoute.url());
     };
 
+    /*
+     * "A Bouquet For You" comes with its flowers; any other tap page design
+     * can have them added for a small fee, charged once.
+     */
+    const pageHasOwnFlowers = data.experience_template === 'digital_bouquet';
+    const wantsFlowers =
+        hasTapPage &&
+        data.flower_addon &&
+        data.experience_template !== '' &&
+        !pageHasOwnFlowers;
+
     const price = useMemo(
         () =>
             selectedProduct
@@ -493,6 +507,7 @@ export default function CreateGift({
                       designMode,
                       pricing,
                       promo,
+                      wantsFlowers,
                   )
                 : null,
         [
@@ -502,6 +517,7 @@ export default function CreateGift({
             designMode,
             pricing,
             promo,
+            wantsFlowers,
         ],
     );
 
@@ -738,6 +754,7 @@ export default function CreateGift({
             personalize_later: true,
             approve_preview: false,
             promo_code: promo?.code ?? '',
+            flower_addon: wantsFlowers,
             ...(orderedPage
                 ? { page: orderedPage.content, page_photos: pagePhotos }
                 : {}),
@@ -1111,6 +1128,39 @@ export default function CreateGift({
                                             )}
                                         </Button>
                                     </div>
+                                )}
+                                {chosenPage && !pageHasOwnFlowers && (
+                                    <label className="mb-6 flex cursor-pointer items-start gap-3 rounded-2xl border border-border bg-card p-4 transition hover:border-rose/40">
+                                        <Checkbox
+                                            checked={data.flower_addon}
+                                            onCheckedChange={(checked) =>
+                                                setData(
+                                                    'flower_addon',
+                                                    checked === true,
+                                                )
+                                            }
+                                            className="mt-0.5"
+                                        />
+                                        <span className="text-sm">
+                                            <span className="font-medium">
+                                                Add blooming flowers to your
+                                                page
+                                            </span>{' '}
+                                            <span className="font-semibold text-plum dark:text-blush">
+                                                +
+                                                {money(
+                                                    pricing.flowers_addon_price,
+                                                )}
+                                            </span>
+                                            <span className="mt-0.5 block text-xs text-muted-foreground">
+                                                A bouquet or glowing flowers
+                                                bloom right after the opening,
+                                                with petals or your photos
+                                                raining down. Pick the flowers
+                                                anytime after ordering.
+                                            </span>
+                                        </span>
+                                    </label>
                                 )}
                                 <WebsitePicker
                                     templates={experienceTemplates}

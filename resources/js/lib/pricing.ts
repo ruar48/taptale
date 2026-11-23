@@ -94,7 +94,8 @@ export function calculatePrice(
         flowersFee,
         deliveryFee,
         discount,
-        total: subtotal - discount + customizationFee + flowersFee + deliveryFee,
+        total:
+            subtotal - discount + customizationFee + flowersFee + deliveryFee,
         selected,
     };
 }

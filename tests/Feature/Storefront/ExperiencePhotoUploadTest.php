@@ -270,14 +270,14 @@ test('the owner changes the flowers and what rains over them on the page', funct
         ->flower_rain->toBe(FlowerRain::None);
 
     $this->actingAs($experience->user)
-        ->patch(route('account.experiences.content', $experience), ['field' => 'flower_style', 'value' => 'white'])
+        ->patch(route('account.experiences.content', $experience), ['field' => 'flower_style', 'value' => 'lotus'])
         ->assertSessionHasNoErrors();
     $this->actingAs($experience->user)
         ->patch(route('account.experiences.content', $experience), ['field' => 'flower_rain', 'value' => 'photos'])
         ->assertSessionHasNoErrors();
 
     expect($experience->fresh())
-        ->flower_style->toBe(FlowerStyle::White)
+        ->flower_style->toBe(FlowerStyle::Lotus)
         ->flower_rain->toBe(FlowerRain::Photos);
 
     $this->actingAs($experience->user)
@@ -288,7 +288,7 @@ test('the owner changes the flowers and what rains over them on the page', funct
         ->assertSessionHasErrors('value');
 
     expect($experience->fresh())
-        ->flower_style->toBe(FlowerStyle::White)
+        ->flower_style->toBe(FlowerStyle::Lotus)
         ->flower_rain->toBe(FlowerRain::Photos);
 });
 
