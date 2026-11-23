@@ -35,7 +35,12 @@ function abandonedOrder(int $daysAgo, array $state = []): Order
     ]);
 
     Storage::disk('local')->put("experiences/{$order->id}/page.jpg", 'page');
-    DigitalExperience::factory()->for($order)->create(['user_id' => $order->user_id, 'photos' => ["experiences/{$order->id}/page.jpg"]]);
+    Storage::disk('local')->put("experiences/{$order->id}/rain.jpg", 'rain');
+    DigitalExperience::factory()->for($order)->create([
+        'user_id' => $order->user_id,
+        'photos' => ["experiences/{$order->id}/page.jpg"],
+        'rain_photos' => ["experiences/{$order->id}/rain.jpg"],
+    ]);
 
     return $order;
 }

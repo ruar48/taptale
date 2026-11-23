@@ -108,6 +108,7 @@ class OrderWizardController extends Controller
             $request->validated(),
             array_values($request->file('photos', [])),
             array_values($request->file('page_photos', [])),
+            array_values($request->file('page_rain_photos', [])),
         );
 
         $method = $order->paymentMethod;

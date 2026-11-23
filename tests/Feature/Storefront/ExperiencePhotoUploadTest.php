@@ -77,6 +77,72 @@ test('a photo added in a moment frame is attached to that moment', function () {
         ->and($moments[1]['photo'])->toBe(0);
 });
 
+test('the owner picks photos to rain down, apart from the page photos', function () {
+    $experience = DigitalExperience::factory()->create(['photos' => ['experiences/page.jpg']]);
+
+    $this->actingAs($experience->user)
+        ->post(route('account.experiences.rain-photos.store', $experience), [
+            'photos' => [UploadedFile::fake()->image('one.jpg'), UploadedFile::fake()->image('two.jpg')],
+        ])
+        ->assertSessionHasNoErrors();
+
+    $experience->refresh();
+
+    expect($experience->photos)->toBe(['experiences/page.jpg'])
+        ->and($experience->rain_photos)->toHaveCount(2);
+    Storage::disk('local')->assertExists($experience->rain_photos);
+
+    [$removed, $kept] = $experience->rain_photos;
+
+    $this->actingAs($experience->user)
+        ->delete(route('account.experiences.rain-photos.destroy', [$experience, 0]))
+        ->assertSessionHasNoErrors();
+
+    expect($experience->fresh()->rain_photos)->toBe([$kept]);
+    Storage::disk('local')->assertMissing($removed);
+});
+
+test('at most twelve photos can rain down', function () {
+    $experience = DigitalExperience::factory()->create(['rain_photos' => array_fill(0, 11, 'experiences/rain.jpg')]);
+
+    $this->actingAs($experience->user)
+        ->post(route('account.experiences.rain-photos.store', $experience), [
+            'photos' => [UploadedFile::fake()->image('one.jpg'), UploadedFile::fake()->image('two.jpg')],
+        ])
+        ->assertSessionHasErrors(['photos' => 'Up to 12 photos can rain down on your page.']);
+
+    expect($experience->fresh()->rain_photos)->toHaveCount(11);
+});
+
+test('another customer cannot change the photos raining on someone else\'s page', function () {
+    $experience = DigitalExperience::factory()->create(['rain_photos' => ['experiences/rain.jpg']]);
+    $intruder = User::factory()->create();
+
+    $this->actingAs($intruder)
+        ->post(route('account.experiences.rain-photos.store', $experience), [
+            'photos' => [UploadedFile::fake()->image('intruder.jpg')],
+        ])
+        ->assertForbidden();
+
+    $this->actingAs($intruder)
+        ->delete(route('account.experiences.rain-photos.destroy', [$experience, 0]))
+        ->assertForbidden();
+
+    expect($experience->fresh()->rain_photos)->toBe(['experiences/rain.jpg']);
+});
+
+test('raining photos open only for those who can see the page', function () {
+    Storage::disk('local')->put('experiences/rain.jpg', 'rain');
+    $experience = DigitalExperience::factory()->create(['rain_photos' => ['experiences/rain.jpg']]);
+
+    $this->get(route('experiences.rain-photo', [$experience, 0]))->assertNotFound();
+
+    tapTag($experience);
+
+    $this->get(route('experiences.rain-photo', [$experience, 0]))->assertOk();
+    $this->get(route('experiences.rain-photo', [$experience, 1]))->assertNotFound();
+});
+
 test('another customer cannot add photos to someone else\'s page', function () {
     $experience = DigitalExperience::factory()->create(['photos' => []]);
 

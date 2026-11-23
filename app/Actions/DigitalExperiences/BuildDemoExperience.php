@@ -58,6 +58,7 @@ class BuildDemoExperience
             'song_details' => null,
             'audio_url' => null,
             'photos' => [],
+            'rain_photos' => [],
             'moments' => array_map(fn (array $moment): array => [...$moment, 'photo' => null, 'photo_url' => null], $moments),
             'custom_sections' => [],
             'nfc_tag_uid' => null,

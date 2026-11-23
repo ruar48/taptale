@@ -315,6 +315,8 @@ export type DigitalExperience = {
     song_details: SongDetails | null;
     audio_url: string | null;
     photos: { index: number; url: string }[];
+    /** Photos picked to rain over the flowers, apart from the page photos. */
+    rain_photos: { index: number; url: string }[];
     moments: ExperienceMoment[];
     custom_sections: ExperienceCustomSection[];
     nfc_tag_uid: string | null;

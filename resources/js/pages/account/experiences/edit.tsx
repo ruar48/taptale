@@ -1,9 +1,10 @@
-import { Head, Link, setLayoutProps, useForm } from '@inertiajs/react';
+import { Head, Link, router, setLayoutProps, useForm } from '@inertiajs/react';
 import {
     Check,
     Download,
     ExternalLink,
     ImageOff,
+    ImagePlus,
     Loader2,
     MessageCircleHeart,
     Monitor,
@@ -13,8 +14,10 @@ import {
     Smartphone,
     Trash2,
     Undo2,
+    X,
 } from 'lucide-react';
 import ExperienceController from '@/actions/App/Http/Controllers/Account/ExperienceController';
+import ExperienceRainPhotoController from '@/actions/App/Http/Controllers/Account/ExperienceRainPhotoController';
 import InputError from '@/components/input-error';
 import {
     EXPERIENCE_THEMES,
@@ -31,6 +34,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { MAX_RAIN_PHOTOS } from '@/lib/page-draft';
 import { cn } from '@/lib/utils';
 import { edit } from '@/routes/account/experiences';
 import {
@@ -475,6 +479,94 @@ export default function EditExperience({
                                     />
                                     Let the photos fall behind the flowers
                                 </label>
+                            )}
+
+                            {hasPhotoRain && (
+                                <div>
+                                    <p className="mb-2 text-sm text-muted-foreground">
+                                        {experience.rain_photos.length > 0
+                                            ? `These ${experience.rain_photos.length} photos rain down in a random order.`
+                                            : 'Pick the photos that rain down. Until you do, your page photos fall.'}
+                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {experience.rain_photos.map((photo) => (
+                                            <span
+                                                key={photo.url}
+                                                className="relative size-16 overflow-hidden rounded-xl ring-1 ring-border"
+                                            >
+                                                <img
+                                                    src={photo.url}
+                                                    alt=""
+                                                    className="size-full object-cover"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        router.delete(
+                                                            ExperienceRainPhotoController.destroy.url(
+                                                                {
+                                                                    experience:
+                                                                        experience.code,
+                                                                    index: photo.index,
+                                                                },
+                                                            ),
+                                                            {
+                                                                preserveScroll: true,
+                                                                preserveState: true,
+                                                            },
+                                                        )
+                                                    }
+                                                    className="absolute top-1 right-1 rounded-full bg-black/70 p-0.5 text-white hover:bg-black"
+                                                    aria-label="Take this photo out of the rain"
+                                                >
+                                                    <X className="size-3" />
+                                                </button>
+                                            </span>
+                                        ))}
+                                        {experience.rain_photos.length <
+                                            MAX_RAIN_PHOTOS && (
+                                            <label
+                                                className="flex size-16 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-border text-muted-foreground transition hover:border-rose/40"
+                                                title="Add photos to the rain"
+                                            >
+                                                <input
+                                                    type="file"
+                                                    accept="image/jpeg,image/png,image/webp"
+                                                    multiple
+                                                    className="sr-only"
+                                                    onChange={(event) => {
+                                                        const files =
+                                                            Array.from(
+                                                                event.target
+                                                                    .files ??
+                                                                    [],
+                                                            );
+
+                                                        if (files.length > 0) {
+                                                            router.post(
+                                                                ExperienceRainPhotoController.store.url(
+                                                                    experience.code,
+                                                                ),
+                                                                {
+                                                                    photos: files,
+                                                                },
+                                                                {
+                                                                    forceFormData: true,
+                                                                    preserveScroll: true,
+                                                                    preserveState: true,
+                                                                },
+                                                            );
+                                                        }
+
+                                                        event.target.value = '';
+                                                    }}
+                                                    aria-label="Add photos to the rain"
+                                                />
+                                                <ImagePlus className="size-5" />
+                                            </label>
+                                        )}
+                                    </div>
+                                </div>
                             )}
                         </div>
                     ) : (

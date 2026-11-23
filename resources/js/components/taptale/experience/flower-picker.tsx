@@ -1,4 +1,4 @@
-import { Check, Flower2, Loader2, X } from 'lucide-react';
+import { Check, Flower2, ImagePlus, Loader2, X } from 'lucide-react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import {
@@ -6,6 +6,7 @@ import {
     FLOWER_STYLES,
 } from '@/components/taptale/experience/config';
 import { useExperience } from '@/components/taptale/experience/shared';
+import { MAX_RAIN_PHOTOS } from '@/lib/page-draft';
 import { cn } from '@/lib/utils';
 import type { PhotoRainLayer } from '@/types';
 
@@ -50,7 +51,9 @@ function Choice({
  * other inline edit, so the page changes straight away.
  */
 export function FlowerPicker({ onRemove }: { onRemove?: () => void }) {
-    const { experience, saveText } = useExperience();
+    const { experience, saveText, uploading, addRainPhotos, removeRainPhoto } =
+        useExperience();
+    const rainPhotos = experience.rain_photos ?? [];
     const [open, setOpen] = useState(false);
     const [saving, setSaving] = useState<string | null>(null);
     const rain = experience.flower_rain ?? 'none';
@@ -210,12 +213,74 @@ export function FlowerPicker({ onRemove }: { onRemove?: () => void }) {
                                     </Choice>
                                 ))}
                             </div>
-                            {experience.photos.length === 0 && (
-                                <p className="mt-2 text-xs text-white/60">
-                                    Add photos to the page and they will fall
-                                    here.
-                                </p>
-                            )}
+                            <p className="mt-3 text-xs text-white/60">
+                                {rainPhotos.length > 0
+                                    ? `These ${rainPhotos.length} photos rain down in a random order.`
+                                    : 'Pick the photos that rain down. Until you do, your page photos fall.'}
+                            </p>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                                {rainPhotos.map((photo) => (
+                                    <span
+                                        key={photo.url}
+                                        className="relative size-12 overflow-hidden rounded-lg ring-1 ring-white/20"
+                                    >
+                                        <img
+                                            src={photo.url}
+                                            alt=""
+                                            className="size-full object-cover"
+                                        />
+                                        {removeRainPhoto && (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    removeRainPhoto(photo.index)
+                                                }
+                                                className="absolute top-0.5 right-0.5 rounded-full bg-black/70 p-0.5 text-white hover:bg-black"
+                                                aria-label="Take this photo out of the rain"
+                                            >
+                                                <X className="size-3" />
+                                            </button>
+                                        )}
+                                    </span>
+                                ))}
+                                {addRainPhotos &&
+                                    rainPhotos.length < MAX_RAIN_PHOTOS && (
+                                        <label
+                                            className={cn(
+                                                'flex size-12 cursor-pointer items-center justify-center rounded-lg border border-dashed border-white/40 text-white/80 transition hover:bg-white/10',
+                                                uploading &&
+                                                    'pointer-events-none opacity-60',
+                                            )}
+                                            title="Add photos to the rain"
+                                        >
+                                            <input
+                                                type="file"
+                                                accept="image/jpeg,image/png,image/webp"
+                                                multiple
+                                                className="sr-only"
+                                                disabled={uploading}
+                                                onChange={(event) => {
+                                                    const files = Array.from(
+                                                        event.target.files ??
+                                                            [],
+                                                    );
+
+                                                    if (files.length > 0) {
+                                                        addRainPhotos(files);
+                                                    }
+
+                                                    event.target.value = '';
+                                                }}
+                                                aria-label="Add photos to the rain"
+                                            />
+                                            {uploading ? (
+                                                <Loader2 className="size-4 animate-spin" />
+                                            ) : (
+                                                <ImagePlus className="size-4" />
+                                            )}
+                                        </label>
+                                    )}
+                            </div>
                         </div>
                     )}
 

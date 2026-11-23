@@ -6,10 +6,35 @@ import type {
     ExperienceTheme,
 } from '@/components/taptale/experience/config';
 import { cn } from '@/lib/utils';
-import type { DigitalExperience, ExperienceMoment } from '@/types';
+import type {
+    DigitalExperience,
+    ExperienceMoment,
+    ExperienceSectionType,
+} from '@/types';
 
 /** A photo slot in one of the owner's extra sections. */
 export type PhotoSlot = { section: string; slot: number };
+
+/** Changes to an extra section's style, background or number of photos. */
+export type SectionChanges = {
+    type?: ExperienceSectionType;
+    background?: string | null;
+    slot_count?: number;
+};
+
+/**
+ * How extra sections are added, changed and removed. The owner's page saves
+ * each change on the server; a demo keeps them in the browser draft.
+ */
+export type SectionActions = {
+    add: (type: ExperienceSectionType, position: number) => void;
+    update: (
+        id: string,
+        changes: SectionChanges,
+        onFinish?: () => void,
+    ) => void;
+    remove: (id: string) => void;
+};
 
 export type ExperienceContextValue = {
     experience: DigitalExperience;
@@ -25,6 +50,11 @@ export type ExperienceContextValue = {
     addPhotos: (files: File[], moment?: number, slot?: PhotoSlot) => void;
     replacePhoto: (index: number, file: File) => void;
     saveText: (field: string, value: string) => Promise<boolean>;
+    /** Demo drafts keep section changes locally; the owner's page saves them. */
+    sectionActions?: SectionActions;
+    /** Add photos that rain down over the flowers. */
+    addRainPhotos?: (files: File[]) => void;
+    removeRainPhoto?: (index: number) => void;
     /** False while the opening gate still covers the page. */
     opened: boolean;
 };

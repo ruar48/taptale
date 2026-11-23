@@ -53,8 +53,11 @@ import {
     clearPageDraft,
     loadPageDraft,
     loadPagePhotos,
+    loadRainPhotos,
+    MAX_RAIN_PHOTOS,
     savePageDraft,
     savePagePhotos,
+    saveRainPhotos,
 } from '@/lib/page-draft';
 import type { PageDraft } from '@/lib/page-draft';
 import { demo as demoPage } from '@/routes/experiences';
@@ -291,6 +294,7 @@ export default function CreateGift({
      */
     const [pageDraft, setPageDraft] = useState<PageDraft | null>(null);
     const [pagePhotos, setPagePhotos] = useState<File[]>([]);
+    const [pageRainPhotos, setPageRainPhotos] = useState<File[]>([]);
     const [isPageDraftSetAside, setIsPageDraftSetAside] = useState(false);
     const attachedPage = isPageDraftSetAside ? null : pageDraft;
 
@@ -299,6 +303,7 @@ export default function CreateGift({
 
         setPageDraft(found);
         setPagePhotos([]);
+        setPageRainPhotos([]);
         setIsPageDraftSetAside(false);
 
         if (!found) {
@@ -310,9 +315,13 @@ export default function CreateGift({
 
         let isCurrent = true;
 
-        void loadPagePhotos(found.template).then((photos) => {
+        void Promise.all([
+            loadPagePhotos(found.template),
+            loadRainPhotos(found.template),
+        ]).then(([photos, rainPhotos]) => {
             if (isCurrent) {
                 setPagePhotos(photos.slice(0, maxPagePhotos));
+                setPageRainPhotos(rainPhotos.slice(0, MAX_RAIN_PHOTOS));
             }
         });
 
@@ -756,7 +765,11 @@ export default function CreateGift({
             promo_code: promo?.code ?? '',
             flower_addon: wantsFlowers,
             ...(orderedPage
-                ? { page: orderedPage.content, page_photos: pagePhotos }
+                ? {
+                      page: orderedPage.content,
+                      page_photos: pagePhotos,
+                      page_rain_photos: pageRainPhotos,
+                  }
                 : {}),
         }));
 
@@ -777,6 +790,7 @@ export default function CreateGift({
                 if (orderedPage) {
                     savePageDraft(orderedPage.template, orderedPage.content);
                     void savePagePhotos(orderedPage.template, pagePhotos);
+                    void saveRainPhotos(orderedPage.template, pageRainPhotos);
                 }
 
                 // Problems with the order as a whole (e.g. too many unpaid
@@ -1031,7 +1045,13 @@ export default function CreateGift({
                                                 “{attachedPage.content.title}” ·{' '}
                                                 {pagePhotos.length === 1
                                                     ? '1 photo'
-                                                    : `${pagePhotos.length} photos`}{' '}
+                                                    : `${pagePhotos.length} photos`}
+                                                {pageRainPhotos.length > 0 &&
+                                                    ` · ${pageRainPhotos.length} raining`}
+                                                {(attachedPage.content
+                                                    .custom_sections?.length ??
+                                                    0) > 0 &&
+                                                    ` · ${attachedPage.content.custom_sections.length} extra ${attachedPage.content.custom_sections.length === 1 ? 'section' : 'sections'}`}{' '}
                                                 · It opens exactly as you made
                                                 it, and you can still change it
                                                 after checkout.

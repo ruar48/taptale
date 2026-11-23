@@ -65,6 +65,9 @@ Route::get('t/{experience}/qr', [Storefront\ExperienceController::class, 'qr'])-
 Route::get('t/{experience}/photos/{index}', [Storefront\ExperienceController::class, 'photo'])
     ->whereNumber('index')
     ->name('experiences.photo');
+Route::get('t/{experience}/rain-photos/{index}', [Storefront\ExperienceController::class, 'rainPhoto'])
+    ->whereNumber('index')
+    ->name('experiences.rain-photo');
 
 /*
 | Anyone can craft a gift. Guests create an account (or log in) at the
@@ -152,6 +155,13 @@ Route::middleware('auth')->group(function () {
         Route::post('experiences/{experience}/photos', [Account\ExperiencePhotoController::class, 'store'])
             ->middleware('throttle:30,1,memory-page-photo-uploads')
             ->name('experiences.photos.store');
+        Route::post('experiences/{experience}/rain-photos', [Account\ExperienceRainPhotoController::class, 'store'])
+            ->middleware('throttle:30,1,memory-page-rain-photo-uploads')
+            ->name('experiences.rain-photos.store');
+        Route::delete('experiences/{experience}/rain-photos/{index}', [Account\ExperienceRainPhotoController::class, 'destroy'])
+            ->whereNumber('index')
+            ->middleware('throttle:60,1,memory-page-rain-photo-removals')
+            ->name('experiences.rain-photos.destroy');
         Route::post('experiences/{experience}/sections', [Account\ExperienceSectionController::class, 'store'])
             ->middleware('throttle:30,1,memory-page-sections')
             ->name('experiences.sections.store');

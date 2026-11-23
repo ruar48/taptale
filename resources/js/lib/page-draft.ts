@@ -1,6 +1,7 @@
 import { loadPhotoList, savePhotoList } from '@/lib/wizard-draft';
 import type {
     DigitalExperience,
+    ExperienceSectionType,
     FlowerRain,
     FlowerStyle,
     PhotoRainLayer,
@@ -16,17 +17,46 @@ import type {
 
 const DRAFT_PREFIX = 'taptale:page-draft:';
 const PHOTOS_PREFIX = 'page-photos:';
+const RAIN_PHOTOS_PREFIX = 'page-rain-photos:';
 const DRAFT_VERSION = 1;
 const DRAFT_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000;
 
 /** Longest side, in pixels, of a photo kept in a draft. */
 const MAX_PHOTO_SIDE = 2048;
 
+/** Photos that can rain over the flowers (mirrors the server limit). */
+export const MAX_RAIN_PHOTOS = 12;
+
+/** Extra sections a page can have (mirrors the server limit). */
+export const MAX_CUSTOM_SECTIONS = 6;
+
+/** Photo slots one extra section can hold (mirrors the server limit). */
+export const MAX_SECTION_SLOTS = 12;
+
+/** Photo slots a new extra section starts with, per style. */
+export const SECTION_SLOT_COUNTS: Record<ExperienceSectionType, number> = {
+    timeline: 4,
+    film_strip: 3,
+    scrapbook: 4,
+    album: 6,
+    note: 0,
+};
+
 export type PageDraftMoment = {
     date: string | null;
     title: string | null;
     caption: string | null;
     photo: number | null;
+};
+
+export type PageDraftSection = {
+    id: string;
+    type: ExperienceSectionType;
+    position: number;
+    title: string | null;
+    text: string | null;
+    background: string | null;
+    slots: { photo: number | null; caption: string | null }[];
 };
 
 export type PageDraftContent = {
@@ -49,6 +79,7 @@ export type PageDraftContent = {
     song_ornament: 'none' | 'hearts';
     song_background: 'theme' | 'hearts';
     moments: PageDraftMoment[];
+    custom_sections: PageDraftSection[];
 };
 
 export type PageDraft = {
@@ -131,6 +162,18 @@ export function pageContentFrom(
             caption: moment.caption,
             photo: moment.photo,
         })),
+        custom_sections: (experience.custom_sections ?? []).map((section) => ({
+            id: section.id,
+            type: section.type,
+            position: section.position,
+            title: section.title,
+            text: section.text,
+            background: section.background,
+            slots: section.slots.map((slot) => ({
+                photo: slot.photo,
+                caption: slot.caption,
+            })),
+        })),
     };
 }
 
@@ -191,6 +234,7 @@ export function clearPageDraft(template: string): void {
     }
 
     void savePagePhotos(template, []);
+    void saveRainPhotos(template, []);
 }
 
 export function savePagePhotos(
@@ -202,6 +246,18 @@ export function savePagePhotos(
 
 export function loadPagePhotos(template: string): Promise<File[]> {
     return loadPhotoList(PHOTOS_PREFIX + template);
+}
+
+/** Photos picked to rain over the flowers, kept apart from the page photos. */
+export function saveRainPhotos(
+    template: string,
+    photos: File[],
+): Promise<void> {
+    return savePhotoList(RAIN_PHOTOS_PREFIX + template, photos);
+}
+
+export function loadRainPhotos(template: string): Promise<File[]> {
+    return loadPhotoList(RAIN_PHOTOS_PREFIX + template);
 }
 
 /**

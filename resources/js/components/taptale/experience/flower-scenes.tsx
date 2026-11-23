@@ -105,15 +105,16 @@ const LOTUS_ROWS = [
 const LOTUS_SWIRLS = [
     'M200 252 C 140 252 92 232 72 192 C 58 162 72 132 102 138',
     'M200 252 C 260 252 308 232 328 192 C 342 162 328 132 298 138',
-    'M126 118 C 142 64 176 40 200 28',
-    'M274 118 C 258 64 224 40 200 28',
+    'M118 156 C 132 112 164 88 200 80',
+    'M282 156 C 268 112 236 88 200 80',
 ];
 
 function LotusArt() {
     const id = useId().replace(/:/g, '');
 
+    // Framed tightly around the flower, its swirls and the water ripples.
     return (
-        <svg viewBox="0 0 400 300" className="h-auto w-full overflow-visible">
+        <svg viewBox="30 70 340 220" className="h-auto w-full overflow-visible">
             <defs>
                 <linearGradient id={`${id}-petal`} x1="0" y1="1" x2="0" y2="0">
                     <stop offset="0" stopColor="#ff5f9e" />
@@ -645,7 +646,7 @@ export function FlowerScene({
         <section
             ref={stageRef}
             className={cn(
-                'fs-stage relative overflow-hidden pb-20 text-center text-white',
+                'fs-stage relative overflow-hidden pb-14 text-center text-white',
                 opened && inView && 'is-playing',
             )}
             style={{ ...scene.colors, background: scene.backdrop }}
@@ -715,7 +716,10 @@ export function FlowerScene({
 
             <div
                 key={`art-${cycle}`}
-                className="relative z-[1] mx-auto mt-6 w-full max-w-md px-4"
+                className={cn(
+                    'relative z-[1] mx-auto mt-6 w-full px-4',
+                    style === 'lotus' ? 'max-w-xl' : 'max-w-md',
+                )}
             >
                 <Art />
             </div>

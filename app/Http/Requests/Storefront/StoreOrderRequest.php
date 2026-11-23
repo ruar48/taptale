@@ -8,6 +8,7 @@ use App\Enums\FlowerRain;
 use App\Enums\FlowerStyle;
 use App\Enums\OrderStatus;
 use App\Enums\PhotoRainLayer;
+use App\Http\Controllers\Account\ExperienceSectionController;
 use App\Models\Category;
 use App\Models\DigitalExperience;
 use App\Models\Product;
@@ -85,8 +86,20 @@ class StoreOrderRequest extends FormRequest
             'page.moments.*.title' => ['nullable', 'string', 'max:80'],
             'page.moments.*.caption' => ['nullable', 'string', 'max:300'],
             'page.moments.*.photo' => ['nullable', 'integer', 'min:0'],
+            'page.custom_sections' => ['array', 'max:'.DigitalExperience::MAX_CUSTOM_SECTIONS],
+            'page.custom_sections.*.id' => ['required', 'string', 'regex:/^[a-z0-9]{1,20}$/', 'distinct'],
+            'page.custom_sections.*.type' => ['required', Rule::in(array_keys(ExperienceSectionController::TYPES))],
+            'page.custom_sections.*.position' => ['required', 'integer', 'min:0', 'max:50'],
+            'page.custom_sections.*.title' => ['nullable', 'string', 'max:80'],
+            'page.custom_sections.*.text' => ['nullable', 'string', 'max:2000'],
+            'page.custom_sections.*.background' => ['nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'page.custom_sections.*.slots' => ['array', 'max:'.DigitalExperience::MAX_SECTION_SLOTS],
+            'page.custom_sections.*.slots.*.photo' => ['nullable', 'integer', 'min:0'],
+            'page.custom_sections.*.slots.*.caption' => ['nullable', 'string', 'max:80'],
             'page_photos' => ['array', 'max:'.DigitalExperience::MAX_PHOTOS],
             'page_photos.*' => [File::image()->types(['jpg', 'jpeg', 'png', 'webp'])->max((int) config('taptale.max_upload_kilobytes'))],
+            'page_rain_photos' => ['array', 'max:'.DigitalExperience::MAX_RAIN_PHOTOS],
+            'page_rain_photos.*' => [File::image()->types(['jpg', 'jpeg', 'png', 'webp'])->max((int) config('taptale.max_upload_kilobytes'))],
 
             'customer_name' => ['required', 'string', 'max:120'],
             'customer_email' => ['required', 'email', 'max:255'],
@@ -185,6 +198,8 @@ class StoreOrderRequest extends FormRequest
             'approve_preview.accepted' => 'Please approve your design preview before placing the order.',
             'photos.max' => 'You can upload up to :max photos for this product.',
             'page_photos.max' => 'Your memory page can hold up to :max photos.',
+            'page_rain_photos.max' => 'Up to :max photos can rain down on your page.',
+            'page.custom_sections.max' => 'Your page can have at most :max extra sections.',
             'customer_phone.regex' => 'Please enter a valid contact number.',
         ];
     }
@@ -199,6 +214,7 @@ class StoreOrderRequest extends FormRequest
         return [
             'photos.*' => 'photo',
             'page_photos.*' => 'page photo',
+            'page_rain_photos.*' => 'raining photo',
             'payment_method_id' => 'payment method',
             'gift_message' => 'gift message',
             'personalization.message' => 'message',

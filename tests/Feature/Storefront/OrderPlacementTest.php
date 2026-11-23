@@ -395,6 +395,67 @@ test('a page designed on a demo becomes the memory page, photos and all', functi
     Storage::disk('local')->assertExists($experience->photos);
 });
 
+test('extra sections and raining photos made on a demo come with the order', function () {
+    $nfc = ProductOption::factory()->for($this->product)->group(OptionGroup::Nfc)->costing(15000)->create([
+        'enables_digital_experience' => true,
+    ]);
+
+    $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
+        'option_ids' => [$this->small->id, $nfc->id],
+        'experience_template' => 'anniversary',
+        'page' => [
+            'title' => 'Year one',
+            'custom_sections' => [[
+                'id' => 'abc12345',
+                'type' => 'film_strip',
+                'position' => 2,
+                'title' => 'Our trips',
+                'background' => '#AA3355',
+                'slots' => [
+                    ['photo' => 1, 'caption' => 'Baguio'],
+                    ['photo' => null, 'caption' => null],
+                ],
+            ]],
+        ],
+        'page_photos' => [UploadedFile::fake()->image('first.jpg'), UploadedFile::fake()->image('second.jpg')],
+        'page_rain_photos' => [UploadedFile::fake()->image('rain-1.jpg'), UploadedFile::fake()->image('rain-2.jpg')],
+    ]))->assertSessionHasNoErrors();
+
+    $experience = Order::sole()->experience;
+
+    expect($experience->photos)->toHaveCount(2)
+        ->and($experience->rain_photos)->toHaveCount(2)
+        ->and($experience->custom_sections)->toBe([[
+            'id' => 'abc12345',
+            'type' => 'film_strip',
+            'position' => 2,
+            'title' => 'Our trips',
+            'text' => null,
+            'background' => '#aa3355',
+            'slots' => [
+                ['photo' => 1, 'caption' => 'Baguio'],
+                ['photo' => null, 'caption' => null],
+            ],
+        ]]);
+    Storage::disk('local')->assertExists($experience->rain_photos);
+});
+
+test('extra sections on a designed page must be valid', function () {
+    $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
+        'page' => [
+            'custom_sections' => [
+                ['id' => 'Not An Id!', 'type' => 'carousel', 'position' => 1, 'background' => 'red'],
+            ],
+        ],
+    ]))->assertSessionHasErrors([
+        'page.custom_sections.0.id',
+        'page.custom_sections.0.type',
+        'page.custom_sections.0.background',
+    ]);
+
+    expect(Order::count())->toBe(0);
+});
+
 test('a designed page with a blank headline uses the names on the gift', function () {
     $nfc = ProductOption::factory()->for($this->product)->group(OptionGroup::Nfc)->costing(15000)->create([
         'enables_digital_experience' => true,

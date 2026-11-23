@@ -1,5 +1,5 @@
 import { Heart, RotateCcw } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import "../../../../css/night-garden.css";
 import type { GardenVariant } from "@/components/taptale/experience/config";
@@ -352,13 +352,65 @@ const PETAL_DROPS = Array.from({ length: 28 }, (_, index) => ({
 }));
 
 /** Slots for falling photos; each one shows a page photo in turn. */
-const PHOTO_DROPS = Array.from({ length: 9 }, (_, index) => ({
+type PhotoDrop = {
+    left: string;
+    delay: number;
+    duration: number;
+    tilt: number;
+    drift: number;
+};
+
+/** Where photos fall before the page has shuffled them (and on the server). */
+const PHOTO_DROPS: PhotoDrop[] = Array.from({ length: 9 }, (_, index) => ({
     left: `${4 + ((index * 41) % 84)}%`,
     delay: 5.5 + index * 1.7,
     duration: 11 + (index % 4) * 1.5,
     tilt: ((index * 17) % 30) - 15,
     drift: ((index * 31) % 80) - 40,
 }));
+
+/** A small seeded random generator, so one shuffle stays put while shown. */
+function seededRandom(seed: number): () => number {
+    let state = Math.floor(seed * 2 ** 32) || 1;
+
+    return () => {
+        state = (state + 0x6d2b79f5) | 0;
+        let value = Math.imul(state ^ (state >>> 15), 1 | state);
+        value ^= value + Math.imul(value ^ (value >>> 7), 61 | value);
+
+        return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
+/**
+ * Photos fall in a random order at random spots, with every photo getting
+ * its turn (9 to 16 at once). A new shuffle comes with every bloom.
+ */
+function shuffledDrops(
+    photoCount: number,
+    seed: number,
+): { drop: PhotoDrop; photo: number }[] {
+    const random = seededRandom(seed);
+    const order = Array.from({ length: photoCount }, (_, index) => index);
+
+    for (let index = order.length - 1; index > 0; index--) {
+        const swap = Math.floor(random() * (index + 1));
+        [order[index], order[swap]] = [order[swap], order[index]];
+    }
+
+    const count = Math.min(16, Math.max(9, photoCount));
+
+    return Array.from({ length: count }, (_, index) => ({
+        drop: {
+            left: `${3 + random() * 86}%`,
+            delay: 4.5 + index * (1.1 + random() * 1.2),
+            duration: 10 + random() * 5,
+            tilt: random() * 30 - 15,
+            drift: random() * 90 - 45,
+        },
+        photo: order.length > 0 ? order[index % order.length] : 0,
+    }));
+}
 
 function fallStyle(drop: {
     left: string;
@@ -412,9 +464,25 @@ export function FallingFlowers({
     rain: FlowerRain;
     photoLayer: PhotoRainLayer;
 }) {
-    const { photos, openPhoto } = useExperience();
+    const { experience, photos, openPhoto } = useExperience();
     const showPetals = rain === "petals" || rain === "both";
     const showPhotos = rain === "photos" || rain === "both";
+    // The photos picked to rain down, or else the page photos.
+    const rainPhotos = (experience.rain_photos ?? []).map(
+        (photo) => photo.url,
+    );
+    const pool = rainPhotos.length > 0 ? rainPhotos : photos;
+
+    // Shuffled once in the browser; every bloom remounts and reshuffles.
+    const [seed, setSeed] = useState<number | null>(null);
+    useEffect(() => setSeed(Math.random()), []);
+    const drops = useMemo(
+        () =>
+            seed === null
+                ? PHOTO_DROPS.map((drop, index) => ({ drop, photo: index }))
+                : shuffledDrops(pool.length, seed),
+        [seed, pool.length],
+    );
 
     if (rain === "none") {
         return null;
@@ -452,8 +520,11 @@ export function FallingFlowers({
                 )}
             >
                 {showPhotos &&
-                    PHOTO_DROPS.map((drop, index) => {
-                        const url = photos[index % photos.length];
+                    drops.map(({ drop, photo }, index) => {
+                        const url =
+                            pool.length > 0
+                                ? pool[photo % pool.length]
+                                : undefined;
 
                         if (!url) {
                             return (

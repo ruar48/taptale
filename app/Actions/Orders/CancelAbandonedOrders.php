@@ -108,7 +108,7 @@ class CancelAbandonedOrders
         }
 
         $disk = Storage::disk((string) config('taptale.uploads_disk'));
-        $disk->delete(array_values(array_filter([...($experience->photos ?? []), $experience->audio_path])));
+        $disk->delete(array_values(array_filter([...($experience->photos ?? []), ...($experience->rain_photos ?? []), $experience->audio_path])));
         $experience->delete();
     }
 }

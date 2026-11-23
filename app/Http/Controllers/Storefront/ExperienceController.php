@@ -180,6 +180,22 @@ class ExperienceController extends Controller
     }
 
     /**
+     * Stream one of the photos that rain down over the flowers.
+     */
+    public function rainPhoto(Request $request, DigitalExperience $experience, int $index): SymfonyResponse
+    {
+        abort_unless(static::canSee($request, $experience), 404);
+
+        $path = $experience->rain_photos[$index] ?? null;
+
+        abort_if($path === null, 404);
+
+        return $this->serveUpload($path, [
+            'Cache-Control' => 'private, max-age=3600',
+        ]);
+    }
+
+    /**
      * Stream the uploaded background song.
      */
     public function audio(Request $request, DigitalExperience $experience): SymfonyResponse

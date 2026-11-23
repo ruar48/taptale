@@ -33,8 +33,9 @@ class PlaceOrder
      * @param  array<string, mixed>  $data
      * @param  list<UploadedFile>  $photos
      * @param  list<UploadedFile>  $pagePhotos  Photos of the memory page designed on a demo
+     * @param  list<UploadedFile>  $pageRainPhotos  Photos chosen on the demo to rain over the flowers
      */
-    public function handle(User $customer, array $data, array $photos, array $pagePhotos = []): Order
+    public function handle(User $customer, array $data, array $photos, array $pagePhotos = [], array $pageRainPhotos = []): Order
     {
         $product = Product::query()->whereKey($data['product_id'])->firstOrFail();
         $category = isset($data['category_id'])
@@ -147,7 +148,7 @@ class PlaceOrder
             $this->storeOrderFile->handle($order, $photo, $kind, $customer);
         }
 
-        $this->addPhotosToExperience($order, $pagePhotos, $photos);
+        $this->addPhotosToExperience($order, $pagePhotos, $photos, $pageRainPhotos);
 
         return $order;
     }
@@ -196,6 +197,21 @@ class PlaceOrder
             ], $page['moments']));
         }
 
+        if (is_array($page['custom_sections'] ?? null)) {
+            $content['custom_sections'] = array_values(array_map(fn (array $section): array => [
+                'id' => (string) $section['id'],
+                'type' => (string) $section['type'],
+                'position' => (int) $section['position'],
+                'title' => $clean($section['title'] ?? null),
+                'text' => $clean($section['text'] ?? null),
+                'background' => filled($section['background'] ?? null) ? strtolower((string) $section['background']) : null,
+                'slots' => array_values(array_map(fn (array $slot): array => [
+                    'photo' => is_numeric($slot['photo'] ?? null) ? (int) $slot['photo'] : null,
+                    'caption' => $clean($slot['caption'] ?? null),
+                ], is_array($section['slots'] ?? null) ? $section['slots'] : [])),
+            ], $page['custom_sections']));
+        }
+
         return $content;
     }
 
@@ -236,13 +252,15 @@ class PlaceOrder
     /**
      * Put the photos of the page designed on a demo, then the photos added
      * while ordering, on the memory page, so the tap page is ready the moment
-     * the keepsake arrives. Moments keep pointing at their own page photo,
-     * or lose it when that photo could not be read.
+     * the keepsake arrives. Moments and extra section slots keep pointing at
+     * their own page photo, or lose it when that photo could not be read.
+     * The photos chosen to rain over the flowers are kept on their own.
      *
      * @param  list<UploadedFile>  $pagePhotos
      * @param  list<UploadedFile>  $photos
+     * @param  list<UploadedFile>  $rainPhotos
      */
-    private function addPhotosToExperience(Order $order, array $pagePhotos, array $photos): void
+    private function addPhotosToExperience(Order $order, array $pagePhotos, array $photos, array $rainPhotos): void
     {
         $experience = $order->experience;
 
@@ -271,12 +289,37 @@ class PlaceOrder
             $paths[] = $stored;
         }
 
+        $storedIndex = fn (mixed $photo): ?int => is_int($photo) ? ($storedPagePhotoIndexes[$photo] ?? null) : null;
+
         $moments = array_map(fn (array $moment): array => [
             ...$moment,
-            'photo' => isset($moment['photo']) ? ($storedPagePhotoIndexes[$moment['photo']] ?? null) : null,
+            'photo' => $storedIndex($moment['photo'] ?? null),
         ], $experience->moments ?? []);
 
-        $experience->update(['photos' => $paths, 'moments' => $moments]);
+        $sections = array_map(fn (array $section): array => [
+            ...$section,
+            'slots' => array_map(fn (array $slot): array => [
+                ...$slot,
+                'photo' => $storedIndex($slot['photo'] ?? null),
+            ], $section['slots'] ?? []),
+        ], $experience->custom_sections ?? []);
+
+        $rainPaths = [];
+
+        foreach (array_slice($rainPhotos, 0, DigitalExperience::MAX_RAIN_PHOTOS) as $photo) {
+            $stored = $this->storeExperiencePhoto->handle($experience, $photo);
+
+            if ($stored !== false) {
+                $rainPaths[] = $stored;
+            }
+        }
+
+        $experience->update([
+            'photos' => $paths,
+            'rain_photos' => $rainPaths,
+            'moments' => $moments,
+            'custom_sections' => $sections,
+        ]);
     }
 
     /**

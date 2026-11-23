@@ -56,6 +56,10 @@ class DigitalExperienceResource extends JsonResource
                 'index' => $index,
                 'url' => $photoUrl($index),
             ])->all(),
+            'rain_photos' => collect($this->rain_photos ?? [])->keys()->map(fn (int $index): array => [
+                'index' => $index,
+                'url' => route('experiences.rain-photo', ['experience' => $this->code, 'index' => $index]),
+            ])->all(),
             'moments' => collect($this->moments ?? [])->map(fn (array $moment): array => [
                 'date' => $moment['date'] ?? null,
                 'title' => $moment['title'] ?? null,

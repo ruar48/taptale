@@ -45,6 +45,7 @@ use Illuminate\Support\Str;
  * @property array{title: string, artist: string|null, artwork_url: string|null, preview_url: string|null, track_url: string|null, duration: float|null, synced_lyrics: list<array{time: float, text: string}>, plain_lyrics: list<string>}|null $song_details
  * @property string|null $audio_path
  * @property list<string>|null $photos
+ * @property list<string>|null $rain_photos Photos that rain down over the flowers, apart from the page photos
  * @property list<array{date?: string|null, title?: string|null, caption?: string|null, photo?: int|null}>|null $moments
  * @property list<array{id: string, type: string, position: int, title: string|null, text?: string|null, background: string|null, slots: list<array{photo: int|null, caption: string|null}>}>|null $custom_sections
  * @property string $theme
@@ -59,7 +60,7 @@ use Illuminate\Support\Str;
 #[RouteKey('code')]
 #[Fillable([
     'template', 'title', 'subtitle', 'recipient_name', 'sender_name', 'message', 'quote', 'flowers_note', 'flower_style', 'flower_rain', 'flower_addon',
-    'photo_rain_layer', 'event_date', 'video_url', 'music_url', 'song_title', 'song_artist', 'song_ornament', 'song_background', 'photos', 'moments', 'custom_sections', 'theme',
+    'photo_rain_layer', 'event_date', 'video_url', 'music_url', 'song_title', 'song_artist', 'song_ornament', 'song_background', 'photos', 'rain_photos', 'moments', 'custom_sections', 'theme',
     'nfc_tag_uid', 'is_published', 'unlocks_at',
 ])]
 class DigitalExperience extends Model
@@ -71,6 +72,11 @@ class DigitalExperience extends Model
      * Maximum number of photos on one experience page.
      */
     public const MAX_PHOTOS = 24;
+
+    /**
+     * Maximum number of photos that rain down over the flowers.
+     */
+    public const MAX_RAIN_PHOTOS = 12;
 
     /**
      * Maximum number of timeline / polaroid moments.
@@ -145,6 +151,7 @@ class DigitalExperience extends Model
             'flower_addon' => 'boolean',
             'photo_rain_layer' => PhotoRainLayer::class,
             'photos' => 'array',
+            'rain_photos' => 'array',
             'moments' => 'array',
             'custom_sections' => 'array',
             'song_details' => 'array',

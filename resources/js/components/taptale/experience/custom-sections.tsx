@@ -31,6 +31,7 @@ import {
     SectionShell,
     useExperience,
 } from "@/components/taptale/experience/shared";
+import type { SectionChanges } from "@/components/taptale/experience/shared";
 import { cn } from "@/lib/utils";
 import type { ExperienceCustomSection, ExperienceSectionType } from "@/types";
 
@@ -479,19 +480,19 @@ function SectionToolbar({
     section: ExperienceCustomSection;
     onPreviewBackground: (color: string | null) => void;
 }) {
-    const { experience } = useExperience();
+    const { experience, sectionActions } = useExperience();
     const colorInput = useRef<HTMLInputElement>(null);
     const url = ExperienceSectionController.update.url({
         experience: experience.code,
         section: section.id,
     });
 
-    const save = (data: {
-        type?: ExperienceSectionType;
-        background?: string | null;
-        slot_count?: number;
-    }) =>
-        router.patch(url, data, {
+    const save = (data: SectionChanges) =>
+        sectionActions
+            ? sectionActions.update(section.id, data, () =>
+                  onPreviewBackground(null),
+              )
+            : router.patch(url, data, {
             preserveScroll: true,
             preserveState: true,
             onFinish: () => onPreviewBackground(null),
@@ -522,6 +523,12 @@ function SectionToolbar({
                 "Remove this section? Its photos stay on your page.",
             )
         ) {
+            return;
+        }
+
+        if (sectionActions) {
+            sectionActions.remove(section.id);
+
             return;
         }
 
@@ -656,11 +663,18 @@ function SectionToolbar({
  * and inserts the chosen one at that spot.
  */
 export function AddSectionButton({ position }: { position: number }) {
-    const { experience } = useExperience();
+    const { experience, sectionActions } = useExperience();
     const [picking, setPicking] = useState(false);
     const [adding, setAdding] = useState(false);
 
-    const add = (type: ExperienceSectionType) =>
+    const add = (type: ExperienceSectionType) => {
+        if (sectionActions) {
+            sectionActions.add(type, position);
+            setPicking(false);
+
+            return;
+        }
+
         router.post(
             ExperienceSectionController.store.url(experience.code),
             { position, type },
@@ -674,6 +688,7 @@ export function AddSectionButton({ position }: { position: number }) {
                     showFirstError(errors, "The section could not be added."),
             },
         );
+    };
 
     return (
         <div className="relative z-10 flex justify-center py-3">

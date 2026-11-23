@@ -13,6 +13,7 @@ import { Fragment, useEffect, useState } from "react";
 import { toast } from "sonner";
 import ExperienceContentController from "@/actions/App/Http/Controllers/Account/ExperienceContentController";
 import ExperiencePhotoController from "@/actions/App/Http/Controllers/Account/ExperiencePhotoController";
+import ExperienceRainPhotoController from "@/actions/App/Http/Controllers/Account/ExperienceRainPhotoController";
 import {
     presetFor,
     themeFor,
@@ -134,7 +135,7 @@ export default function Experience({
     const addPhotos = (files: File[], moment?: number, slot?: PhotoSlot) => {
         if (isDemo) {
             if (!draft.processing) {
-                void draft.addPhotos(files, moment);
+                void draft.addPhotos(files, moment, slot);
             }
 
             return;
@@ -227,6 +228,62 @@ export default function Experience({
             ? draft.saveText(field, value)
             : saveTextOnServer(field, value);
 
+    /*
+     * Photos picked to rain over the flowers: kept in the browser on a demo,
+     * uploaded straight away on the owner's page.
+     */
+    const addRainPhotos = (files: File[]) => {
+        if (isDemo) {
+            if (!draft.processing) {
+                void draft.addRainPhotos(files);
+            }
+
+            return;
+        }
+
+        if (!canEdit || uploading) {
+            return;
+        }
+
+        router.post(
+            ExperienceRainPhotoController.store.url(experience.code),
+            { photos: files },
+            {
+                forceFormData: true,
+                preserveScroll: true,
+                preserveState: true,
+                onStart: () => setUploading(true),
+                onFinish: () => setUploading(false),
+                onError: (errors) => {
+                    toast.error(
+                        Object.values(errors)[0] ??
+                            "The photos could not be added. Please try again.",
+                    );
+                },
+            },
+        );
+    };
+
+    const removeRainPhoto = (index: number) => {
+        if (isDemo) {
+            draft.removeRainPhoto(index);
+
+            return;
+        }
+
+        if (!canEdit) {
+            return;
+        }
+
+        router.delete(
+            ExperienceRainPhotoController.destroy.url({
+                experience: experience.code,
+                index,
+            }),
+            { preserveScroll: true, preserveState: true },
+        );
+    };
+
     return (
         <ExperienceContext.Provider
             value={{
@@ -242,6 +299,9 @@ export default function Experience({
                 addPhotos,
                 replacePhoto,
                 saveText,
+                sectionActions: isDemo ? draft.sectionActions : undefined,
+                addRainPhotos,
+                removeRainPhoto,
                 opened,
             }}
         >
@@ -428,7 +488,7 @@ export default function Experience({
                                         />
                                     ),
                                 )}
-                                {canEdit && (
+                                {editable && (
                                     <AddSectionButton position={index + 1} />
                                 )}
                             </Fragment>
