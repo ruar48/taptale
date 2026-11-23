@@ -1770,7 +1770,8 @@ export default function CreateGift({
                                                     paymongo:
                                                         "After placing your order you'll go straight to PayMongo's secure checkout — we never see your card or wallet details.",
                                                     paymongo_qrph:
-                                                        "After placing your order you'll get a QR code to scan with GCash, Maya or any bank app.",
+                                                        "After placing your order you'll get a QR code to scan with GCash, Maya, MariBank or any bank app.",
+                                                    cod: 'Nothing to pay now — pay the courier in cash when your gift arrives.',
                                                 } as Record<string, string>
                                             )[
                                                 paymentMethods.find(

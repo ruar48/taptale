@@ -217,6 +217,9 @@ Route::middleware(['auth', 'verified', 'can:admin', EnsureAdminHasTwoFactor::cla
     Route::post('orders/{order}/proofs', [Admin\DesignProofController::class, 'store'])
         ->middleware(PreventDuplicateSubmissions::class)
         ->name('orders.proofs.store');
+    Route::post('orders/{order}/payments', [Admin\PaymentController::class, 'record'])
+        ->middleware(PreventDuplicateSubmissions::class)
+        ->name('orders.payments.store');
     Route::post('orders/{order}/refunds', [Admin\PaymentController::class, 'refund'])
         ->middleware(PreventDuplicateSubmissions::class)
         ->name('orders.refunds.store');

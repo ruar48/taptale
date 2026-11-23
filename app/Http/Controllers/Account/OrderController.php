@@ -55,7 +55,9 @@ class OrderController extends Controller
 
         return Inertia::render('account/orders/show', [
             'order' => new OrderResource($order),
-            'paymentMethods' => PaymentMethodResource::collection(PaymentMethod::active()->get()),
+            // Cash on delivery is only chosen at checkout; it is never a way
+            // to pay a balance from the order page.
+            'paymentMethods' => PaymentMethodResource::collection(PaymentMethod::active()->where('driver', '!=', 'cod')->get()),
             'maxUploadKilobytes' => (int) config('taptale.max_upload_kilobytes'),
         ]);
     }

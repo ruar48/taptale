@@ -45,8 +45,8 @@ test('re-seeding a live catalog keeps the studio edits and only adds missing rec
     $edited->options()->where('name', 'Extra printed disc')->delete();
     $edited->categories()->detach(Category::query()->where('slug', 'couple-gifts')->sole());
 
-    $paymentMethod = PaymentMethod::query()->where('code', 'gcash')->sole();
-    $paymentMethod->update(['account_number' => '0999 000 0000']);
+    $paymentMethod = PaymentMethod::query()->where('code', 'cod')->sole();
+    $paymentMethod->update(['instructions' => 'Edited by the studio']);
 
     $newTemplate = Template::query()->where('slug', 'pinoy-calendar')->sole();
     $newTemplate->delete();
@@ -59,7 +59,7 @@ test('re-seeding a live catalog keeps the studio edits and only adds missing rec
         ->and($edited->base_price)->toBe(12345)
         ->and($edited->options()->where('name', 'Extra printed disc')->exists())->toBeFalse()
         ->and($edited->categories()->where('slug', 'couple-gifts')->exists())->toBeFalse()
-        ->and($paymentMethod->refresh()->account_number)->toBe('0999 000 0000');
+        ->and($paymentMethod->refresh()->instructions)->toBe('Edited by the studio');
 
     $restored = Template::query()->where('slug', 'pinoy-calendar')->sole();
 

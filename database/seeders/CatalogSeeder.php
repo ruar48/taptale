@@ -481,20 +481,21 @@ class CatalogSeeder extends Seeder
         }
     }
 
+    /**
+     * QR Ph works with GCash, Maya, MariBank and every bank app, and PayMongo
+     * confirms it automatically, so no wallet needs its own receipt upload.
+     */
     private function seedPaymentMethods(): void
     {
         $methods = [
-            ['GCash', 'gcash', 'Taptale Gifts', '0917 123 4567', 'Send the exact total to our GCash number, then upload a screenshot of the receipt and enter the reference number.'],
-            ['Maya', 'maya', 'Taptale Gifts', '0918 765 4321', 'Send the exact total via Maya, then upload your receipt and reference number.'],
-            ['Bank Transfer (BDO)', 'bdo', 'Taptale Gifts Co.', '0012 3456 7890', 'Transfer the exact total to our BDO account. Upload a photo of the deposit slip or online transfer confirmation.'],
+            ['QR Ph', 'qrph', 'paymongo_qrph', 'Scan the QR code with GCash, Maya, MariBank or any bank app. Your payment is confirmed automatically.'],
+            ['Cash on Delivery', 'cod', 'cod', 'Pay the courier in cash when your gift arrives.'],
         ];
 
-        foreach ($methods as $index => [$name, $code, $accountName, $accountNumber, $instructions]) {
+        foreach ($methods as $index => [$name, $code, $driver, $instructions]) {
             PaymentMethod::firstOrCreate(['code' => $code], [
                 'name' => $name,
-                'driver' => 'manual',
-                'account_name' => $accountName,
-                'account_number' => $accountNumber,
+                'driver' => $driver,
                 'instructions' => $instructions,
                 'is_active' => true,
                 'sort_order' => $index,

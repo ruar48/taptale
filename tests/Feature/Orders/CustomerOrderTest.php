@@ -4,6 +4,7 @@ use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\OrderActivity;
 use App\Models\OrderFile;
+use App\Models\PaymentMethod;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -56,6 +57,18 @@ test('an order still opens after its payment method was deleted', function () {
         ->get(route('account.orders.show', $order))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->where('order.payment_method', null));
+});
+
+test('cash on delivery is not offered for paying a balance from the order page', function () {
+    PaymentMethod::factory()->create(['driver' => 'cod']);
+    $qrPh = PaymentMethod::factory()->create(['driver' => 'paymongo_qrph']);
+    $order = Order::factory()->create();
+
+    $this->actingAs($order->user)
+        ->get(route('account.orders.show', $order))
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('paymentMethods', 1)
+            ->where('paymentMethods.0.id', $qrPh->id));
 });
 
 test('a customer can cancel an unpaid order but not one in production', function () {

@@ -12,8 +12,10 @@ use App\Models\ProductOption;
 use App\Models\PromoCode;
 use App\Models\Template;
 use App\Models\User;
+use App\Notifications\AdminOrderAlert;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
@@ -627,6 +629,24 @@ test('choosing a Taptale QR method shows the QR payment page after ordering', fu
     $this->actingAs($this->customer)
         ->post(route('orders.store'), orderPayload($this, ['payment_method_id' => $qrMethod->id]))
         ->assertRedirect(route('account.orders.qrph.show', Order::sole()));
+});
+
+test('choosing cash on delivery starts the design without waiting for payment', function () {
+    Notification::fake();
+    $admin = User::factory()->admin()->create();
+    $cashOnDelivery = PaymentMethod::factory()->create(['driver' => 'cod']);
+
+    $this->actingAs($this->customer)
+        ->post(route('orders.store'), orderPayload($this, ['payment_method_id' => $cashOnDelivery->id]))
+        ->assertRedirect(route('account.orders.show', Order::sole()));
+
+    $order = Order::sole()->load('payments');
+
+    expect($order->status)->toBe(OrderStatus::DesignApproved)
+        ->and($order->balanceDue())->toBe($order->total);
+
+    Notification::assertSentTo($admin, AdminOrderAlert::class, fn (AdminOrderAlert $alert) => $alert->order->is($order)
+        && $alert->toMail($admin)->subject === "New cash on delivery order {$order->reference}");
 });
 
 test('an unknown website design is rejected', function () {

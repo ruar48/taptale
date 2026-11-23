@@ -34,6 +34,7 @@ const DRIVER_LABELS: Record<string, string> = {
     manual: 'Manual — customer uploads a receipt',
     paymongo: 'PayMongo — hosted checkout page',
     paymongo_qrph: 'PayMongo QR Ph — Taptale-branded QR page',
+    cod: 'Cash on delivery — customer pays the courier',
 };
 
 export default function AdminPaymentMethods({
@@ -53,7 +54,7 @@ export default function AdminPaymentMethods({
             <AdminPage>
                 <PageHeader
                     title="Payment methods"
-                    description="Manual methods are verified by your team from the customer's uploaded receipt."
+                    description="PayMongo methods confirm themselves. Manual methods are verified from the customer's receipt, and cash on delivery is recorded on the order once collected."
                     actions={
                         <Button onClick={() => setEditing(null)}>
                             <Plus className="size-4" /> Add method
@@ -255,7 +256,9 @@ function MethodForm({
                         ? 'Customers pay on PayMongo’s hosted page and the order is confirmed automatically. Account fields are not needed.'
                         : form.data.driver === 'paymongo_qrph'
                           ? 'Customers scan a QR Ph code on Taptale’s own branded page and the order is confirmed automatically. Account fields are not needed.'
-                          : undefined
+                          : form.data.driver === 'cod'
+                            ? 'Orders go straight to design. Record the cash on the order once the courier remits it. Account fields are not needed.'
+                            : undefined
                 }
             >
                 <Select

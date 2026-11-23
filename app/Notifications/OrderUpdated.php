@@ -79,7 +79,9 @@ class OrderUpdated extends Notification implements ShouldQueue
             $this->activity->type === ActivityType::Placed => $mail
                 ->subject("We received your order {$reference}")
                 ->line("Thank you for your order of {$this->order->product_name}! Your total is {$this->money($this->order->total)}.")
-                ->line('If you have not paid yet, you can pay or upload your receipt from your order page.')
+                ->line($this->order->paymentMethod?->isCashOnDelivery() === true
+                    ? "You chose cash on delivery, so there is nothing to pay now. Please have {$this->money($this->order->total)} ready for the courier when your gift arrives."
+                    : 'If you have not paid yet, you can pay or upload your receipt from your order page.')
                 ->action('View your order', $orderUrl),
 
             $this->activity->type === ActivityType::PaymentVerified => $mail

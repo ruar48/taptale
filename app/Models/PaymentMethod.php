@@ -35,10 +35,12 @@ class PaymentMethod extends Model
      * "paymongo" sends the customer to PayMongo's hosted checkout, while
      * "paymongo_qrph" shows a PayMongo QR Ph code on a Taptale-branded page.
      * Both are confirmed automatically once PayMongo reports them paid.
+     * "cod" means the customer pays the courier in cash on delivery, so the
+     * order skips the payment step and the team records the cash later.
      *
      * @var list<string>
      */
-    public const DRIVERS = ['manual', 'paymongo', 'paymongo_qrph'];
+    public const DRIVERS = ['manual', 'paymongo', 'paymongo_qrph', 'cod'];
 
     /**
      * Whether customers pay this method online through PayMongo.
@@ -46,6 +48,14 @@ class PaymentMethod extends Model
     public function isPayMongo(): bool
     {
         return in_array($this->driver, ['paymongo', 'paymongo_qrph'], true);
+    }
+
+    /**
+     * Whether customers pay the courier in cash when the order arrives.
+     */
+    public function isCashOnDelivery(): bool
+    {
+        return $this->driver === 'cod';
     }
 
     /**

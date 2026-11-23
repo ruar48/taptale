@@ -2,6 +2,7 @@ import { Head, Link, router, setLayoutProps, useForm } from '@inertiajs/react';
 import {
     AlertTriangle,
     BadgeCheck,
+    Banknote,
     ExternalLink,
     FileText,
     Gift,
@@ -551,6 +552,14 @@ function PaymentsPanel({ order }: { order: Order }) {
     const rejectForm = useForm({ review_notes: '' });
     const [refunding, setRefunding] = useState(false);
     const refundForm = useForm({ amount: '', reference_number: '', notes: '' });
+    const [recording, setRecording] = useState(false);
+    const recordForm = useForm({
+        amount: toPesoInput(order.balance_due ?? 0),
+        reference_number: '',
+        notes: '',
+    });
+    const canRecordPayment =
+        (order.balance_due ?? 0) > 0 && order.status !== 'cancelled';
 
     return (
         <Panel
@@ -697,6 +706,94 @@ function PaymentsPanel({ order }: { order: Order }) {
                     ))}
                 </ul>
             )}
+
+            {canRecordPayment &&
+                (recording ? (
+                    <form
+                        className="mt-4 space-y-2 rounded-xl bg-muted/40 p-3"
+                        onSubmit={(event) => {
+                            event.preventDefault();
+                            recordForm.post(
+                                PaymentController.record.url(order.reference),
+                                {
+                                    preserveScroll: true,
+                                    onSuccess: () => setRecording(false),
+                                },
+                            );
+                        }}
+                    >
+                        <p className="text-sm font-medium">
+                            Record a payment received
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                            For cash collected on delivery or money received
+                            outside the website.
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                            <Input
+                                type="number"
+                                step="0.01"
+                                min="1"
+                                placeholder={`Max ${toPesoInput(order.balance_due)}`}
+                                value={recordForm.data.amount}
+                                onChange={(event) =>
+                                    recordForm.setData(
+                                        'amount',
+                                        event.target.value,
+                                    )
+                                }
+                            />
+                            <Input
+                                placeholder="Reference no. (optional)"
+                                value={recordForm.data.reference_number}
+                                onChange={(event) =>
+                                    recordForm.setData(
+                                        'reference_number',
+                                        event.target.value,
+                                    )
+                                }
+                            />
+                        </div>
+                        <InputError message={recordForm.errors.amount} />
+                        <Textarea
+                            placeholder="Notes, e.g. collected by J&T on delivery"
+                            value={recordForm.data.notes}
+                            onChange={(event) =>
+                                recordForm.setData('notes', event.target.value)
+                            }
+                            rows={2}
+                        />
+                        <InputError message={recordForm.errors.notes} />
+                        <div className="flex gap-2">
+                            <Button size="sm" disabled={recordForm.processing}>
+                                Record payment
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                type="button"
+                                onClick={() => setRecording(false)}
+                            >
+                                Cancel
+                            </Button>
+                        </div>
+                    </form>
+                ) : (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-3 mr-2"
+                        onClick={() => {
+                            recordForm.setData(
+                                'amount',
+                                toPesoInput(order.balance_due ?? 0),
+                            );
+                            setRecording(true);
+                        }}
+                    >
+                        <Banknote className="size-4" /> Record payment
+                    </Button>
+                ))}
 
             {(order.amount_paid ?? 0) > 0 &&
                 (refunding ? (

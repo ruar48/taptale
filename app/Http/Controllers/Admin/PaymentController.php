@@ -112,6 +112,56 @@ class PaymentController extends Controller
     }
 
     /**
+     * Record money the studio received outside the website, such as cash
+     * the courier collected on delivery, and advance the order if it was
+     * waiting on payment.
+     */
+    public function record(Request $request, Order $order): RedirectResponse
+    {
+        $order->load('payments');
+
+        if ($order->status === OrderStatus::Cancelled || $order->balanceDue() === 0) {
+            throw ValidationException::withMessages(['amount' => 'This order has no balance due.']);
+        }
+
+        $validated = $request->validate([
+            'amount' => ['required', 'numeric', 'min:1', 'max:'.($order->balanceDue() / 100)],
+            'reference_number' => ['nullable', 'string', 'max:100'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ], ['amount.max' => 'A payment cannot exceed the balance due.']);
+
+        DB::transaction(function () use ($request, $order, $validated): void {
+            // Two admins recording at once: lock the order and re-check the
+            // balance, so the payments can never exceed the total.
+            $order = Order::query()->lockForUpdate()->findOrFail($order->id)->load('payments');
+            $amount = $this->toCentavos($validated['amount']);
+
+            if ($amount > $order->balanceDue()) {
+                throw ValidationException::withMessages(['amount' => 'A payment cannot exceed the balance due.']);
+            }
+
+            $order->payments()->create([
+                'kind' => PaymentKind::Payment,
+                'status' => PaymentStatus::Verified,
+                'amount' => $amount,
+                'reference_number' => $validated['reference_number'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+                'reviewed_by' => $request->user()->id,
+                'reviewed_at' => now(),
+                'payment_method_id' => $order->payment_method_id,
+            ]);
+
+            $order->recordActivity(ActivityType::PaymentVerified, 'Payment received. Thank you!', $request->user());
+
+            $order->advanceAfterPayment($request->user());
+        });
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Payment recorded.')]);
+
+        return back();
+    }
+
+    /**
      * Record a refund against an order.
      */
     public function refund(Request $request, Order $order): RedirectResponse

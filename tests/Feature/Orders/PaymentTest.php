@@ -144,6 +144,27 @@ test('a refund cannot exceed the amount paid', function () {
         ->and($order->fresh()->load('payments')->amountPaid())->toBe(0);
 });
 
+test('an admin records cash collected on delivery, up to the balance due', function () {
+    $cashOnDelivery = PaymentMethod::factory()->create(['driver' => 'cod']);
+    $order = Order::factory()->status(OrderStatus::Shipped)->create(['total' => 75000, 'payment_method_id' => $cashOnDelivery->id]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.orders.payments.store', $order), ['amount' => '800', 'notes' => 'Collected by the courier'])
+        ->assertSessionHasErrors(['amount' => 'A payment cannot exceed the balance due.']);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.orders.payments.store', $order), ['amount' => '750', 'notes' => 'Collected by the courier'])
+        ->assertSessionHasNoErrors();
+
+    expect($order->payments()->sole())
+        ->status->toBe(PaymentStatus::Verified)
+        ->amount->toBe(75000)
+        ->payment_method_id->toBe($cashOnDelivery->id)
+        ->reviewed_by->toBe($this->admin->id)
+        ->and($order->fresh()->load('payments')->balanceDue())->toBe(0)
+        ->and($order->fresh()->status)->toBe(OrderStatus::Shipped);
+});
+
 test('an adjustment changes the order total', function () {
     $order = Order::factory()->create(['subtotal' => 50000, 'customization_fee' => 10000, 'delivery_fee' => 15000, 'total' => 75000]);
 

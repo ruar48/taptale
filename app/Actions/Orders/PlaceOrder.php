@@ -12,6 +12,7 @@ use App\Http\Controllers\Account\ExperienceSectionController;
 use App\Models\Category;
 use App\Models\DigitalExperience;
 use App\Models\Order;
+use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\PromoCode;
 use App\Models\Template;
@@ -47,6 +48,7 @@ class PlaceOrder
         $designMode = DesignMode::from($data['design_mode']);
         $personalizeLater = ! empty($data['personalize_later']);
         $quantity = (int) $data['quantity'];
+        $isCashOnDelivery = PaymentMethod::query()->whereKey($data['payment_method_id'])->firstOrFail()->isCashOnDelivery();
 
         $pageTemplate = ExperienceTemplate::tryFrom((string) ($data['experience_template'] ?? ''))
             ?? ExperienceTemplate::forCategory($category?->slug);
@@ -58,7 +60,7 @@ class PlaceOrder
         $promoCode = $this->resolvePromoCode($data['promo_code'] ?? null);
         $pricing = $this->priceOrder->handle($product, $data['option_ids'] ?? [], $quantity, $designMode, $promoCode, $customer, $data['customer_phone'], $withFlowers);
 
-        $order = DB::transaction(function () use ($customer, $data, $category, $product, $template, $designMode, $personalizeLater, $quantity, $pricing, $promoCode, $pageTemplate, $withFlowers): Order {
+        $order = DB::transaction(function () use ($customer, $data, $category, $product, $template, $designMode, $personalizeLater, $quantity, $isCashOnDelivery, $pricing, $promoCode, $pageTemplate, $withFlowers): Order {
             if ($promoCode !== null) {
                 $this->redeem($promoCode, $customer, $data['customer_phone'], $pricing['subtotal']);
             }
@@ -103,6 +105,7 @@ class PlaceOrder
                 match (true) {
                     $personalizeLater => 'Order placed. Add your photos and details from this page whenever you are ready — we will send your design for approval before anything is made.',
                     $designMode === DesignMode::SelfCustomized => 'Order placed. You approved your live design preview at checkout.',
+                    $isCashOnDelivery => 'Order placed. Our designers will prepare your design and send it to you for approval.',
                     default => 'Order placed. Our designers will prepare your design for approval after payment is verified.',
                 },
                 $customer,
@@ -139,6 +142,10 @@ class PlaceOrder
             // payment to wait for, so the order moves straight on.
             if ($order->total === 0) {
                 $order->advanceAfterPayment();
+            } elseif ($isCashOnDelivery) {
+                // Cash on delivery: the courier collects the payment, so work
+                // starts now and the team records the cash once it comes in.
+                $order->moveTo($order->designStatus(), note: 'Cash on delivery: please have the exact amount ready for the courier when your gift arrives.');
             }
 
             return $order;

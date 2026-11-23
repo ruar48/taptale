@@ -1,6 +1,7 @@
 import { Head, Link, router, setLayoutProps, useForm } from '@inertiajs/react';
 import {
     BadgeCheck,
+    Banknote,
     Copy,
     ExternalLink,
     FileText,
@@ -93,6 +94,11 @@ export default function OrderShow({
         order.accepts_payment &&
         (order.balance_due ?? 0) > 0 &&
         !pendingPayment;
+    const paysOnDelivery =
+        order.payment_method?.driver === 'cod' &&
+        !order.accepts_payment &&
+        order.status !== 'cancelled' &&
+        (order.balance_due ?? 0) > 0;
     const designPhoto = order.files?.find(
         (file) => file.kind === 'photo' && file.is_image,
     );
@@ -137,6 +143,22 @@ export default function OrderShow({
                         paymentMethods={paymentMethods}
                         maxUploadKilobytes={maxUploadKilobytes}
                     />
+                )}
+
+                {paysOnDelivery && (
+                    <div className="flex gap-4 rounded-2xl border border-rose/30 bg-blush-light/50 p-5 dark:bg-rose/10">
+                        <Banknote className="size-5 shrink-0 text-rose" />
+                        <div className="text-sm">
+                            <p className="font-medium">
+                                Cash on delivery ·{' '}
+                                {money(order.balance_due ?? order.total)}
+                            </p>
+                            <p className="mt-0.5 text-muted-foreground">
+                                Nothing to pay now. Please have the exact amount
+                                ready for the courier when your gift arrives.
+                            </p>
+                        </div>
+                    </div>
                 )}
 
                 {pendingPayment && (
