@@ -32,9 +32,32 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import type { Order, Personalization } from "@/types";
+import type { Order, Personalization, TemplateLayout } from "@/types";
 
 type Path = "self" | "send";
+
+/** Keychain layouts that print a date under the names. */
+const DATE_LAYOUTS: TemplateLayout[] = [
+    "polaroid",
+    "arch",
+    "celestial",
+    "minimal",
+    "photo_strip",
+    "calendar",
+    "mini_cd",
+];
+
+/** Keychain layouts that print a short line of text. */
+const MESSAGE_LAYOUTS: TemplateLayout[] = [
+    "heart",
+    "floral",
+    "tap_tag",
+    "engraved",
+    "calendar",
+    "mini_cd",
+];
+
+const KEYCHAIN_MESSAGE_LIMIT = 60;
 
 type DesignForm = {
     personalization: Required<Personalization>;
@@ -63,6 +86,9 @@ export function OrderDesignEditor({
     const [path, setPath] = useState<Path>(canSelfDesign ? "self" : "send");
     const [confirming, setConfirming] = useState<Path | null>(null);
     const needsMusic = layout !== null && MUSIC_LAYOUTS.includes(layout);
+    const showsDate = layout === null || DATE_LAYOUTS.includes(layout);
+    const showsMessage = layout !== null && MESSAGE_LAYOUTS.includes(layout);
+    const hasWebsite = Boolean(order.experience);
     const maxPhotos = Math.max(1, order.product_max_photos ?? 3);
 
     const form = useForm<DesignForm>({
@@ -139,13 +165,18 @@ export function OrderDesignEditor({
             className="scroll-mt-24 overflow-hidden rounded-2xl border-2 border-rose/40 bg-card"
         >
             <div className="bg-blush-light/60 px-5 py-4 dark:bg-rose/10">
-                <h2 className="font-display text-xl">Finish your design</h2>
+                <h2 className="font-display text-xl">
+                    {hasWebsite
+                        ? `Your ${order.product_name} design`
+                        : "Finish your design"}
+                </h2>
                 <p className="text-sm text-muted-foreground">
-                    We can't start making your gift until your design is
-                    complete.{" "}
+                    {hasWebsite
+                        ? "Keep it simple: a photo and your names. Your message, song and memories go on your website above. "
+                        : "We can't start making your gift until your design is complete. "}
                     {canSelfDesign
-                        ? "Design it yourself and approve it, or send us your photos and we will put it together for you."
-                        : "Send us your photos and a short description, and our designers will send you the design to approve."}
+                        ? "Approve it yourself, or send us your photo and we'll lay it out for you."
+                        : "Send us your photo and a short description, and our designers will send you the design to approve."}
                 </p>
             </div>
 
@@ -161,14 +192,14 @@ export function OrderDesignEditor({
                             onSelect={() => setPath("self")}
                             icon={<Paintbrush className="size-5" />}
                             title="Customize it myself"
-                            description="Add your photos and words, see the live preview, then approve it."
+                            description="Pick a photo, add your names, check the preview and approve it."
                         />
                         <PathCard
                             selected={path === "send"}
                             onSelect={() => setPath("send")}
                             icon={<Send className="size-5" />}
                             title="Send it to Taptale"
-                            description={`Just send your photos and details. We'll put them on ${order.product_name} and send it to you to approve.`}
+                            description="Send us your photo and names. We'll lay it out and send it to you to approve."
                         />
                     </div>
                 )}
@@ -176,7 +207,7 @@ export function OrderDesignEditor({
                 <div
                     className={cn(
                         "grid gap-6",
-                        layout && "md:grid-cols-[240px_minmax(0,1fr)]",
+                        layout && "md:grid-cols-[200px_minmax(0,1fr)]",
                     )}
                 >
                     {layout && (
@@ -305,77 +336,89 @@ export function OrderDesignEditor({
                                     maxLength={120}
                                 />
                             </Field>
-                            <Field
-                                id="design-date"
-                                label="Date (optional)"
-                                error={errors["personalization.date"]}
-                            >
-                                <Input
+                            {showsDate && (
+                                <Field
                                     id="design-date"
-                                    value={details.date}
-                                    onChange={(event) =>
-                                        setDetail("date", event.target.value)
-                                    }
-                                    placeholder="e.g. 02 · 14 · 2026"
-                                    maxLength={60}
-                                />
-                            </Field>
-                            <Field
-                                id="design-song"
-                                label={
-                                    needsMusic
-                                        ? "Song or album title"
-                                        : "Song title (optional)"
-                                }
-                                error={errors["personalization.song_title"]}
-                            >
-                                <Input
-                                    id="design-song"
-                                    value={details.song_title}
-                                    onChange={(event) =>
-                                        setDetail(
-                                            "song_title",
-                                            event.target.value,
-                                        )
-                                    }
-                                    placeholder="e.g. Our Song"
-                                    maxLength={80}
-                                />
-                            </Field>
-                            <Field
-                                id="design-artist"
-                                label={
-                                    needsMusic ? "Artist" : "Artist (optional)"
-                                }
-                                error={errors["personalization.artist"]}
-                            >
-                                <Input
-                                    id="design-artist"
-                                    value={details.artist}
-                                    onChange={(event) =>
-                                        setDetail("artist", event.target.value)
-                                    }
-                                    maxLength={80}
-                                />
-                            </Field>
+                                    label="Date (optional)"
+                                    error={errors["personalization.date"]}
+                                >
+                                    <Input
+                                        id="design-date"
+                                        value={details.date}
+                                        onChange={(event) =>
+                                            setDetail(
+                                                "date",
+                                                event.target.value,
+                                            )
+                                        }
+                                        placeholder="e.g. 02 · 14 · 2026"
+                                        maxLength={60}
+                                    />
+                                </Field>
+                            )}
+                            {needsMusic && (
+                                <>
+                                    <Field
+                                        id="design-song"
+                                        label="Song or album title"
+                                        error={
+                                            errors["personalization.song_title"]
+                                        }
+                                    >
+                                        <Input
+                                            id="design-song"
+                                            value={details.song_title}
+                                            onChange={(event) =>
+                                                setDetail(
+                                                    "song_title",
+                                                    event.target.value,
+                                                )
+                                            }
+                                            placeholder="e.g. Our Song"
+                                            maxLength={80}
+                                        />
+                                    </Field>
+                                    <Field
+                                        id="design-artist"
+                                        label="Artist"
+                                        error={errors["personalization.artist"]}
+                                    >
+                                        <Input
+                                            id="design-artist"
+                                            value={details.artist}
+                                            onChange={(event) =>
+                                                setDetail(
+                                                    "artist",
+                                                    event.target.value,
+                                                )
+                                            }
+                                            maxLength={80}
+                                        />
+                                    </Field>
+                                </>
+                            )}
+                            {showsMessage && (
+                                <Field
+                                    id="design-message"
+                                    label="Short line (optional)"
+                                    hint={`${details.message.length}/${KEYCHAIN_MESSAGE_LIMIT}`}
+                                    error={errors["personalization.message"]}
+                                >
+                                    <Input
+                                        id="design-message"
+                                        value={details.message}
+                                        onChange={(event) =>
+                                            setDetail(
+                                                "message",
+                                                event.target.value,
+                                            )
+                                        }
+                                        placeholder="e.g. Forever & always"
+                                        maxLength={KEYCHAIN_MESSAGE_LIMIT}
+                                    />
+                                </Field>
+                            )}
                         </div>
-                        <Field
-                            id="design-message"
-                            label="Message (optional)"
-                            hint={`${details.message.length}/300`}
-                            error={errors["personalization.message"]}
-                        >
-                            <Textarea
-                                id="design-message"
-                                value={details.message}
-                                onChange={(event) =>
-                                    setDetail("message", event.target.value)
-                                }
-                                placeholder="A short letter, quote or inside joke"
-                                maxLength={300}
-                                rows={3}
-                            />
-                        </Field>
                         {path === "send" && (
                             <Field
                                 id="design-instructions"

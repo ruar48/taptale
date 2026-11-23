@@ -8,6 +8,7 @@ import {
     Loader2,
     Lock,
     Nfc,
+    Pencil,
     QrCode,
     ShieldCheck,
     Star,
@@ -180,6 +181,8 @@ export default function OrderShow({
                         </div>
                     </div>
                 )}
+
+                {order.experience && <WebsiteHero order={order} />}
 
                 {order.is_design_editable && (
                     <OrderDesignEditor
@@ -395,8 +398,6 @@ export default function OrderShow({
                     </div>
 
                     <div className="space-y-6">
-                        {order.experience && <ExperienceCard order={order} />}
-
                         <Panel title="Summary">
                             <OrderSpecs order={order} />
                             <div className="mt-5 border-t pt-4">
@@ -905,54 +906,70 @@ function UploadFiles({
     );
 }
 
-function ExperienceCard({ order }: { order: Order }) {
+/**
+ * The website the keychain opens is the heart of the gift, so it leads the
+ * order page: a clear call to design it, with its status and QR code.
+ */
+function WebsiteHero({ order }: { order: Order }) {
     const experience = order.experience!;
 
     return (
-        <section className="overflow-hidden rounded-2xl bg-gradient-to-br from-plum to-plum-dark p-5 text-white">
-            <div className="flex items-center gap-2 text-blush">
-                <Nfc className="size-5" />
-                <p className="text-xs font-semibold tracking-[0.2em] uppercase">
-                    Tap memory page
-                </p>
-            </div>
-            <p className="mt-2 font-display text-xl">{experience.title}</p>
-            <p className="text-sm text-white/70">
-                {experience.is_published
-                    ? `Live · ${experience.view_count ?? 0} opens`
-                    : "Not published yet — add your photos and message."}
-            </p>
-            <div className="mt-4 flex items-center gap-4">
-                {experience.qr_url && (
-                    <img
-                        src={experience.qr_url}
-                        alt="QR code for your memory page"
-                        className="size-24 rounded-xl bg-white p-1.5"
-                    />
-                )}
-                <div className="min-w-0 space-y-2 text-sm">
-                    <p className="text-xs text-white/70">
-                        Whoever taps the keychain can share the page with a link
-                        that lasts up to 30 days.
+        <section className="overflow-hidden rounded-2xl bg-gradient-to-br from-plum to-plum-dark p-5 text-white sm:p-6">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                    <div className="flex items-center gap-2 text-blush">
+                        <Nfc className="size-5" />
+                        <p className="text-xs font-semibold tracking-[0.2em] uppercase">
+                            Your website · the main gift
+                        </p>
+                    </div>
+                    <h2 className="mt-2 font-display text-2xl">
+                        {experience.is_published
+                            ? experience.title
+                            : "Design the page they see when they tap"}
+                    </h2>
+                    <p className="mt-1 max-w-xl text-sm text-white/75">
+                        {experience.is_published
+                            ? `Live · ${experience.view_count ?? 0} opens. `
+                            : "Not published yet. "}
+                        Pick a design, then add your message, photos, song and
+                        video. You can change your words and photos anytime.
                     </p>
-                    <a
-                        href={experience.public_url ?? undefined}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center gap-1.5 text-white/80 hover:text-white"
-                    >
-                        <ExternalLink className="size-3.5" /> Open page
-                    </a>
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                        <Button
+                            asChild
+                            className="h-11 rounded-full bg-cream px-6 text-plum hover:bg-white"
+                        >
+                            <Link href={editExperience(experience.code)}>
+                                <Pencil className="size-4" /> Edit your website
+                            </Link>
+                        </Button>
+                        {experience.public_url && (
+                            <a
+                                href={experience.public_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex items-center gap-1.5 text-sm text-white/80 hover:text-white"
+                            >
+                                <ExternalLink className="size-3.5" /> Open page
+                            </a>
+                        )}
+                    </div>
                 </div>
+                {experience.qr_url && (
+                    <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:text-center">
+                        <img
+                            src={experience.qr_url}
+                            alt="QR code for your website"
+                            className="size-24 rounded-xl bg-white p-1.5"
+                        />
+                        <p className="max-w-40 text-xs text-white/70">
+                            Whoever taps the keychain can share it with a link
+                            that lasts up to 30 days.
+                        </p>
+                    </div>
+                )}
             </div>
-            <Button
-                asChild
-                className="mt-4 w-full rounded-full bg-cream text-plum hover:bg-white"
-            >
-                <Link href={editExperience(experience.code)}>
-                    Manage memory page
-                </Link>
-            </Button>
         </section>
     );
 }
