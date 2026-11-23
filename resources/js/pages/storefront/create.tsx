@@ -7,6 +7,7 @@ import {
     Heart,
     History,
     Loader2,
+    LocateFixed,
     MailCheck,
     Minus,
     Nfc,
@@ -33,6 +34,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useCurrentAddress } from '@/hooks/use-current-address';
 import { useMoney } from '@/hooks/use-money';
 import { calculatePrice, defaultOptionIds, groupOptions } from '@/lib/pricing';
 import type { AppliedPromo } from '@/lib/pricing';
@@ -236,6 +238,25 @@ export default function CreateGift({
     const [promo, setPromo] = useState<AppliedPromo | null>(null);
 
     const { data, setData, errors } = form;
+
+    const currentAddress = useCurrentAddress();
+
+    const fillAddressFromLocation = async () => {
+        const detected = await currentAddress.locate();
+
+        if (!detected) {
+            return;
+        }
+
+        setData((current) => ({
+            ...current,
+            address_line: detected.address_line || current.address_line,
+            city: detected.city || current.city,
+            province: detected.province || current.province,
+            postal_code: detected.postal_code || current.postal_code,
+        }));
+        form.clearErrors('address_line', 'city', 'province', 'postal_code');
+    };
 
     // A guest who signs up or logs in at checkout stays on this page with
     // everything they made; fill in whatever their account already knows.
@@ -1608,6 +1629,44 @@ export default function CreateGift({
                                                 autoComplete="email"
                                             />
                                         </Field>
+                                        {currentAddress.isSupported && (
+                                            <div className="grid gap-2 sm:col-span-2">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="w-full sm:w-fit"
+                                                    onClick={
+                                                        fillAddressFromLocation
+                                                    }
+                                                    disabled={
+                                                        currentAddress.isLocating
+                                                    }
+                                                >
+                                                    {currentAddress.isLocating ? (
+                                                        <Loader2 className="animate-spin" />
+                                                    ) : (
+                                                        <LocateFixed />
+                                                    )}
+                                                    {currentAddress.isLocating
+                                                        ? 'Finding your address…'
+                                                        : 'Use my current location'}
+                                                </Button>
+                                                {currentAddress.error ? (
+                                                    <InputError
+                                                        message={
+                                                            currentAddress.error
+                                                        }
+                                                    />
+                                                ) : (
+                                                    <p className="text-xs text-muted-foreground">
+                                                        We’ll fill in what we
+                                                        can — please
+                                                        double-check your house
+                                                        number and barangay.
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )}
                                         <Field
                                             label="Street address"
                                             error={errors.address_line}
