@@ -103,13 +103,28 @@ function openPhotoStore(): Promise<IDBDatabase> {
     });
 }
 
-export async function savePhotos(photos: File[]): Promise<void> {
+export function savePhotos(photos: File[]): Promise<void> {
+    return savePhotoList(PHOTOS_KEY, photos);
+}
+
+export function loadPhotos(): Promise<File[]> {
+    return loadPhotoList(PHOTOS_KEY);
+}
+
+/**
+ * Keep a list of photos in this browser under a key. The wizard keeps its
+ * photos under one key; memory pages drafted on a demo use their own.
+ */
+export async function savePhotoList(
+    key: string,
+    photos: File[],
+): Promise<void> {
     try {
         const db = await openPhotoStore();
 
         await new Promise<void>((resolve, reject) => {
             const transaction = db.transaction(PHOTO_STORE, 'readwrite');
-            transaction.objectStore(PHOTO_STORE).put(photos, PHOTOS_KEY);
+            transaction.objectStore(PHOTO_STORE).put(photos, key);
             transaction.oncomplete = () => resolve();
             transaction.onerror = () => reject(transaction.error);
         });
@@ -120,7 +135,7 @@ export async function savePhotos(photos: File[]): Promise<void> {
     }
 }
 
-export async function loadPhotos(): Promise<File[]> {
+export async function loadPhotoList(key: string): Promise<File[]> {
     try {
         const db = await openPhotoStore();
 
@@ -128,7 +143,7 @@ export async function loadPhotos(): Promise<File[]> {
             const request = db
                 .transaction(PHOTO_STORE, 'readonly')
                 .objectStore(PHOTO_STORE)
-                .get(PHOTOS_KEY);
+                .get(key);
             request.onsuccess = () => resolve(request.result);
             request.onerror = () => reject(request.error);
         });

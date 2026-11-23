@@ -28,6 +28,8 @@ class ExperienceContentController extends Controller
         'message' => ['nullable', 'string', 'max:5000'],
         'quote' => ['nullable', 'string', 'max:255'],
         'flowers_note' => ['nullable', 'string', 'max:500'],
+        'flower_style' => ['required', 'string', 'in:bouquet,teal,pink,lavender,golden,red,white,blue,peach,mixed'],
+        'flower_rain' => ['required', 'string', 'in:none,petals,photos,both'],
         'photo_rain_layer' => ['required', 'string', 'in:front,back'],
         'event_date' => ['nullable', 'string', 'max:60'],
         'song_title' => ['nullable', 'string', 'max:120'],
@@ -35,6 +37,13 @@ class ExperienceContentController extends Controller
         'song_ornament' => ['required', 'string', 'in:none,hearts'],
         'song_background' => ['required', 'string', 'in:theme,hearts'],
     ];
+
+    /**
+     * Fields that only apply to a page showing the flowers.
+     *
+     * @var list<string>
+     */
+    private const FLOWER_FIELDS = ['flower_style', 'flower_rain'];
 
     /**
      * Editable fields of a timeline / polaroid moment and their rules.
@@ -58,6 +67,10 @@ class ExperienceContentController extends Controller
 
         if (! is_string($field)) {
             throw ValidationException::withMessages(['field' => 'This text cannot be edited here.']);
+        }
+
+        if (in_array($field, self::FLOWER_FIELDS, true) && ! $experience->showsFlowers()) {
+            throw ValidationException::withMessages(['field' => 'Flowers can be added to this page design when ordering.']);
         }
 
         if (array_key_exists($field, self::FIELDS)) {

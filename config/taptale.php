@@ -32,6 +32,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Memory page add-ons
+    |--------------------------------------------------------------------------
+    |
+    | Price (centavos), charged once per order, for putting the blooming
+    | flowers on a memory page design other than "A Bouquet For You", where
+    | the flowers are already included.
+    |
+    */
+
+    'flowers_addon_price' => (int) env('TAPTALE_FLOWERS_ADDON_PRICE', 500),
+
+    /*
+    |--------------------------------------------------------------------------
     | Storage
     |--------------------------------------------------------------------------
     |
@@ -62,6 +75,12 @@ return [
     */
 
     'max_unpaid_orders' => (int) env('TAPTALE_MAX_UNPAID_ORDERS', 3),
+
+    // Orders one customer may place in 24 hours, cancelled ones included.
+    'max_orders_per_day' => (int) env('TAPTALE_MAX_ORDERS_PER_DAY', 5),
+
+    // Unpaid orders older than this are cancelled and their uploads deleted.
+    'abandoned_order_days' => (int) env('TAPTALE_ABANDONED_ORDER_DAYS', 14),
 
     'promo_hold_hours' => (int) env('TAPTALE_PROMO_HOLD_HOURS', 48),
 

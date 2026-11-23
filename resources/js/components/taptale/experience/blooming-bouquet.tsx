@@ -1,11 +1,13 @@
 import { RotateCcw } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import { FallingFlowers } from "@/components/taptale/experience/night-garden";
 import {
     EditableText,
     useExperience,
 } from "@/components/taptale/experience/shared";
 import { cn } from "@/lib/utils";
+import type { FlowerRain } from "@/types";
 
 type Point = { x: number; y: number };
 
@@ -18,6 +20,15 @@ type Flower = {
     color: string;
     size: number;
 };
+
+/** Rose-pink petals for the rain over the bouquet, matching its roses. */
+const RAIN_COLORS = {
+    "--ng-petal-light": "#ffd6e6",
+    "--ng-petal-dark": "#f2557f",
+    "--ng-petal-mid": "#ff8fa3",
+    "--ng-glow": "#ff7eb6",
+    "--ng-center-2": "#ffce00",
+} as CSSProperties;
 
 /** Where every stem gathers inside the paper wrap. */
 const GATHER: Point = { x: 200, y: 440 };
@@ -482,8 +493,16 @@ function BouquetSvg({ glowId }: { glowId: string }) {
  * every flower blooms — then the note and sender fade in. The animation
  * waits for the opening gate so the recipient sees it from the start.
  */
-export function BloomingBouquet() {
+export function BloomingBouquet({
+    rain = "none",
+    isAddon = false,
+}: {
+    rain?: FlowerRain;
+    /** Added to another design, so its headline stays in the page hero. */
+    isAddon?: boolean;
+}) {
     const { experience, opened } = useExperience();
+    const photoLayer = experience.photo_rain_layer ?? "front";
     const glowId = `bq-${useId().replace(/:/g, "")}`;
     const sectionRef = useRef<HTMLElement>(null);
     const [inView, setInView] = useState(false);
@@ -522,6 +541,7 @@ export function BloomingBouquet() {
                 "bouquet-scene relative flex min-h-svh flex-col items-center justify-end overflow-hidden px-5 pt-14 pb-10 text-center",
                 playing && "is-playing",
             )}
+            style={RAIN_COLORS}
         >
             <div className="pointer-events-none absolute inset-0" aria-hidden>
                 {STARS.map((star, index) => (
@@ -574,12 +594,16 @@ export function BloomingBouquet() {
                     className="bq-fade mt-3 font-script text-6xl leading-[1.05] sm:text-7xl"
                     style={delayStyle(3.9)}
                 >
-                    <EditableText
-                        field="title"
-                        value={experience.title}
-                        placeholder="Add a headline"
-                        label="Headline"
-                    />
+                    {isAddon ? (
+                        "Flowers for you"
+                    ) : (
+                        <EditableText
+                            field="title"
+                            value={experience.title}
+                            placeholder="Add a headline"
+                            label="Headline"
+                        />
+                    )}
                 </h1>
                 <div className="bq-fade" style={delayStyle(4.3)}>
                     <EditableText
@@ -597,6 +621,12 @@ export function BloomingBouquet() {
             <div key={`bouquet-${cycle}`} className="relative mt-6 w-full">
                 <BouquetSvg glowId={glowId} />
             </div>
+
+            <FallingFlowers
+                key={`rain-${cycle}`}
+                rain={rain}
+                photoLayer={photoLayer}
+            />
 
             <button
                 type="button"

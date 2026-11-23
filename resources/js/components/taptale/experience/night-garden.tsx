@@ -1,17 +1,14 @@
-import { Heart, Image as ImageIcon, RotateCcw } from "lucide-react";
+import { Heart, RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import "../../../../css/night-garden.css";
-import type {
-    GardenOptions,
-    GardenVariant,
-} from "@/components/taptale/experience/config";
+import type { GardenVariant } from "@/components/taptale/experience/config";
 import {
     EditableText,
     useExperience,
 } from "@/components/taptale/experience/shared";
 import { cn } from "@/lib/utils";
-import type { PhotoRainLayer } from "@/types";
+import type { FlowerRain, PhotoRainLayer } from "@/types";
 
 /*
  * Night garden scene adapted from "Flower" by Naveen Kumawat (MIT),
@@ -402,20 +399,26 @@ function Blossom({ size }: { size: number }) {
     );
 }
 
+
 /**
- * Rain over the garden: falling petals and blossoms, and the page photos
- * dropping like polaroids. Tapping a falling photo opens it.
+ * What rains over the flowers: falling petals and blossoms, and the page
+ * photos dropping like polaroids. Tapping a falling photo opens it. Petal
+ * colors come from the `--ng-*` variables of the surrounding scene.
  */
-function FlowerRain({
+export function FallingFlowers({
     rain,
     photoLayer,
 }: {
-    rain: GardenOptions["rain"];
+    rain: FlowerRain;
     photoLayer: PhotoRainLayer;
 }) {
     const { photos, openPhoto } = useExperience();
     const showPetals = rain === "petals" || rain === "both";
     const showPhotos = rain === "photos" || rain === "both";
+
+    if (rain === "none") {
+        return null;
+    }
 
     return (
         <>
@@ -500,68 +503,23 @@ function FlowerRain({
 }
 
 /**
- * Owner-only switch for whether the raining photos fall in front of the
- * flowers or behind them. Saved like any other inline edit.
- */
-function PhotoLayerSwitch({ layer }: { layer: PhotoRainLayer }) {
-    const { saveText } = useExperience();
-    const [saving, setSaving] = useState(false);
-
-    const choose = async (value: PhotoRainLayer) => {
-        if (value === layer || saving) {
-            return;
-        }
-
-        setSaving(true);
-        await saveText("photo_rain_layer", value);
-        setSaving(false);
-    };
-
-    return (
-        <div
-            className="absolute top-4 left-4 z-30 flex items-center gap-1 rounded-full border border-white/20 bg-black/60 p-1 text-xs text-white/80 backdrop-blur"
-            role="radiogroup"
-            aria-label="Raining photos"
-        >
-            <ImageIcon className="mx-1.5 size-3.5" aria-hidden />
-            {(
-                [
-                    ["front", "In front"],
-                    ["back", "Behind flowers"],
-                ] as const
-            ).map(([value, label]) => (
-                <button
-                    key={value}
-                    type="button"
-                    role="radio"
-                    aria-checked={layer === value}
-                    disabled={saving}
-                    onClick={() => choose(value)}
-                    className={cn(
-                        "rounded-full px-3 py-1 transition-colors disabled:opacity-60",
-                        layer === value
-                            ? "bg-[var(--ng-petal-light)] text-black"
-                            : "hover:text-white",
-                    )}
-                >
-                    {label}
-                </button>
-            ))}
-        </div>
-    );
-}
-
-/**
  * Glowing flowers that grow and bloom in a night garden, with the
  * recipient's name, headline and flower note above, and optionally petals
  * and photos raining down. The animation stays on its first frame until
  * the opening gate is gone and the garden is on screen.
  */
-export function NightGarden({ options }: { options: GardenOptions }) {
-    const { variant, rain } = options;
-    const { experience, opened, editable } = useExperience();
+export function NightGarden({
+    variant,
+    rain,
+    isAddon = false,
+}: {
+    variant: GardenVariant;
+    rain: FlowerRain;
+    /** Added to another design, so its headline stays in the page hero. */
+    isAddon?: boolean;
+}) {
+    const { experience, opened } = useExperience();
     const photoLayer = experience.photo_rain_layer ?? "front";
-    const hasPhotoRain = rain === "photos" || rain === "both";
     const stageRef = useRef<HTMLElement>(null);
     const [inView, setInView] = useState(false);
     const [cycle, setCycle] = useState(0);
@@ -622,12 +580,16 @@ export function NightGarden({ options }: { options: GardenOptions }) {
                     className="ng-text mt-3 font-script text-5xl leading-[1.05] drop-shadow-[0_0_18px_var(--ng-glow)] sm:text-7xl"
                     style={{ "--ng-text-delay": "0.8s" } as CSSProperties}
                 >
-                    <EditableText
-                        field="title"
-                        value={experience.title}
-                        placeholder="Add a headline"
-                        label="Headline"
-                    />
+                    {isAddon ? (
+                        "Flowers for you"
+                    ) : (
+                        <EditableText
+                            field="title"
+                            value={experience.title}
+                            placeholder="Add a headline"
+                            label="Headline"
+                        />
+                    )}
                 </h1>
                 <div
                     className="ng-text"
@@ -650,17 +612,11 @@ export function NightGarden({ options }: { options: GardenOptions }) {
                 <GardenScene variant={variant} />
             </div>
 
-            {rain !== "none" && (
-                <FlowerRain
-                    key={`rain-${cycle}`}
-                    rain={rain}
-                    photoLayer={photoLayer}
-                />
-            )}
-
-            {editable && hasPhotoRain && (
-                <PhotoLayerSwitch layer={photoLayer} />
-            )}
+            <FallingFlowers
+                key={`rain-${cycle}`}
+                rain={rain}
+                photoLayer={photoLayer}
+            />
 
             <button
                 type="button"

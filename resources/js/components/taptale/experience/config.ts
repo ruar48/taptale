@@ -1,5 +1,9 @@
 import type { CSSProperties } from "react";
-import type { ExperienceTemplateKey } from "@/types";
+import type {
+    ExperienceTemplateKey,
+    FlowerRain,
+    FlowerStyle,
+} from "@/types";
 
 export type ExperienceTheme = {
     label: string;
@@ -171,24 +175,45 @@ export function themeStyle(theme: ExperienceTheme): CSSProperties {
     } as CSSProperties;
 }
 
-export type GardenVariant =
-    | "teal"
-    | "pink"
-    | "lavender"
-    | "golden"
-    | "red"
-    | "white"
-    | "blue"
-    | "peach"
-    | "mixed";
+/** Colors of the glowing flowers that grow in the night garden. */
+export type GardenVariant = Exclude<FlowerStyle, "bouquet">;
 
-/** What falls from the sky over the night garden. */
-export type GardenRain = "none" | "petals" | "photos" | "both";
+/**
+ * Flowers the bouquet page can show. The swatch previews the petal color
+ * in the picker.
+ */
+export const FLOWER_STYLES: {
+    value: FlowerStyle;
+    label: string;
+    swatch: string;
+}[] = [
+    {
+        value: "bouquet",
+        label: "Bouquet",
+        swatch: "conic-gradient(#F2557F 0 25%, #FF9EB8 0 50%, #FFB38A 0 75%, #E6D4FF 0)",
+    },
+    { value: "pink", label: "Pink", swatch: "#ff8fb6" },
+    { value: "red", label: "Red", swatch: "#e5384f" },
+    { value: "white", label: "White", swatch: "#f4f7fc" },
+    { value: "lavender", label: "Lavender", swatch: "#b89cf5" },
+    { value: "blue", label: "Blue", swatch: "#6fa0ff" },
+    { value: "teal", label: "Glow", swatch: "#39c6d6" },
+    { value: "golden", label: "Golden", swatch: "#f7c45a" },
+    { value: "peach", label: "Peach", swatch: "#ffa982" },
+    {
+        value: "mixed",
+        label: "Mixed",
+        swatch: "conic-gradient(#ff8fb6 0 33%, #b89cf5 0 66%, #f7c45a 0)",
+    },
+];
 
-export type GardenOptions = {
-    variant: GardenVariant;
-    rain: GardenRain;
-};
+/** What can fall from the sky over the flowers. */
+export const FLOWER_RAINS: { value: FlowerRain; label: string }[] = [
+    { value: "none", label: "Nothing" },
+    { value: "petals", label: "Petals" },
+    { value: "photos", label: "Our photos" },
+    { value: "both", label: "Petals & photos" },
+];
 
 export type GateKind = "envelope" | "question" | "tap" | null;
 
@@ -197,7 +222,6 @@ export type SectionKey =
     | "hero_script"
     | "hero_doily"
     | "bouquet"
-    | "garden"
     | "note"
     | "letter_card"
     | "letter_paper"
@@ -218,8 +242,6 @@ export type SectionKey =
 export type ExperiencePreset = {
     gate: GateKind;
     sections: SectionKey[];
-    /** Flower colors and falling effects for the night garden section. */
-    garden?: GardenOptions;
     labels?: Partial<{
         gate: string;
         gateHint: string;
@@ -236,29 +258,6 @@ export type ExperiencePreset = {
         closing: string;
     }>;
 };
-
-function gardenPreset(
-    variant: GardenVariant,
-    rain: GardenRain = "none",
-): ExperiencePreset {
-    return {
-        gate: "tap",
-        garden: { variant, rain },
-        sections: [
-            "garden",
-            "letter_paper",
-            "gallery",
-            "song",
-            "quote",
-            "closing",
-        ],
-        labels: {
-            gate: "Someone sent you flowers",
-            gallery: "Every flower is a memory of us",
-            closing: "Flowers that never wilt, just like my love",
-        },
-    };
-}
 
 export const EXPERIENCE_PRESETS: Record<
     ExperienceTemplateKey,
@@ -327,20 +326,6 @@ export const EXPERIENCE_PRESETS: Record<
             closing: "Flowers that never wilt, just like my love",
         },
     },
-    night_garden: gardenPreset("teal"),
-    pink_garden: gardenPreset("pink"),
-    lavender_garden: gardenPreset("lavender"),
-    golden_garden: gardenPreset("golden"),
-    red_garden: gardenPreset("red"),
-    moonlight_garden: gardenPreset("white"),
-    blue_garden: gardenPreset("blue"),
-    peach_garden: gardenPreset("peach"),
-    mixed_garden: gardenPreset("mixed"),
-    rain_teal: gardenPreset("teal", "both"),
-    rain_pink: gardenPreset("pink", "both"),
-    rain_red: gardenPreset("red", "both"),
-    rain_lavender: gardenPreset("lavender", "both"),
-    rain_mixed: gardenPreset("mixed", "both"),
     girlfriends_day: {
         gate: "envelope",
         sections: [

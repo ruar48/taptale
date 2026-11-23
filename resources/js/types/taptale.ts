@@ -200,26 +200,28 @@ export type Payment = {
 /** Whether raining photos fall in front of the garden flowers or behind them. */
 export type PhotoRainLayer = 'front' | 'back';
 
+/** The flowers on a bouquet page: the wrapped bouquet or glowing garden flowers. */
+export type FlowerStyle =
+    | 'bouquet'
+    | 'teal'
+    | 'pink'
+    | 'lavender'
+    | 'golden'
+    | 'red'
+    | 'white'
+    | 'blue'
+    | 'peach'
+    | 'mixed';
+
+/** What falls from the sky over the flowers. */
+export type FlowerRain = 'none' | 'petals' | 'photos' | 'both';
+
 export type ExperienceTemplateKey =
     | 'monthsary'
     | 'birthday'
     | 'love_story'
     | 'little_something'
     | 'digital_bouquet'
-    | 'night_garden'
-    | 'pink_garden'
-    | 'lavender_garden'
-    | 'golden_garden'
-    | 'red_garden'
-    | 'moonlight_garden'
-    | 'blue_garden'
-    | 'peach_garden'
-    | 'mixed_garden'
-    | 'rain_teal'
-    | 'rain_pink'
-    | 'rain_red'
-    | 'rain_lavender'
-    | 'rain_mixed'
     | 'girlfriends_day'
     | 'valentines'
     | 'apology'
@@ -295,6 +297,10 @@ export type DigitalExperience = {
     message: string | null;
     quote: string | null;
     flowers_note: string | null;
+    flower_style: FlowerStyle;
+    flower_rain: FlowerRain;
+    /** Flowers bought at checkout for a design that does not include them. */
+    flower_addon: boolean;
     photo_rain_layer: PhotoRainLayer;
     event_date: string | null;
     video_url: string | null;
@@ -369,6 +375,7 @@ export type Order = {
     unit_price: number;
     subtotal: number;
     customization_fee: number;
+    flowers_fee: number;
     delivery_fee: number;
     adjustment: number;
     adjustment_note: string | null;

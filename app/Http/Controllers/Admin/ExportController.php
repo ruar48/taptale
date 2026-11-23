@@ -38,7 +38,7 @@ class ExportController extends Controller
 
         return $this->download('taptale-orders-'.now()->format('Y-m-d').'.csv', [
             'Reference', 'Date', 'Status', 'Customer', 'Email', 'Phone', 'Product', 'Quantity',
-            'Subtotal', 'Promo code', 'Discount', 'Design fee', 'Delivery', 'Adjustment', 'Total', 'Paid', 'Balance',
+            'Subtotal', 'Promo code', 'Discount', 'Design fee', 'Flowers', 'Delivery', 'Adjustment', 'Total', 'Paid', 'Balance',
             'City', 'Province', 'Gift', 'Courier', 'Tracking number',
         ], function () use ($orders): iterable {
             foreach ($orders->lazy(200) as $order) {
@@ -55,6 +55,7 @@ class ExportController extends Controller
                     $order->promo_code,
                     $this->pesos($order->discount),
                     $this->pesos($order->customization_fee),
+                    $this->pesos($order->flowers_fee),
                     $this->pesos($order->delivery_fee),
                     $this->pesos($order->adjustment),
                     $this->pesos($order->total),

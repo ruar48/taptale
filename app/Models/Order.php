@@ -40,11 +40,13 @@ use Illuminate\Validation\ValidationException;
  * @property int $unit_price
  * @property int $subtotal
  * @property int $customization_fee
+ * @property int $flowers_fee Charged once for putting the flowers on a memory page design that lacks them
  * @property int $delivery_fee
  * @property int $adjustment
  * @property string|null $adjustment_note
  * @property int|null $promo_code_id
  * @property string|null $promo_code Code as entered at checkout, kept if the code is later deleted
+ * @property string|null $promo_identity The customer's inbox ({@see PromoCode::customerIdentity()}) when a code was used
  * @property int $discount Promo discount (centavos) on the items subtotal
  * @property int $total
  * @property string $customer_name
@@ -68,7 +70,7 @@ use Illuminate\Validation\ValidationException;
 #[Fillable([
     'status', 'category_id', 'product_id', 'template_id', 'product_name', 'template_name',
     'selected_options', 'design_mode', 'personalization', 'preview_approved_at',
-    'quantity', 'unit_price', 'subtotal', 'customization_fee', 'delivery_fee', 'adjustment', 'adjustment_note', 'promo_code_id', 'promo_code', 'discount', 'total',
+    'quantity', 'unit_price', 'subtotal', 'customization_fee', 'flowers_fee', 'delivery_fee', 'adjustment', 'adjustment_note', 'promo_code_id', 'promo_code', 'promo_identity', 'discount', 'total',
     'customer_name', 'customer_email', 'customer_phone', 'address_line', 'city', 'province', 'postal_code', 'customer_notes', 'is_gift', 'gift_message',
     'payment_method_id', 'courier', 'tracking_number', 'tracking_url',
 ])]
@@ -124,6 +126,7 @@ class Order extends Model
             'unit_price' => 'integer',
             'subtotal' => 'integer',
             'customization_fee' => 'integer',
+            'flowers_fee' => 'integer',
             'delivery_fee' => 'integer',
             'adjustment' => 'integer',
             'discount' => 'integer',
@@ -356,7 +359,7 @@ class Order extends Model
      */
     public function recalculateTotal(): void
     {
-        $this->total = max(0, $this->subtotal - $this->discount + $this->customization_fee + $this->delivery_fee + $this->adjustment);
+        $this->total = max(0, $this->subtotal - $this->discount + $this->customization_fee + $this->flowers_fee + $this->delivery_fee + $this->adjustment);
     }
 
     /**

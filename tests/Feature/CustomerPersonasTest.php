@@ -288,8 +288,10 @@ describe('Promo abuser, trying to drain or bend discounts', function () {
         $checkout = personaCheckout();
         $promoCode = PromoCode::factory()->create(['code' => 'FIRST2', 'max_uses' => 2]);
 
-        foreach ($accounts as $account) {
-            $this->actingAs($account)->post(route('orders.store'), [...$checkout, 'promo_code' => 'FIRST2'])->assertSessionHasNoErrors();
+        foreach ($accounts->values() as $index => $account) {
+            $this->actingAs($account)
+                ->post(route('orders.store'), [...$checkout, 'promo_code' => 'FIRST2', 'customer_phone' => "0917 555 010{$index}"])
+                ->assertSessionHasNoErrors();
         }
 
         expect(Order::count())->toBe(2)
@@ -334,7 +336,9 @@ describe('Promo abuser, trying to drain or bend discounts', function () {
     });
 
     test('poking the promo checker with junk gets validation errors, not crashes', function (array $query) {
-        $this->getJson(route('promo-codes.check', $query))->assertUnprocessable();
+        $this->actingAs(User::factory()->create())
+            ->getJson(route('promo-codes.check', $query))
+            ->assertUnprocessable();
     })->with([
         'array code' => [['code' => ['A', 'B'], 'subtotal' => 100]],
         'negative subtotal' => [['code' => 'X', 'subtotal' => -5]],

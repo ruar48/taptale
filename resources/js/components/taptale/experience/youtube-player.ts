@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 type YouTubePlayer = {
     playVideo: () => void;
     pauseVideo: () => void;
+    mute: () => void;
+    unMute: () => void;
     seekTo: (seconds: number, allowSeekAhead: boolean) => void;
     getCurrentTime: () => number;
     getDuration: () => number;
@@ -72,6 +74,7 @@ export function useYouTubePlayer(videoId: string | null) {
     const playerRef = useRef<YouTubePlayer | null>(null);
     const [ready, setReady] = useState(false);
     const [playing, setPlaying] = useState(false);
+    const playingRef = useRef(false);
 
     useEffect(() => {
         const container = containerRef.current;
@@ -101,8 +104,11 @@ export function useYouTubePlayer(videoId: string | null) {
                 },
                 events: {
                     onReady: () => setReady(true),
-                    onStateChange: ({ data }) =>
-                        setPlaying(data === PLAYING || data === BUFFERING),
+                    onStateChange: ({ data }) => {
+                        playingRef.current =
+                            data === PLAYING || data === BUFFERING;
+                        setPlaying(playingRef.current);
+                    },
                 },
             });
         });
@@ -131,6 +137,47 @@ export function useYouTubePlayer(videoId: string | null) {
         }
     }, [playing]);
 
+    const play = useCallback(() => {
+        playerRef.current?.playVideo();
+    }, []);
+
+    /**
+     * Starts with sound when the browser allows it. Otherwise it starts
+     * muted (always allowed) and resolves true so the caller can offer
+     * "tap for sound".
+     */
+    const autoplay = useCallback(
+        () =>
+            new Promise<boolean>((resolve) => {
+                const player = playerRef.current;
+
+                if (!player) {
+                    resolve(false);
+
+                    return;
+                }
+
+                player.playVideo();
+
+                window.setTimeout(() => {
+                    if (playingRef.current || playerRef.current !== player) {
+                        resolve(false);
+
+                        return;
+                    }
+
+                    player.mute();
+                    player.playVideo();
+                    resolve(true);
+                }, 1200);
+            }),
+        [],
+    );
+
+    const unmute = useCallback(() => {
+        playerRef.current?.unMute();
+    }, []);
+
     const seek = useCallback((seconds: number) => {
         playerRef.current?.seekTo(seconds, true);
     }, []);
@@ -148,5 +195,15 @@ export function useYouTubePlayer(videoId: string | null) {
         };
     }, [ready]);
 
-    return { containerRef, ready, playing, toggle, seek, readClock };
+    return {
+        containerRef,
+        ready,
+        playing,
+        play,
+        autoplay,
+        unmute,
+        toggle,
+        seek,
+        readClock,
+    };
 }

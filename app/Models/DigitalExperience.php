@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\ExperienceTemplate;
+use App\Enums\FlowerRain;
+use App\Enums\FlowerStyle;
 use App\Enums\PhotoRainLayer;
 use App\Jobs\FetchSongDetails;
 use Database\Factories\DigitalExperienceFactory;
@@ -29,6 +31,9 @@ use Illuminate\Support\Str;
  * @property string|null $message
  * @property string|null $quote
  * @property string|null $flowers_note
+ * @property FlowerStyle $flower_style The bouquet, or the color of the glowing garden flowers
+ * @property FlowerRain $flower_rain What falls from the sky over the flowers
+ * @property bool $flower_addon Flowers bought at checkout for a design that lacks them
  * @property PhotoRainLayer $photo_rain_layer
  * @property string|null $event_date
  * @property string|null $video_url
@@ -53,7 +58,7 @@ use Illuminate\Support\Str;
  */
 #[RouteKey('code')]
 #[Fillable([
-    'template', 'title', 'subtitle', 'recipient_name', 'sender_name', 'message', 'quote', 'flowers_note',
+    'template', 'title', 'subtitle', 'recipient_name', 'sender_name', 'message', 'quote', 'flowers_note', 'flower_style', 'flower_rain', 'flower_addon',
     'photo_rain_layer', 'event_date', 'video_url', 'music_url', 'song_title', 'song_artist', 'song_ornament', 'song_background', 'photos', 'moments', 'custom_sections', 'theme',
     'nfc_tag_uid', 'is_published', 'unlocks_at',
 ])]
@@ -97,6 +102,9 @@ class DigitalExperience extends Model
     protected $attributes = [
         'template' => 'classic',
         'theme' => 'blush',
+        'flower_style' => 'bouquet',
+        'flower_rain' => 'none',
+        'flower_addon' => false,
         'photo_rain_layer' => 'front',
         'song_ornament' => 'none',
         'song_background' => 'theme',
@@ -132,6 +140,9 @@ class DigitalExperience extends Model
     {
         return [
             'template' => ExperienceTemplate::class,
+            'flower_style' => FlowerStyle::class,
+            'flower_rain' => FlowerRain::class,
+            'flower_addon' => 'boolean',
             'photo_rain_layer' => PhotoRainLayer::class,
             'photos' => 'array',
             'moments' => 'array',
@@ -202,6 +213,15 @@ class DigitalExperience extends Model
     public function isLocked(): bool
     {
         return $this->unlocks_at !== null && $this->unlocks_at->isFuture();
+    }
+
+    /**
+     * Whether the page shows the blooming flowers: always on "A Bouquet For
+     * You", and on any other design when the flowers were bought at checkout.
+     */
+    public function showsFlowers(): bool
+    {
+        return $this->template === ExperienceTemplate::DigitalBouquet || $this->flower_addon;
     }
 
     /**

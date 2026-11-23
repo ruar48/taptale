@@ -4,8 +4,12 @@ namespace App\Http\Requests\Storefront;
 
 use App\Enums\DesignMode;
 use App\Enums\ExperienceTemplate;
+use App\Enums\FlowerRain;
+use App\Enums\FlowerStyle;
 use App\Enums\OrderStatus;
+use App\Enums\PhotoRainLayer;
 use App\Models\Category;
+use App\Models\DigitalExperience;
 use App\Models\Product;
 use App\Models\Template;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -53,6 +57,36 @@ class StoreOrderRequest extends FormRequest
             'approve_preview' => [Rule::excludeIf(! $isSelf || $later), 'accepted'],
             'personalize_later' => ['boolean'],
             'experience_template' => ['nullable', Rule::enum(ExperienceTemplate::class)],
+            'flower_addon' => ['boolean'],
+
+            /*
+             * The memory page the customer edited on a demo before ordering.
+             * Its photos stayed in their browser until now.
+             */
+            'page' => ['nullable', 'array'],
+            'page.title' => ['nullable', 'string', 'max:120'],
+            'page.subtitle' => ['nullable', 'string', 'max:160'],
+            'page.recipient_name' => ['nullable', 'string', 'max:80'],
+            'page.sender_name' => ['nullable', 'string', 'max:80'],
+            'page.message' => ['nullable', 'string', 'max:5000'],
+            'page.quote' => ['nullable', 'string', 'max:255'],
+            'page.flowers_note' => ['nullable', 'string', 'max:500'],
+            'page.event_date' => ['nullable', 'string', 'max:60'],
+            'page.song_title' => ['nullable', 'string', 'max:120'],
+            'page.song_artist' => ['nullable', 'string', 'max:120'],
+            'page.music_url' => ['nullable', 'url:https', 'max:500'],
+            'page.flower_style' => ['nullable', Rule::enum(FlowerStyle::class)],
+            'page.flower_rain' => ['nullable', Rule::enum(FlowerRain::class)],
+            'page.photo_rain_layer' => ['nullable', Rule::enum(PhotoRainLayer::class)],
+            'page.song_ornament' => ['nullable', 'string', 'in:none,hearts'],
+            'page.song_background' => ['nullable', 'string', 'in:theme,hearts'],
+            'page.moments' => ['array', 'max:'.DigitalExperience::MAX_MOMENTS],
+            'page.moments.*.date' => ['nullable', 'string', 'max:60'],
+            'page.moments.*.title' => ['nullable', 'string', 'max:80'],
+            'page.moments.*.caption' => ['nullable', 'string', 'max:300'],
+            'page.moments.*.photo' => ['nullable', 'integer', 'min:0'],
+            'page_photos' => ['array', 'max:'.DigitalExperience::MAX_PHOTOS],
+            'page_photos.*' => [File::image()->types(['jpg', 'jpeg', 'png', 'webp'])->max((int) config('taptale.max_upload_kilobytes'))],
 
             'customer_name' => ['required', 'string', 'max:120'],
             'customer_email' => ['required', 'email', 'max:255'],
@@ -84,13 +118,25 @@ class StoreOrderRequest extends FormRequest
                 }
             },
             function (Validator $validator): void {
+                // Every order still in the payment stage counts, including one
+                // whose receipt is waiting to be checked: a ₱1 junk receipt
+                // must not free a slot for another unpaid order.
                 $limit = (int) config('taptale.max_unpaid_orders');
-                $unpaid = $this->user()->orders()
-                    ->whereIn('status', [OrderStatus::PendingOrder, OrderStatus::AwaitingPayment])
-                    ->count();
+                $unpaid = $this->user()->orders()->whereIn('status', OrderStatus::paymentStage())->count();
 
                 if ($limit > 0 && $unpaid >= $limit) {
                     $validator->errors()->add('order', "You have {$unpaid} orders waiting for payment. Please pay for or cancel one of them before placing another.");
+
+                    return;
+                }
+
+                // Cancelled orders count too, so placing and cancelling over
+                // and over cannot get around the cap above.
+                $dailyLimit = (int) config('taptale.max_orders_per_day');
+                $placedToday = $this->user()->orders()->where('created_at', '>=', now()->subDay())->count();
+
+                if ($dailyLimit > 0 && $placedToday >= $dailyLimit) {
+                    $validator->errors()->add('order', "You have placed {$placedToday} orders in the last 24 hours. Please try again tomorrow, or contact us if you need a bigger order.");
                 }
             },
             function (Validator $validator): void {
@@ -138,6 +184,7 @@ class StoreOrderRequest extends FormRequest
             'personalization.design_brief.required' => 'Please describe the design you would like us to create.',
             'approve_preview.accepted' => 'Please approve your design preview before placing the order.',
             'photos.max' => 'You can upload up to :max photos for this product.',
+            'page_photos.max' => 'Your memory page can hold up to :max photos.',
             'customer_phone.regex' => 'Please enter a valid contact number.',
         ];
     }
@@ -151,6 +198,7 @@ class StoreOrderRequest extends FormRequest
     {
         return [
             'photos.*' => 'photo',
+            'page_photos.*' => 'page photo',
             'payment_method_id' => 'payment method',
             'gift_message' => 'gift message',
             'personalization.message' => 'message',

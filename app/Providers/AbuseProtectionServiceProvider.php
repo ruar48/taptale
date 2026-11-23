@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Actions\Maintenance\DeleteExpiredCacheEntries;
+use App\Actions\Orders\CancelAbandonedOrders;
 use App\Http\Middleware\ThrottleRequestsByNetwork;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Lottery;
@@ -11,15 +12,16 @@ use Throwable;
 
 /**
  * Protections that cut across the whole app: rate limits that treat an
- * IPv6 network as one visitor, and keeping the cache table from growing
- * forever even when no cron job runs the scheduler.
+ * IPv6 network as one visitor, and housekeeping (expired cache rows,
+ * abandoned unpaid orders) that still happens when no cron job runs the
+ * scheduler.
  */
 class AbuseProtectionServiceProvider extends ServiceProvider
 {
     /**
-     * Chance, per web request, of deleting a batch of expired cache rows.
+     * Chance, per web request, of running a small round of housekeeping.
      * Shared hosting may not run `schedule:run`, so busy traffic cleans up
-     * after itself; the scheduled hourly prune does it too when cron runs.
+     * after itself; the scheduled hourly tasks do it too when cron runs.
      */
     private const CLEANUP_ODDS = [1, 100];
 
@@ -47,6 +49,11 @@ class AbuseProtectionServiceProvider extends ServiceProvider
                 ->winner(function (): void {
                     try {
                         app(DeleteExpiredCacheEntries::class)->handle(maxBatches: 1);
+
+                        // The response is already sent and deferred work has run,
+                        // so cancellation emails go out right here.
+                        config(['taptale.notifications_connection' => 'sync']);
+                        app(CancelAbandonedOrders::class)->handle(batchSize: 5);
                     } catch (Throwable $exception) {
                         report($exception);
                     }

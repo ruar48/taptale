@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Storefront;
 use App\Actions\DigitalExperiences\BuildDemoExperience;
 use App\Actions\DigitalExperiences\RenderQrCode;
 use App\Enums\ExperienceTemplate;
+use App\Enums\FlowerRain;
+use App\Enums\FlowerStyle;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DigitalExperienceResource;
 use App\Models\DigitalExperience;
+use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
@@ -72,19 +75,37 @@ class ExperienceController extends Controller
     }
 
     /**
-     * A live demo of one memory page template with sample content.
+     * A live demo of one memory page template with sample content. Visitors
+     * can edit it in place; their words and photos stay in their browser as
+     * a draft until they order a keychain with the page.
      */
-    public function demo(string $template, BuildDemoExperience $buildDemo): Response
+    public function demo(Request $request, string $template, BuildDemoExperience $buildDemo): Response|RedirectResponse
     {
         $experienceTemplate = ExperienceTemplate::tryFrom($template);
 
-        abort_if($experienceTemplate === null, 404);
+        if ($experienceTemplate === null) {
+            $legacyDesign = ExperienceTemplate::legacyFlowerDesign($template);
+
+            abort_if($legacyDesign === null, 404);
+
+            return redirect()->route('experiences.demo', [
+                'template' => ExperienceTemplate::DigitalBouquet->value,
+                'flowers' => $legacyDesign['style']->value,
+                'rain' => $legacyDesign['rain']->value,
+            ], 301);
+        }
+
+        $flowerStyle = FlowerStyle::tryFrom((string) $request->query('flowers')) ?? FlowerStyle::Bouquet;
+        $flowerRain = FlowerRain::tryFrom((string) $request->query('rain')) ?? FlowerRain::None;
 
         return Inertia::render('storefront/experience', [
-            'experience' => $buildDemo->handle($experienceTemplate),
+            'experience' => $buildDemo->handle($experienceTemplate, $flowerStyle, $flowerRain),
             'isPreview' => false,
             'isDemo' => true,
             'canEdit' => false,
+            'orderProduct' => $this->keychainWithPage(),
+            'maxDraftPhotos' => DigitalExperience::MAX_PHOTOS,
+            'flowersAddonPrice' => (int) config('taptale.flowers_addon_price'),
             'seo' => [
                 'title' => "{$experienceTemplate->label()} memory page demo",
                 'description' => $experienceTemplate->description(),
@@ -226,6 +247,22 @@ class ExperienceController extends Controller
         }
 
         return Storage::disk($diskName)->response($path, headers: $headers);
+    }
+
+    /**
+     * Slug of the gift a demo's "order a keychain with this page" button
+     * opens in the wizard: the first active keychain that comes with a tap
+     * page, or any gift with one when no keychain does.
+     */
+    private function keychainWithPage(): ?string
+    {
+        return Product::query()
+            ->where('is_active', true)
+            ->where('has_digital_experience', true)
+            ->orderByRaw('case when lower(name) like ? then 0 else 1 end', ['%keychain%'])
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->value('slug');
     }
 
     private static function canPreview(Request $request, DigitalExperience $experience): bool

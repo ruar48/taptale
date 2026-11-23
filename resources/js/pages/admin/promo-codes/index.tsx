@@ -219,6 +219,9 @@ function PromoCodeForm({
         is_active: promoCode?.is_active ?? true,
     });
     const isPercent = form.data.discount_type === 'percent';
+    const isBigDiscount = isPercent
+        ? Number(form.data.discount_value) >= 50
+        : Number(form.data.discount_value) >= 500;
 
     return (
         <form
@@ -283,6 +286,11 @@ function PromoCodeForm({
                 <FormField
                     label={isPercent ? 'Percent off' : 'Amount off (₱)'}
                     error={form.errors.discount_value}
+                    hint={
+                        isBigDiscount
+                            ? 'Big discount: use a long code that is hard to guess (like VIP-7KD3QZ), and set a usage limit. Customers can try codes at checkout.'
+                            : undefined
+                    }
                 >
                     <Input
                         type="number"

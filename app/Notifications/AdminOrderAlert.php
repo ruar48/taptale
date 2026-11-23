@@ -13,6 +13,12 @@ use Illuminate\Notifications\Notification;
 
 /**
  * Tells the studio team that a customer did something they need to act on.
+ *
+ * Unpaid orders alone don't email the team: anyone can place (and cancel)
+ * one, so alerting on those would let a script flood the team's inbox. The
+ * team hears about an order once there is something to do: a receipt to
+ * check, an online payment that landed, a free order to start, a design
+ * response or a review.
  */
 class AdminOrderAlert extends Notification implements ShouldQueue
 {
@@ -30,16 +36,19 @@ class AdminOrderAlert extends Notification implements ShouldQueue
     /**
      * Whether a timeline entry needs the team's attention.
      */
-    public static function isNotable(OrderActivity $activity): bool
+    public static function isNotable(Order $order, OrderActivity $activity): bool
     {
-        return in_array($activity->type, [
-            ActivityType::Placed,
+        return match ($activity->type) {
+            // A free order has no payment to wait for: work starts now.
+            ActivityType::Placed => $order->total === 0,
+            // Paid online (confirmed by PayMongo, not by a team member).
+            ActivityType::PaymentVerified => $activity->user_id === null,
             ActivityType::PaymentSubmitted,
             ActivityType::RevisionRequested,
             ActivityType::DesignApproved,
-            ActivityType::Cancelled,
-            ActivityType::ReviewSubmitted,
-        ], true);
+            ActivityType::ReviewSubmitted => true,
+            default => false,
+        };
     }
 
     /**
@@ -60,11 +69,11 @@ class AdminOrderAlert extends Notification implements ShouldQueue
         $reference = $this->order->reference;
 
         $subject = match ($this->activity->type) {
-            ActivityType::Placed => "New order {$reference}",
+            ActivityType::Placed => "New free order {$reference}",
+            ActivityType::PaymentVerified => "Paid online: {$reference}",
             ActivityType::PaymentSubmitted => "Payment to verify on {$reference}",
             ActivityType::RevisionRequested => "Revision requested on {$reference}",
             ActivityType::DesignApproved => "Design approved on {$reference}",
-            ActivityType::Cancelled => "Order {$reference} cancelled by the customer",
             ActivityType::ReviewSubmitted => "New review to approve ({$reference})",
             default => "Update on {$reference}",
         };

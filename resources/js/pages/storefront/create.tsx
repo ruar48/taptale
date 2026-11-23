@@ -1,4 +1,4 @@
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
     ArrowRight,
@@ -49,6 +49,15 @@ import {
     savePhotos,
 } from '@/lib/wizard-draft';
 import type { WizardDraft } from '@/lib/wizard-draft';
+import {
+    clearPageDraft,
+    loadPageDraft,
+    loadPagePhotos,
+    savePageDraft,
+    savePagePhotos,
+} from '@/lib/page-draft';
+import type { PageDraft } from '@/lib/page-draft';
+import { demo as demoPage } from '@/routes/experiences';
 import { store as logIn } from '@/routes/login';
 import { create as wizardRoute, store as storeOrder } from '@/routes/orders';
 import { privacy, terms } from '@/routes/pages';
@@ -72,6 +81,9 @@ type Props = {
     templates: Template[];
     experienceTemplates: ExperienceTemplateOption[];
     initialTemplate: string | null;
+    /** The memory page design whose demo draft the customer is ordering with. */
+    initialPage: string | null;
+    maxPagePhotos: number;
     paymentMethods: PaymentMethod[];
     pricing: PricingConfig & { max_upload_kilobytes: number };
     customer: {
@@ -98,6 +110,7 @@ type WizardForm = {
     approve_preview: boolean;
     personalize_later: boolean;
     experience_template: string;
+    flower_addon: boolean;
     customer_name: string;
     customer_email: string;
     customer_phone: string;
@@ -139,7 +152,7 @@ function toDraftData(data: WizardForm): DraftData {
 
 const ERROR_STEPS: [RegExp, WizardStepKey][] = [
     [/^(category_id|product_id|template_id|design_mode)/, 'product'],
-    [/^(experience_template|personalization|photos)/, 'website'],
+    [/^(experience_template|personalization|photos|page)/, 'website'],
     [/^(option_ids|quantity|approve_preview)/, 'specs'],
 ];
 
@@ -151,6 +164,8 @@ export default function CreateGift({
     templates,
     experienceTemplates,
     initialTemplate,
+    initialPage,
+    maxPagePhotos,
     paymentMethods,
     pricing,
     customer,
@@ -198,7 +213,8 @@ export default function CreateGift({
         photos: [],
         approve_preview: false,
         personalize_later: true,
-        experience_template: '',
+        experience_template: initialPage ?? '',
+        flower_addon: false,
         customer_name: customer?.name ?? '',
         customer_email: customer?.email ?? '',
         customer_phone: customer?.phone ?? '',
@@ -267,7 +283,43 @@ export default function CreateGift({
         experienceTemplates.find(
             (option) => option.value === data.experience_template,
         ) ?? null;
+
+    /*
+     * A page the customer shaped on a demo of the chosen design (words,
+     * flowers and photos kept in this browser) goes along with the order
+     * and becomes their memory page, unless they set it aside.
+     */
+    const [pageDraft, setPageDraft] = useState<PageDraft | null>(null);
+    const [pagePhotos, setPagePhotos] = useState<File[]>([]);
+    const [isPageDraftSetAside, setIsPageDraftSetAside] = useState(false);
+    const attachedPage = isPageDraftSetAside ? null : pageDraft;
+
+    useEffect(() => {
+        const found = loadPageDraft(data.experience_template);
+
+        setPageDraft(found);
+        setPagePhotos([]);
+        setIsPageDraftSetAside(false);
+
+        if (!found) {
+            return;
+        }
+
+        let isCurrent = true;
+
+        void loadPagePhotos(found.template).then((photos) => {
+            if (isCurrent) {
+                setPagePhotos(photos.slice(0, maxPagePhotos));
+            }
+        });
+
+        return () => {
+            isCurrent = false;
+        };
+    }, [data.experience_template, maxPagePhotos]);
+
     const hasPageDetails =
+        attachedPage !== null ||
         data.photos.length > 0 ||
         [
             data.personalization.names,
@@ -325,6 +377,9 @@ export default function CreateGift({
         setData((current) => ({
             ...current,
             ...draft.data,
+            // Coming from a demo with "order with this page" picks that page.
+            experience_template:
+                initialPage ?? draft.data.experience_template ?? '',
             category_id: current.category_id,
             product_id: selectedProduct.id,
             personalization: {
@@ -671,6 +726,11 @@ export default function CreateGift({
             selectedCategory !== null &&
             products.some((product) => product.id === data.product_id);
 
+        const orderedPage =
+            attachedPage && attachedPage.template === data.experience_template
+                ? attachedPage
+                : null;
+
         form.transform((values) => ({
             ...values,
             category_id: isGiftInOccasion ? selectedCategory.id : null,
@@ -678,10 +738,17 @@ export default function CreateGift({
             personalize_later: true,
             approve_preview: false,
             promo_code: promo?.code ?? '',
+            ...(orderedPage
+                ? { page: orderedPage.content, page_photos: pagePhotos }
+                : {}),
         }));
 
         // Cleared up front: a PayMongo order leaves the site straight away.
         clearDraft();
+
+        if (orderedPage) {
+            clearPageDraft(orderedPage.template);
+        }
 
         form.post(storeOrder.url(), {
             forceFormData: true,
@@ -689,6 +756,11 @@ export default function CreateGift({
             onError: (serverErrors) => {
                 saveCurrentDraft();
                 void savePhotos(data.photos);
+
+                if (orderedPage) {
+                    savePageDraft(orderedPage.template, orderedPage.content);
+                    void savePagePhotos(orderedPage.template, pagePhotos);
+                }
 
                 // Problems with the order as a whole (e.g. too many unpaid
                 // orders) have no field to sit under.
@@ -718,6 +790,10 @@ export default function CreateGift({
 
     const photoErrors = Object.entries(errors)
         .filter(([key]) => key.startsWith('photos'))
+        .map(([, message]) => message)[0];
+
+    const pageErrors = Object.entries(errors)
+        .filter(([key]) => key.startsWith('page'))
         .map(([, message]) => message)[0];
 
     const isLastStep = step === steps.length - 1;
@@ -925,11 +1001,80 @@ export default function CreateGift({
                                 title="Choose your tap page design"
                                 description="This little website opens when they tap the NFC or scan the QR code. Tap a design to preview it — you can switch designs anytime until your keepsake ships."
                             >
-                                {chosenPage && (
+                                {chosenPage && attachedPage && (
+                                    <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-rose/30 bg-blush-light/40 p-4 sm:flex-row sm:items-center sm:justify-between dark:bg-rose/10">
+                                        <p className="text-sm">
+                                            <span className="block text-muted-foreground">
+                                                Your tap page, made on the demo
+                                            </span>
+                                            <span className="font-display text-lg">
+                                                {chosenPage.label}
+                                            </span>
+                                            <span className="mt-0.5 block text-xs text-muted-foreground">
+                                                “{attachedPage.content.title}” ·{' '}
+                                                {pagePhotos.length === 1
+                                                    ? '1 photo'
+                                                    : `${pagePhotos.length} photos`}{' '}
+                                                · It opens exactly as you made
+                                                it, and you can still change it
+                                                after checkout.
+                                            </span>
+                                        </p>
+                                        <div className="flex shrink-0 flex-wrap gap-2">
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                className="rounded-full"
+                                            >
+                                                <Link
+                                                    href={demoPage(
+                                                        {
+                                                            template:
+                                                                attachedPage.template,
+                                                        },
+                                                        {
+                                                            query: {
+                                                                intro: '0',
+                                                            },
+                                                        },
+                                                    )}
+                                                >
+                                                    <PenLine className="size-4" />{' '}
+                                                    Edit page
+                                                </Link>
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                className="rounded-full"
+                                                onClick={() =>
+                                                    setIsPageDraftSetAside(true)
+                                                }
+                                            >
+                                                Start from a blank page
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+                                {chosenPage && !attachedPage && (
                                     <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-rose/30 bg-blush-light/40 p-4 sm:flex-row sm:items-center sm:justify-between dark:bg-rose/10">
                                         <p className="text-sm">
                                             <span className="block text-muted-foreground">
                                                 Your tap page
+                                                {pageDraft && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setIsPageDraftSetAside(
+                                                                false,
+                                                            )
+                                                        }
+                                                        className="ml-2 font-medium text-plum underline underline-offset-2 dark:text-blush"
+                                                    >
+                                                        Use the page I made on
+                                                        the demo
+                                                    </button>
+                                                )}
                                             </span>
                                             <span className="font-display text-lg">
                                                 {chosenPage.label}
@@ -985,176 +1130,189 @@ export default function CreateGift({
                                     message={errors.experience_template}
                                     className="mt-2"
                                 />
+                                <InputError
+                                    message={pageErrors}
+                                    className="mt-2"
+                                />
 
-                                {isEditingPage && chosenPage && (
-                                    <section
-                                        id="page-details"
-                                        className="mt-8 scroll-mt-28 space-y-6 rounded-3xl border border-border bg-card p-5 sm:p-6"
-                                    >
-                                        <div>
-                                            <h2 className="font-display text-2xl">
-                                                Add your story
-                                            </h2>
-                                            <p className="mt-1 text-sm text-muted-foreground">
-                                                Everything is optional — fill in
-                                                what you have. You can change it
-                                                all from your order page after
-                                                checkout.
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <Label className="mb-2 block">
-                                                Photos
-                                                <span className="ml-2 text-sm font-normal text-muted-foreground">
-                                                    up to{' '}
-                                                    {selectedProduct.max_photos}
-                                                </span>
-                                            </Label>
-                                            <FileDropzone
-                                                id="photos"
-                                                files={data.photos}
-                                                onChange={(files) =>
-                                                    setData('photos', files)
-                                                }
-                                                maxFiles={
-                                                    selectedProduct.max_photos
-                                                }
-                                                maxKilobytes={
-                                                    pricing.max_upload_kilobytes
-                                                }
-                                                label="Add your photos"
-                                                error={photoErrors}
-                                            />
-                                        </div>
-                                        <div className="grid gap-4 sm:grid-cols-2">
-                                            <Field
-                                                label="Names"
-                                                error={
-                                                    errors[
-                                                        'personalization.names'
-                                                    ]
-                                                }
-                                            >
-                                                <Input
-                                                    value={
-                                                        data.personalization
-                                                            .names
-                                                    }
-                                                    onChange={(event) =>
-                                                        setPersonalization(
-                                                            'names',
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                    placeholder="e.g. Ana & Leo"
-                                                    maxLength={120}
-                                                />
-                                            </Field>
-                                            <Field
-                                                label="Date"
-                                                error={
-                                                    errors[
-                                                        'personalization.date'
-                                                    ]
-                                                }
-                                            >
-                                                <Input
-                                                    value={
-                                                        data.personalization
-                                                            .date
-                                                    }
-                                                    onChange={(event) =>
-                                                        setPersonalization(
-                                                            'date',
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                    placeholder="e.g. 02 · 14 · 2026"
-                                                    maxLength={60}
-                                                />
-                                            </Field>
-                                            <Field
-                                                label="Song title"
-                                                error={
-                                                    errors[
-                                                        'personalization.song_title'
-                                                    ]
-                                                }
-                                            >
-                                                <Input
-                                                    value={
-                                                        data.personalization
-                                                            .song_title
-                                                    }
-                                                    onChange={(event) =>
-                                                        setPersonalization(
-                                                            'song_title',
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                    placeholder="e.g. Our Song"
-                                                    maxLength={80}
-                                                />
-                                            </Field>
-                                            <Field
-                                                label="Artist"
-                                                error={
-                                                    errors[
-                                                        'personalization.artist'
-                                                    ]
-                                                }
-                                            >
-                                                <Input
-                                                    value={
-                                                        data.personalization
-                                                            .artist
-                                                    }
-                                                    onChange={(event) =>
-                                                        setPersonalization(
-                                                            'artist',
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                    maxLength={80}
-                                                />
-                                            </Field>
-                                        </div>
-                                        <Field
-                                            label="Message"
-                                            error={
-                                                errors[
-                                                    'personalization.message'
-                                                ]
-                                            }
-                                            hint={`${data.personalization.message.length}/300`}
+                                {isEditingPage &&
+                                    chosenPage &&
+                                    !attachedPage && (
+                                        <section
+                                            id="page-details"
+                                            className="mt-8 scroll-mt-28 space-y-6 rounded-3xl border border-border bg-card p-5 sm:p-6"
                                         >
-                                            <Textarea
-                                                value={
-                                                    data.personalization.message
+                                            <div>
+                                                <h2 className="font-display text-2xl">
+                                                    Add your story
+                                                </h2>
+                                                <p className="mt-1 text-sm text-muted-foreground">
+                                                    Everything is optional —
+                                                    fill in what you have. You
+                                                    can change it all from your
+                                                    order page after checkout.
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <Label className="mb-2 block">
+                                                    Photos
+                                                    <span className="ml-2 text-sm font-normal text-muted-foreground">
+                                                        up to{' '}
+                                                        {
+                                                            selectedProduct.max_photos
+                                                        }
+                                                    </span>
+                                                </Label>
+                                                <FileDropzone
+                                                    id="photos"
+                                                    files={data.photos}
+                                                    onChange={(files) =>
+                                                        setData('photos', files)
+                                                    }
+                                                    maxFiles={
+                                                        selectedProduct.max_photos
+                                                    }
+                                                    maxKilobytes={
+                                                        pricing.max_upload_kilobytes
+                                                    }
+                                                    label="Add your photos"
+                                                    error={photoErrors}
+                                                />
+                                            </div>
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <Field
+                                                    label="Names"
+                                                    error={
+                                                        errors[
+                                                            'personalization.names'
+                                                        ]
+                                                    }
+                                                >
+                                                    <Input
+                                                        value={
+                                                            data.personalization
+                                                                .names
+                                                        }
+                                                        onChange={(event) =>
+                                                            setPersonalization(
+                                                                'names',
+                                                                event.target
+                                                                    .value,
+                                                            )
+                                                        }
+                                                        placeholder="e.g. Ana & Leo"
+                                                        maxLength={120}
+                                                    />
+                                                </Field>
+                                                <Field
+                                                    label="Date"
+                                                    error={
+                                                        errors[
+                                                            'personalization.date'
+                                                        ]
+                                                    }
+                                                >
+                                                    <Input
+                                                        value={
+                                                            data.personalization
+                                                                .date
+                                                        }
+                                                        onChange={(event) =>
+                                                            setPersonalization(
+                                                                'date',
+                                                                event.target
+                                                                    .value,
+                                                            )
+                                                        }
+                                                        placeholder="e.g. 02 · 14 · 2026"
+                                                        maxLength={60}
+                                                    />
+                                                </Field>
+                                                <Field
+                                                    label="Song title"
+                                                    error={
+                                                        errors[
+                                                            'personalization.song_title'
+                                                        ]
+                                                    }
+                                                >
+                                                    <Input
+                                                        value={
+                                                            data.personalization
+                                                                .song_title
+                                                        }
+                                                        onChange={(event) =>
+                                                            setPersonalization(
+                                                                'song_title',
+                                                                event.target
+                                                                    .value,
+                                                            )
+                                                        }
+                                                        placeholder="e.g. Our Song"
+                                                        maxLength={80}
+                                                    />
+                                                </Field>
+                                                <Field
+                                                    label="Artist"
+                                                    error={
+                                                        errors[
+                                                            'personalization.artist'
+                                                        ]
+                                                    }
+                                                >
+                                                    <Input
+                                                        value={
+                                                            data.personalization
+                                                                .artist
+                                                        }
+                                                        onChange={(event) =>
+                                                            setPersonalization(
+                                                                'artist',
+                                                                event.target
+                                                                    .value,
+                                                            )
+                                                        }
+                                                        maxLength={80}
+                                                    />
+                                                </Field>
+                                            </div>
+                                            <Field
+                                                label="Message"
+                                                error={
+                                                    errors[
+                                                        'personalization.message'
+                                                    ]
                                                 }
-                                                onChange={(event) =>
-                                                    setPersonalization(
-                                                        'message',
-                                                        event.target.value,
-                                                    )
-                                                }
-                                                placeholder="A short letter, quote or inside joke"
-                                                maxLength={300}
-                                                rows={3}
-                                            />
-                                        </Field>
-                                        <div className="flex justify-end">
-                                            <Button
-                                                type="button"
-                                                className="rounded-full"
-                                                onClick={next}
+                                                hint={`${data.personalization.message.length}/300`}
                                             >
-                                                Done — continue{' '}
-                                                <ArrowRight className="size-4" />
-                                            </Button>
-                                        </div>
-                                    </section>
-                                )}
+                                                <Textarea
+                                                    value={
+                                                        data.personalization
+                                                            .message
+                                                    }
+                                                    onChange={(event) =>
+                                                        setPersonalization(
+                                                            'message',
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="A short letter, quote or inside joke"
+                                                    maxLength={300}
+                                                    rows={3}
+                                                />
+                                            </Field>
+                                            <div className="flex justify-end">
+                                                <Button
+                                                    type="button"
+                                                    className="rounded-full"
+                                                    onClick={next}
+                                                >
+                                                    Done — continue{' '}
+                                                    <ArrowRight className="size-4" />
+                                                </Button>
+                                            </div>
+                                        </section>
+                                    )}
 
                                 <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-dashed border-plum/25 bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
                                     <p className="text-sm text-muted-foreground">

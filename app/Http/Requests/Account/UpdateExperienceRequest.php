@@ -3,6 +3,9 @@
 namespace App\Http\Requests\Account;
 
 use App\Enums\ExperienceTemplate;
+use App\Enums\FlowerRain;
+use App\Enums\FlowerStyle;
+use App\Enums\PhotoRainLayer;
 use App\Models\DigitalExperience;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -37,6 +40,9 @@ class UpdateExperienceRequest extends FormRequest
             'message' => ['nullable', 'string', 'max:5000'],
             'quote' => ['nullable', 'string', 'max:255'],
             'flowers_note' => ['nullable', 'string', 'max:500'],
+            'flower_style' => [Rule::excludeIf(! $this->showsFlowers()), 'sometimes', Rule::enum(FlowerStyle::class)],
+            'flower_rain' => [Rule::excludeIf(! $this->showsFlowers()), 'sometimes', Rule::enum(FlowerRain::class)],
+            'photo_rain_layer' => [Rule::excludeIf(! $this->showsFlowers()), 'sometimes', Rule::enum(PhotoRainLayer::class)],
             'event_date' => ['nullable', 'string', 'max:60'],
             'video_url' => ['nullable', 'url:https', 'max:500'],
             'music_url' => ['nullable', 'url:https', 'max:500'],
@@ -125,5 +131,16 @@ class UpdateExperienceRequest extends FormRequest
         $experience = $this->route('experience');
 
         return $experience;
+    }
+
+    /**
+     * Whether the page will show the flowers with the submitted design: the
+     * bouquet design includes them, other designs only with the add-on
+     * bought at checkout. Flower choices are ignored otherwise.
+     */
+    private function showsFlowers(): bool
+    {
+        return $this->input('template') === ExperienceTemplate::DigitalBouquet->value
+            || $this->experience()->flower_addon;
     }
 }

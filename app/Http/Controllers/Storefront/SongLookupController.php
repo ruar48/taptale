@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Storefront;
 
 use App\Actions\Music\LookupSong;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\ThrottleRequestsByNetwork;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -20,7 +21,7 @@ class SongLookupController extends Controller
         ]);
 
         return response()->json(
-            $lookupSong->handle($validated['title'], $validated['artist'] ?? null, forVisitor: true),
+            $lookupSong->forVisitor($validated['title'], $validated['artist'] ?? null, ThrottleRequestsByNetwork::wideNetworkOf($request->ip())),
         );
     }
 }

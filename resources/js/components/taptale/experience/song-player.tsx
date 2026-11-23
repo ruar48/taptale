@@ -1,6 +1,6 @@
-import { Music, Pause, Play } from 'lucide-react';
+import { Music, Pause, Play, VolumeX } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { MouseEvent } from 'react';
+import type { MouseEvent, RefObject } from 'react';
 import { embedFor, youTubeIdFor } from '@/components/taptale/experience/config';
 import {
     EditableText,
@@ -17,6 +17,9 @@ type LyricLine = SongDetails['synced_lyrics'][number];
 type Clock = { current: number; duration: number };
 
 const BAR_COUNT = 64;
+
+/** How much of the player must be on screen before the song starts itself. */
+const AUTOPLAY_VISIBILITY = 0.4;
 
 /**
  * Album art, a preview clip and lyrics. Saved on the experience when the
@@ -91,6 +94,59 @@ function usePlaybackClock(read: () => Clock | null, playing: boolean) {
     }, [read, playing]);
 
     return clock;
+}
+
+/**
+ * True while at least `threshold` of the element is on screen.
+ */
+function useInView(
+    ref: RefObject<HTMLElement | null>,
+    threshold: number,
+): boolean {
+    const [inView, setInView] = useState(false);
+
+    useEffect(() => {
+        const element = ref.current;
+
+        if (!element || typeof IntersectionObserver === 'undefined') {
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => setInView(entry.intersectionRatio >= threshold),
+            { threshold },
+        );
+
+        observer.observe(element);
+
+        return () => observer.disconnect();
+    }, [ref, threshold]);
+
+    return inView;
+}
+
+/**
+ * Plays with sound when the browser allows it, otherwise muted (which
+ * browsers always allow). Resolves true when it had to mute.
+ */
+function playOrMute(element: HTMLAudioElement): Promise<boolean> {
+    element.muted = false;
+
+    return element
+        .play()
+        .then(() => false)
+        .catch(() => {
+            element.muted = true;
+
+            return element
+                .play()
+                .then(() => true)
+                .catch(() => {
+                    element.muted = false;
+
+                    return false;
+                });
+        });
 }
 
 function clockFrom(element: HTMLAudioElement | null): Clock | null {
@@ -382,8 +438,12 @@ function Lyrics({
  * animated waveform and lyrics that follow along with the music.
  */
 export function SongPlayer({ compact = false }: { compact?: boolean }) {
-    const { experience } = useExperience();
+    const { experience, opened } = useExperience();
     const pageAudio = useExperienceAudio();
+    const playerRef = useRef<HTMLDivElement>(null);
+    const inView = useInView(playerRef, AUTOPLAY_VISIBILITY);
+    const autoplayedRef = useRef(false);
+    const [muted, setMuted] = useState(false);
     const { details, loading } = useSongDetails(
         experience.song_title,
         experience.song_artist,
@@ -448,7 +508,92 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
         [experience.song_title, experience.song_artist],
     );
 
+    const play = () => {
+        if (source === 'upload') {
+            pageAudio.play();
+
+            return;
+        }
+
+        if (source === 'youtube') {
+            youTube.play();
+
+            return;
+        }
+
+        void previewRef.current
+            ?.play()
+            .then(() => setPreviewPlaying(true))
+            .catch(() => setPreviewPlaying(false));
+    };
+
+    const autoplay = () => {
+        const started =
+            source === 'youtube'
+                ? youTube.autoplay()
+                : (() => {
+                      const element =
+                          source === 'upload'
+                              ? pageElement()
+                              : previewRef.current;
+
+                      return element
+                          ? playOrMute(element).then((wasMuted) => {
+                                setPreviewPlaying(
+                                    source === 'preview' && !element.paused,
+                                );
+
+                                return wasMuted;
+                            })
+                          : Promise.resolve(false);
+                  })();
+
+        void started.then(setMuted);
+    };
+
+    const unmute = () => {
+        setMuted(false);
+
+        if (source === 'youtube') {
+            youTube.unmute();
+
+            return;
+        }
+
+        const element =
+            source === 'upload' ? pageElement() : previewRef.current;
+
+        if (element) {
+            element.muted = false;
+        }
+    };
+
+    /* While muted, the visitor's first tap or key press turns the sound on. */
+    useEffect(() => {
+        if (!muted) {
+            return;
+        }
+
+        document.addEventListener('click', unmute);
+        document.addEventListener('keydown', unmute);
+
+        return () => {
+            document.removeEventListener('click', unmute);
+            document.removeEventListener('keydown', unmute);
+        };
+    }, [muted, unmute]);
+
     const toggle = () => {
+        if (muted) {
+            unmute();
+
+            if (!playing) {
+                play();
+            }
+
+            return;
+        }
+
         if (source === 'upload') {
             pageAudio.toggle();
 
@@ -468,15 +613,33 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
         }
 
         if (preview.paused) {
-            void preview
-                .play()
-                .then(() => setPreviewPlaying(true))
-                .catch(() => setPreviewPlaying(false));
+            play();
         } else {
             preview.pause();
             setPreviewPlaying(false);
         }
     };
+
+    /*
+     * Start the song once, the first time the visitor scrolls the player
+     * into view. A song that already started (from the opening gate, or one
+     * the visitor paused) is left alone. Browsers block sound until the
+     * visitor has tapped the page, so then it starts muted and shows
+     * "Tap for sound".
+     */
+    useEffect(() => {
+        if (!opened || !inView || !canPlay || autoplayedRef.current) {
+            return;
+        }
+
+        autoplayedRef.current = true;
+
+        if (playing || (readClock()?.current ?? 0) > 0) {
+            return;
+        }
+
+        autoplay();
+    }, [opened, inView, canPlay, playing, readClock, autoplay]);
 
     const seek = (fraction: number) => {
         if (source === 'youtube') {
@@ -509,6 +672,7 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
 
     return (
         <div
+            ref={playerRef}
             className={cn(
                 'grid items-center',
                 compact
@@ -642,6 +806,15 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                         >
                             {experience.song_artist}
                         </EditableText>
+                        {muted && playing && (
+                            <button
+                                type="button"
+                                onClick={unmute}
+                                className="mt-2 inline-flex animate-pulse items-center gap-1.5 rounded-full bg-[var(--x-accent)] px-3 py-1 text-xs font-semibold text-[var(--x-accent-ink)] shadow-md"
+                            >
+                                <VolumeX className="size-3.5" /> Tap for sound
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

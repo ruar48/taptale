@@ -73,7 +73,7 @@ Route::get('t/{experience}/photos/{index}', [Storefront\ExperienceController::cl
 */
 Route::get('create', [Storefront\OrderWizardController::class, 'create'])->name('orders.create');
 Route::get('promo-codes/check', Storefront\PromoCodeController::class)
-    ->middleware('throttle:10,1,promo-code-checks')
+    ->middleware(['auth', 'throttle:10,1,promo-code-checks'])
     ->name('promo-codes.check');
 
 Route::middleware('auth')->group(function () {
@@ -109,7 +109,7 @@ Route::middleware('auth')->group(function () {
         Route::get('orders', [Account\OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [Account\OrderController::class, 'show'])->name('orders.show');
         Route::post('orders/{order}/cancel', [Account\OrderController::class, 'cancel'])
-            ->middleware(PreventDuplicateSubmissions::class)
+            ->middleware(['throttle:10,1,order-cancels', PreventDuplicateSubmissions::class])
             ->name('orders.cancel');
         Route::post('orders/{order}/files', [Account\OrderFileController::class, 'store'])
             ->middleware(['throttle:10,1,order-file-uploads', PreventDuplicateSubmissions::class])

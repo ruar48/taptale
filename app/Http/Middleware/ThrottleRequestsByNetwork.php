@@ -23,6 +23,26 @@ class ThrottleRequestsByNetwork extends ThrottleRequests
      */
     public static function networkOf(?string $ip): string
     {
+        return self::prefixOf($ip, 64);
+    }
+
+    /**
+     * A wider IPv6 grouping: the /48 an address belongs to. Many providers
+     * give one customer a /56 or a /48 (256 to 65,536 /64 networks), so the
+     * limits that matter most add a looser limit at this level on top of
+     * the /64 one. IPv4 addresses stay as they are.
+     */
+    public static function wideNetworkOf(?string $ip): string
+    {
+        return self::prefixOf($ip, 48);
+    }
+
+    /**
+     * The IPv6 network of the given prefix length (64 or 48) an address
+     * belongs to; IPv4 (and IPv4-mapped IPv6) addresses as the IPv4 address.
+     */
+    private static function prefixOf(?string $ip, int $bits): string
+    {
         $ip = (string) $ip;
 
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) === false) {
@@ -39,7 +59,9 @@ class ThrottleRequestsByNetwork extends ThrottleRequests
             return (string) inet_ntop(substr($packed, 12));
         }
 
-        return inet_ntop(substr($packed, 0, 8).str_repeat("\0", 8)).'/64';
+        $bytes = intdiv($bits, 8);
+
+        return inet_ntop(substr($packed, 0, $bytes).str_repeat("\0", 16 - $bytes)).'/'.$bits;
     }
 
     /**

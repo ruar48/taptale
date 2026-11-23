@@ -13,18 +13,35 @@ use Illuminate\Support\Str;
  * Looks up a song on two free, keyless public APIs: the iTunes Search API
  * (album artwork and a 30-second preview) and LRCLIB (time-synced lyrics).
  * Results are cached for a week and real misses for an hour; a miss caused
- * by a service failing is not cached. Visitor lookups that are not cached
- * share a site-wide budget per minute.
+ * by a service failing is not cached.
+ *
+ * Cached songs are always free. Songs that are not cached yet cost calls to
+ * the music services, and Apple allows about twenty a minute per server: go
+ * over and every customer's lookups fail. So new lookups come out of two
+ * budgets that together stay under that, and within each budget no single
+ * visitor network or memory page owner can take more than a small share.
  */
 class LookupSong
 {
     /**
-     * Uncached lookups the whole site may start per minute on behalf of
-     * visitors. Each costs up to three calls to the music services; Apple
-     * allows about twenty a minute per server, so staying under it keeps one
-     * visitor from getting every customer's lookups blocked.
+     * New lookups per minute for visitors (the song search), whole site.
      */
-    public const VISITOR_LOOKUPS_PER_MINUTE = 15;
+    public const VISITOR_LOOKUPS_PER_MINUTE = 12;
+
+    /**
+     * One visitor network's share of the visitor budget per minute.
+     */
+    public const VISITOR_LOOKUPS_PER_NETWORK = 3;
+
+    /**
+     * New lookups per minute when owners change their memory page song.
+     */
+    public const PAGE_LOOKUPS_PER_MINUTE = 6;
+
+    /**
+     * One owner's share of the memory page budget per minute.
+     */
+    public const PAGE_LOOKUPS_PER_OWNER = 3;
 
     /**
      * Whether a music service failed (down, slow or refusing us) during the
@@ -33,6 +50,36 @@ class LookupSong
     private bool $upstreamFailed = false;
 
     /**
+     * A visitor's search, from the visitor budget. Over budget, the result is
+     * empty (and not cached), so the page just shows no preview for now.
+     *
+     * @return array{title: string, artist: string|null, artwork_url: string|null, preview_url: string|null, track_url: string|null, duration: float|null, synced_lyrics: list<array{time: float, text: string}>, plain_lyrics: list<string>}
+     */
+    public function forVisitor(string $title, ?string $artist, string $network): array
+    {
+        return $this->lookup($title, $artist, [
+            'song-lookup:visitors' => self::VISITOR_LOOKUPS_PER_MINUTE,
+            'song-lookup:visitor-network:'.$network => self::VISITOR_LOOKUPS_PER_NETWORK,
+        ]) ?? $this->emptyDetails($title, $artist);
+    }
+
+    /**
+     * A memory page's song, from the page budget. Null when over budget: the
+     * page then falls back to the visitor search when someone opens it.
+     *
+     * @return array{title: string, artist: string|null, artwork_url: string|null, preview_url: string|null, track_url: string|null, duration: float|null, synced_lyrics: list<array{time: float, text: string}>, plain_lyrics: list<string>}|null
+     */
+    public function forPage(string $title, ?string $artist, int $ownerId): ?array
+    {
+        return $this->lookup($title, $artist, [
+            'song-lookup:pages' => self::PAGE_LOOKUPS_PER_MINUTE,
+            'song-lookup:page-owner:'.$ownerId => self::PAGE_LOOKUPS_PER_OWNER,
+        ]);
+    }
+
+    /**
+     * A lookup without any budget (cached results or trusted callers).
+     *
      * @return array{
      *     title: string,
      *     artist: string|null,
@@ -44,7 +91,16 @@ class LookupSong
      *     plain_lyrics: list<string>,
      * }
      */
-    public function handle(string $title, ?string $artist = null, bool $forVisitor = false): array
+    public function handle(string $title, ?string $artist = null): array
+    {
+        return $this->lookup($title, $artist, []) ?? $this->emptyDetails($title, $artist);
+    }
+
+    /**
+     * @param  array<string, int>  $budgets  Rate-limiter key => lookups allowed per minute
+     * @return array{title: string, artist: string|null, artwork_url: string|null, preview_url: string|null, track_url: string|null, duration: float|null, synced_lyrics: list<array{time: float, text: string}>, plain_lyrics: list<string>}|null
+     */
+    private function lookup(string $title, ?string $artist, array $budgets): ?array
     {
         $cacheKey = 'song-lookup:'.md5(Str::lower(trim($title).'|'.trim((string) $artist)));
 
@@ -54,9 +110,8 @@ class LookupSong
             return $cached;
         }
 
-        // Cached songs are always free; new ones share a site-wide budget.
-        if ($forVisitor && ! RateLimiter::attempt('song-lookup-upstream', self::VISITOR_LOOKUPS_PER_MINUTE, fn (): bool => true)) {
-            return $this->emptyDetails($title, $artist);
+        if (! $this->spend($budgets)) {
+            return null;
         }
 
         $this->upstreamFailed = false;
@@ -90,6 +145,27 @@ class LookupSong
         }
 
         return $details;
+    }
+
+    /**
+     * Take one lookup from every budget, or none: if any is used up, nothing
+     * is spent, so a busy shared budget never eats into a share.
+     *
+     * @param  array<string, int>  $budgets
+     */
+    private function spend(array $budgets): bool
+    {
+        foreach ($budgets as $key => $perMinute) {
+            if (RateLimiter::tooManyAttempts($key, $perMinute)) {
+                return false;
+            }
+        }
+
+        foreach (array_keys($budgets) as $key) {
+            RateLimiter::hit($key, 60);
+        }
+
+        return true;
     }
 
     /**

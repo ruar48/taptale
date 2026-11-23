@@ -88,6 +88,14 @@ export function OrderSummary({
                                 <dd>{money(price.customizationFee)}</dd>
                             </div>
                         )}
+                        {price.flowersFee > 0 && (
+                            <div className="flex justify-between">
+                                <dt className="text-muted-foreground">
+                                    Flowers on your tap page
+                                </dt>
+                                <dd>{money(price.flowersFee)}</dd>
+                            </div>
+                        )}
                         <div className="flex justify-between">
                             <dt className="text-muted-foreground">Delivery</dt>
                             <dd>

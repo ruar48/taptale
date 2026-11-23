@@ -32,8 +32,9 @@ class PlaceOrder
      *
      * @param  array<string, mixed>  $data
      * @param  list<UploadedFile>  $photos
+     * @param  list<UploadedFile>  $pagePhotos  Photos of the memory page designed on a demo
      */
-    public function handle(User $customer, array $data, array $photos): Order
+    public function handle(User $customer, array $data, array $photos, array $pagePhotos = []): Order
     {
         $product = Product::query()->whereKey($data['product_id'])->firstOrFail();
         $category = isset($data['category_id'])
@@ -44,12 +45,19 @@ class PlaceOrder
         $personalizeLater = ! empty($data['personalize_later']);
         $quantity = (int) $data['quantity'];
 
-        $promoCode = $this->resolvePromoCode($data['promo_code'] ?? null);
-        $pricing = $this->priceOrder->handle($product, $data['option_ids'] ?? [], $quantity, $designMode, $promoCode, $customer);
+        $pageTemplate = ExperienceTemplate::tryFrom((string) ($data['experience_template'] ?? ''))
+            ?? ExperienceTemplate::forCategory($category?->slug);
 
-        $order = DB::transaction(function () use ($customer, $data, $category, $product, $template, $designMode, $personalizeLater, $quantity, $pricing, $promoCode): Order {
+        // "A Bouquet For You" already has the flowers; any other page design
+        // can have them added for a fee.
+        $withFlowers = ! empty($data['flower_addon']) && $pageTemplate !== ExperienceTemplate::DigitalBouquet;
+
+        $promoCode = $this->resolvePromoCode($data['promo_code'] ?? null);
+        $pricing = $this->priceOrder->handle($product, $data['option_ids'] ?? [], $quantity, $designMode, $promoCode, $customer, $data['customer_phone'], $withFlowers);
+
+        $order = DB::transaction(function () use ($customer, $data, $category, $product, $template, $designMode, $personalizeLater, $quantity, $pricing, $promoCode, $pageTemplate, $withFlowers): Order {
             if ($promoCode !== null) {
-                $this->redeem($promoCode, $customer);
+                $this->redeem($promoCode, $customer, $data['customer_phone'], $pricing['subtotal']);
             }
 
             $order = $customer->orders()->create([
@@ -67,9 +75,11 @@ class PlaceOrder
                 'unit_price' => $pricing['unit_price'],
                 'subtotal' => $pricing['subtotal'],
                 'customization_fee' => $pricing['customization_fee'],
+                'flowers_fee' => $pricing['flowers_fee'],
                 'delivery_fee' => $pricing['delivery_fee'],
                 'promo_code_id' => $promoCode?->id,
                 'promo_code' => $promoCode?->code,
+                'promo_identity' => $promoCode !== null ? PromoCode::customerIdentity($customer->email) : null,
                 'discount' => $pricing['discount'],
                 'total' => $pricing['total'],
                 'customer_name' => $data['customer_name'],
@@ -96,18 +106,17 @@ class PlaceOrder
             );
 
             if ($pricing['enables_digital_experience']) {
-                $template = ExperienceTemplate::tryFrom((string) ($data['experience_template'] ?? ''))
-                    ?? ExperienceTemplate::forCategory($category?->slug);
-
                 $experience = new DigitalExperience([
-                    'template' => $template,
-                    'theme' => $template->defaultTheme(),
+                    'template' => $pageTemplate,
+                    'theme' => $pageTemplate->defaultTheme(),
+                    'flower_addon' => $withFlowers,
                     'title' => $order->personalization['names'] ?? $product->name,
                     'song_title' => $order->personalization['song_title'] ?? null,
                     'song_artist' => $order->personalization['artist'] ?? null,
                     'message' => $order->personalization['message'] ?? null,
                     'event_date' => $order->personalization['date'] ?? null,
                     'photos' => [],
+                    ...$this->designedPage($data['page'] ?? null),
                 ]);
                 $experience->user()->associate($customer);
                 $order->experience()->save($experience);
@@ -138,9 +147,56 @@ class PlaceOrder
             $this->storeOrderFile->handle($order, $photo, $kind, $customer);
         }
 
-        $this->addPhotosToExperience($order, $photos);
+        $this->addPhotosToExperience($order, $pagePhotos, $photos);
 
         return $order;
+    }
+
+    /**
+     * The memory page the customer designed on a demo, limited to the fields
+     * they could edit there. Text they cleared stays empty; the headline
+     * falls back to the order's names when left blank.
+     *
+     * @return array<string, mixed>
+     */
+    private function designedPage(mixed $page): array
+    {
+        if (! is_array($page)) {
+            return [];
+        }
+
+        $textFields = ['title', 'subtitle', 'recipient_name', 'sender_name', 'message', 'quote', 'flowers_note', 'event_date', 'song_title', 'song_artist', 'music_url'];
+        $choiceFields = ['flower_style', 'flower_rain', 'photo_rain_layer', 'song_ornament', 'song_background'];
+        $clean = fn (mixed $value): ?string => trim((string) $value) === '' ? null : trim((string) $value);
+
+        $content = [];
+
+        foreach ($textFields as $field) {
+            if (array_key_exists($field, $page)) {
+                $content[$field] = $clean($page[$field]);
+            }
+        }
+
+        if (($content['title'] ?? null) === null) {
+            unset($content['title']);
+        }
+
+        foreach ($choiceFields as $field) {
+            if (filled($page[$field] ?? null)) {
+                $content[$field] = $page[$field];
+            }
+        }
+
+        if (is_array($page['moments'] ?? null)) {
+            $content['moments'] = array_values(array_map(fn (array $moment): array => [
+                'date' => $clean($moment['date'] ?? null),
+                'title' => $clean($moment['title'] ?? null),
+                'caption' => $clean($moment['caption'] ?? null),
+                'photo' => is_numeric($moment['photo'] ?? null) ? (int) $moment['photo'] : null,
+            ], $page['moments']));
+        }
+
+        return $content;
     }
 
     /**
@@ -165,46 +221,62 @@ class PlaceOrder
      *
      * @throws ValidationException
      */
-    private function redeem(PromoCode $promoCode, User $customer): void
+    private function redeem(PromoCode $promoCode, User $customer, string $phone, int $subtotal): void
     {
         $locked = PromoCode::query()->lockForUpdate()->findOrFail($promoCode->id);
+        $reason = $locked->rejectionReason($subtotal, $customer, $phone);
 
-        if ($locked->wasUsedBy($customer)) {
-            throw ValidationException::withMessages(['promo_code' => 'You have already used this promo code.']);
-        }
-
-        if ($locked->max_uses !== null && $locked->heldUses() >= $locked->max_uses) {
-            throw ValidationException::withMessages(['promo_code' => 'This promo code has been fully used.']);
+        if ($reason !== null) {
+            throw ValidationException::withMessages(['promo_code' => $reason]);
         }
 
         $locked->increment('uses');
     }
 
     /**
-     * Put the photos added while ordering on the memory page as well, so the
-     * tap page is ready the moment the keepsake arrives.
+     * Put the photos of the page designed on a demo, then the photos added
+     * while ordering, on the memory page, so the tap page is ready the moment
+     * the keepsake arrives. Moments keep pointing at their own page photo,
+     * or lose it when that photo could not be read.
      *
+     * @param  list<UploadedFile>  $pagePhotos
      * @param  list<UploadedFile>  $photos
      */
-    private function addPhotosToExperience(Order $order, array $photos): void
+    private function addPhotosToExperience(Order $order, array $pagePhotos, array $photos): void
     {
         $experience = $order->experience;
 
-        if ($experience === null || $photos === []) {
+        if ($experience === null) {
             return;
         }
 
         $paths = [];
+        $storedPagePhotoIndexes = [];
 
-        foreach (array_slice($photos, 0, DigitalExperience::MAX_PHOTOS) as $photo) {
+        foreach ([...$pagePhotos, ...$photos] as $position => $photo) {
+            if (count($paths) >= DigitalExperience::MAX_PHOTOS) {
+                break;
+            }
+
             $stored = $this->storeExperiencePhoto->handle($experience, $photo);
 
-            if ($stored !== false) {
-                $paths[] = $stored;
+            if ($stored === false) {
+                continue;
             }
+
+            if ($position < count($pagePhotos)) {
+                $storedPagePhotoIndexes[$position] = count($paths);
+            }
+
+            $paths[] = $stored;
         }
 
-        $experience->update(['photos' => $paths]);
+        $moments = array_map(fn (array $moment): array => [
+            ...$moment,
+            'photo' => isset($moment['photo']) ? ($storedPagePhotoIndexes[$moment['photo']] ?? null) : null,
+        ], $experience->moments ?? []);
+
+        $experience->update(['photos' => $paths, 'moments' => $moments]);
     }
 
     /**

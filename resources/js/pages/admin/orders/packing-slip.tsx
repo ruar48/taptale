@@ -124,6 +124,12 @@ export default function PackingSlip({ order }: { order: Order }) {
                                         value={money(order.customization_fee)}
                                     />
                                 )}
+                                {order.flowers_fee > 0 && (
+                                    <SlipLine
+                                        label="Flowers on tap page"
+                                        value={money(order.flowers_fee)}
+                                    />
+                                )}
                                 <SlipLine
                                     label="Delivery"
                                     value={

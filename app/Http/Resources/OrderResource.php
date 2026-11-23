@@ -40,6 +40,7 @@ class OrderResource extends JsonResource
             'unit_price' => $this->unit_price,
             'subtotal' => $this->subtotal,
             'customization_fee' => $this->customization_fee,
+            'flowers_fee' => $this->flowers_fee,
             'delivery_fee' => $this->delivery_fee,
             'adjustment' => $this->adjustment,
             'adjustment_note' => $this->adjustment_note,

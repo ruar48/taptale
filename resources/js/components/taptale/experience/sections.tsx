@@ -17,6 +17,7 @@ import {
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { BloomingBouquet } from '@/components/taptale/experience/blooming-bouquet';
+import { FlowerPicker } from '@/components/taptale/experience/flower-picker';
 import { NightGarden } from '@/components/taptale/experience/night-garden';
 import { SongPlayer } from '@/components/taptale/experience/song-player';
 import {
@@ -63,9 +64,7 @@ export function ExperienceSection({ section }: { section: SectionKey }) {
         case 'hero_doily':
             return <HeroDoily />;
         case 'bouquet':
-            return <BloomingBouquet />;
-        case 'garden':
-            return <GardenSection />;
+            return <FlowersSection />;
         case 'note':
             return <Note />;
         case 'letter_card':
@@ -101,13 +100,33 @@ export function ExperienceSection({ section }: { section: SectionKey }) {
     }
 }
 
-function GardenSection() {
-    const { preset } = useExperience();
+/**
+ * The flowers that open a bouquet page, or that were added to another
+ * design: the wrapped bouquet, or glowing flowers of the chosen color
+ * growing in a night garden, with whatever the page lets rain down.
+ * Whoever edits the page can change both right here.
+ */
+export function FlowersSection({
+    isAddon = false,
+    onRemove,
+}: {
+    isAddon?: boolean;
+    /** Demo drafts can take the added flowers off again. */
+    onRemove?: () => void;
+}) {
+    const { experience, editable } = useExperience();
+    const style = experience.flower_style ?? 'bouquet';
+    const rain = experience.flower_rain ?? 'none';
 
     return (
-        <NightGarden
-            options={preset.garden ?? { variant: 'teal', rain: 'none' }}
-        />
+        <div id="page-flowers" className="relative scroll-mt-16">
+            {style === 'bouquet' ? (
+                <BloomingBouquet rain={rain} isAddon={isAddon} />
+            ) : (
+                <NightGarden variant={style} rain={rain} isAddon={isAddon} />
+            )}
+            {editable && <FlowerPicker onRemove={onRemove} />}
+        </div>
     );
 }
 

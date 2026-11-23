@@ -18,11 +18,16 @@ use Illuminate\Validation\ValidationException;
 class PriceOrder
 {
     /**
+     * The flowers add-on is charged once per order, and only when the gift
+     * comes with a memory page. Like the design fee it sits outside the items
+     * subtotal, so promo codes and the free delivery threshold ignore it.
+     *
      * @param  list<int>  $optionIds
      * @return array{
      *     unit_price: int,
      *     subtotal: int,
      *     customization_fee: int,
+     *     flowers_fee: int,
      *     delivery_fee: int,
      *     discount: int,
      *     total: int,
@@ -32,24 +37,28 @@ class PriceOrder
      *
      * @throws ValidationException
      */
-    public function handle(Product $product, array $optionIds, int $quantity, DesignMode $designMode, ?PromoCode $promoCode = null, ?User $customer = null): array
+    public function handle(Product $product, array $optionIds, int $quantity, DesignMode $designMode, ?PromoCode $promoCode = null, ?User $customer = null, ?string $phone = null, bool $withFlowers = false): array
     {
         $available = $product->activeOptions()->get();
         $selected = $this->resolveSelection($available, $optionIds);
+        $enablesDigitalExperience = $product->has_digital_experience
+            || $selected->contains(fn (ProductOption $option): bool => $option->enables_digital_experience);
 
         $unitPrice = max(0, $product->base_price + (int) $selected->sum('price_modifier'));
         $subtotal = $unitPrice * $quantity;
         $customizationFee = $designMode === DesignMode::TaptaleDesigned ? $product->design_fee : 0;
+        $flowersFee = $withFlowers && $enablesDigitalExperience ? max(0, (int) config('taptale.flowers_addon_price')) : 0;
         $deliveryFee = $this->deliveryFee($subtotal);
-        $discount = $promoCode !== null ? $this->discount($promoCode, $subtotal, $customer) : 0;
+        $discount = $promoCode !== null ? $this->discount($promoCode, $subtotal, $customer, $phone) : 0;
 
         return [
             'unit_price' => $unitPrice,
             'subtotal' => $subtotal,
             'customization_fee' => $customizationFee,
+            'flowers_fee' => $flowersFee,
             'delivery_fee' => $deliveryFee,
             'discount' => $discount,
-            'total' => $subtotal - $discount + $customizationFee + $deliveryFee,
+            'total' => $subtotal - $discount + $customizationFee + $flowersFee + $deliveryFee,
             'selected_options' => array_values($selected->map(fn (ProductOption $option): array => [
                 'id' => $option->id,
                 'group' => $option->group->value,
@@ -57,8 +66,7 @@ class PriceOrder
                 'name' => $option->name,
                 'price_modifier' => $option->price_modifier,
             ])->all()),
-            'enables_digital_experience' => $product->has_digital_experience
-                || $selected->contains(fn (ProductOption $option): bool => $option->enables_digital_experience),
+            'enables_digital_experience' => $enablesDigitalExperience,
         ];
     }
 
@@ -82,9 +90,9 @@ class PriceOrder
      *
      * @throws ValidationException
      */
-    private function discount(PromoCode $promoCode, int $subtotal, ?User $customer): int
+    private function discount(PromoCode $promoCode, int $subtotal, ?User $customer, ?string $phone): int
     {
-        $reason = $promoCode->rejectionReason($subtotal, $customer);
+        $reason = $promoCode->rejectionReason($subtotal, $customer, $phone);
 
         if ($reason !== null) {
             throw ValidationException::withMessages(['promo_code' => $reason]);

@@ -89,7 +89,17 @@ enum OrderStatus: string
      */
     public function isPaymentStage(): bool
     {
-        return in_array($this, [self::PendingOrder, self::AwaitingPayment, self::PaymentVerification], true);
+        return in_array($this, self::paymentStage(), true);
+    }
+
+    /**
+     * The statuses of an order still waiting to be paid.
+     *
+     * @return list<self>
+     */
+    public static function paymentStage(): array
+    {
+        return [self::PendingOrder, self::AwaitingPayment, self::PaymentVerification];
     }
 
     /**

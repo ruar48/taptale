@@ -13,6 +13,7 @@ use App\Http\Resources\PaymentMethodResource;
 use App\Http\Resources\ProductResource;
 use App\Http\Resources\TemplateResource;
 use App\Models\Category;
+use App\Models\DigitalExperience;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Template;
@@ -67,9 +68,12 @@ class OrderWizardController extends Controller
                 : [],
             'experienceTemplates' => ExperienceTemplate::options(),
             'initialTemplate' => $this->queryText($request, 'template'),
+            'initialPage' => ExperienceTemplate::tryFrom((string) $this->queryText($request, 'page'))?->value,
+            'maxPagePhotos' => DigitalExperience::MAX_PHOTOS,
             'paymentMethods' => PaymentMethodResource::collection(PaymentMethod::active()->get()),
             'pricing' => [
                 'delivery_fee' => (int) config('taptale.delivery_fee'),
+                'flowers_addon_price' => (int) config('taptale.flowers_addon_price'),
                 'free_delivery_threshold' => (int) config('taptale.free_delivery_threshold'),
                 'max_upload_kilobytes' => (int) config('taptale.max_upload_kilobytes'),
             ],
@@ -103,6 +107,7 @@ class OrderWizardController extends Controller
             $request->user(),
             $request->validated(),
             array_values($request->file('photos', [])),
+            array_values($request->file('page_photos', [])),
         );
 
         $method = $order->paymentMethod;

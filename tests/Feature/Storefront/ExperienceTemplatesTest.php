@@ -37,6 +37,47 @@ test('an unknown demo template is not found', function () {
     $this->get(route('experiences.demo', 'does-not-exist'))->assertNotFound();
 });
 
+test('old flower design links open the bouquet with the same flowers and rain', function (string $legacyTemplate, string $flowers, string $rain) {
+    $this->get(route('experiences.demo', $legacyTemplate))
+        ->assertRedirect(route('experiences.demo', ['template' => 'digital_bouquet', 'flowers' => $flowers, 'rain' => $rain]))
+        ->assertStatus(301);
+})->with([
+    'garden' => ['moonlight_garden', 'white', 'none'],
+    'flower rain' => ['rain_pink', 'pink', 'both'],
+]);
+
+test('the bouquet demo opens with the flowers and rain in its link', function () {
+    $this->get(route('experiences.demo', ['template' => 'digital_bouquet', 'flowers' => 'white', 'rain' => 'photos']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('experience.flower_style', 'white')
+            ->where('experience.flower_rain', 'photos'));
+
+    $this->get(route('experiences.demo', ['template' => 'digital_bouquet', 'flowers' => 'cactus', 'rain' => 'snow']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('experience.flower_style', 'bouquet')
+            ->where('experience.flower_rain', 'none'));
+});
+
+test('a demo offers to order a keychain that comes with a tap page', function () {
+    Product::factory()->withDigitalExperience()->create(['name' => 'QR Keepsake', 'sort_order' => 0]);
+    Product::factory()->withDigitalExperience()->create(['name' => 'Hidden Keychain', 'sort_order' => 1, 'is_active' => false]);
+    Product::factory()->create(['name' => 'Acrylic Keychain', 'sort_order' => 2]);
+    $keychain = Product::factory()->withDigitalExperience()->create(['name' => 'NFC Memory Keychain', 'sort_order' => 3]);
+
+    $this->get(route('experiences.demo', 'digital_bouquet'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('orderProduct', $keychain->slug)
+            ->where('maxDraftPhotos', DigitalExperience::MAX_PHOTOS)
+            ->where('flowersAddonPrice', config('taptale.flowers_addon_price')));
+});
+
+test('a demo still offers ordering when no gift comes with a tap page', function () {
+    Product::factory()->create(['name' => 'Acrylic Keychain']);
+
+    $this->get(route('experiences.demo', 'digital_bouquet'))
+        ->assertInertia(fn (Assert $page) => $page->where('orderProduct', null));
+});
+
 test('timeline moments follow their photos when other photos are removed', function () {
     Storage::fake('local');
     $experience = DigitalExperience::factory()->create(['photos' => ['experiences/a.jpg', 'experiences/b.jpg', 'experiences/c.jpg']]);

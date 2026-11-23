@@ -351,6 +351,157 @@ test('photos added while ordering also fill the memory page', function () {
     Storage::disk('local')->assertExists($experience->photos);
 });
 
+test('a page designed on a demo becomes the memory page, photos and all', function () {
+    $nfc = ProductOption::factory()->for($this->product)->group(OptionGroup::Nfc)->costing(15000)->create([
+        'enables_digital_experience' => true,
+    ]);
+
+    $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
+        'option_ids' => [$this->small->id, $nfc->id],
+        'experience_template' => 'digital_bouquet',
+        'personalize_later' => true,
+        'approve_preview' => false,
+        'photos' => [UploadedFile::fake()->image('keychain.jpg')],
+        'page' => [
+            'title' => 'Flowers for Mia',
+            'recipient_name' => 'Mia',
+            'message' => '',
+            'flower_style' => 'white',
+            'flower_rain' => 'photos',
+            'photo_rain_layer' => 'back',
+            'moments' => [
+                ['date' => 'June 2', 'title' => 'Baguio', 'caption' => 'Our first trip', 'photo' => 1],
+                ['date' => null, 'title' => 'No photo yet', 'caption' => null, 'photo' => null],
+            ],
+        ],
+        'page_photos' => [UploadedFile::fake()->image('first.jpg'), UploadedFile::fake()->image('second.jpg')],
+    ]))->assertSessionHasNoErrors();
+
+    $experience = Order::sole()->experience;
+
+    expect($experience)
+        ->template->value->toBe('digital_bouquet')
+        ->title->toBe('Flowers for Mia')
+        ->recipient_name->toBe('Mia')
+        ->message->toBeNull()
+        ->flower_style->value->toBe('white')
+        ->flower_rain->value->toBe('photos')
+        ->photo_rain_layer->value->toBe('back')
+        ->photos->toHaveCount(3)
+        ->moments->toBe([
+            ['date' => 'June 2', 'title' => 'Baguio', 'caption' => 'Our first trip', 'photo' => 1],
+            ['date' => null, 'title' => 'No photo yet', 'caption' => null, 'photo' => null],
+        ]);
+    Storage::disk('local')->assertExists($experience->photos);
+});
+
+test('a designed page with a blank headline uses the names on the gift', function () {
+    $nfc = ProductOption::factory()->for($this->product)->group(OptionGroup::Nfc)->costing(15000)->create([
+        'enables_digital_experience' => true,
+    ]);
+
+    $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
+        'option_ids' => [$this->small->id, $nfc->id],
+        'experience_template' => 'digital_bouquet',
+        'page' => ['title' => '', 'flower_style' => 'pink'],
+    ]))->assertSessionHasNoErrors();
+
+    expect(Order::sole()->experience)
+        ->title->toBe('Ana & Leo')
+        ->flower_style->value->toBe('pink');
+});
+
+test('a designed page only accepts known flowers, rain and safe song links', function () {
+    $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
+        'page' => ['flower_style' => 'cactus', 'flower_rain' => 'snow', 'music_url' => 'javascript:alert(1)'],
+    ]))->assertSessionHasErrors(['page.flower_style', 'page.flower_rain', 'page.music_url']);
+
+    expect(Order::count())->toBe(0);
+});
+
+test('a demo page opens the wizard with that design', function () {
+    $this->get(route('orders.create', ['product' => $this->product->slug, 'page' => 'digital_bouquet']))
+        ->assertInertia(fn ($page) => $page->where('initialPage', 'digital_bouquet'));
+
+    $this->get(route('orders.create', ['product' => $this->product->slug, 'page' => 'moonlight_garden']))
+        ->assertInertia(fn ($page) => $page->where('initialPage', null));
+});
+
+test('flowers can be added to a page design without them for a fee', function () {
+    config(['taptale.flowers_addon_price' => 500]);
+    $nfc = ProductOption::factory()->for($this->product)->group(OptionGroup::Nfc)->costing(15000)->create([
+        'enables_digital_experience' => true,
+    ]);
+
+    $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
+        'option_ids' => [$this->small->id, $nfc->id],
+        'quantity' => 2,
+        'experience_template' => 'anniversary',
+        'flower_addon' => true,
+    ]))->assertSessionHasNoErrors();
+
+    $order = Order::sole();
+
+    expect($order)
+        ->subtotal->toBe(60000)
+        ->flowers_fee->toBe(500)
+        ->total->toBe(60000 + 500 + 15000)
+        ->and($order->experience->flower_addon)->toBeTrue()
+        ->and($order->experience->showsFlowers())->toBeTrue();
+});
+
+test('the bouquet design includes its flowers at no extra cost', function () {
+    config(['taptale.flowers_addon_price' => 500]);
+    $nfc = ProductOption::factory()->for($this->product)->group(OptionGroup::Nfc)->costing(15000)->create([
+        'enables_digital_experience' => true,
+    ]);
+
+    $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
+        'option_ids' => [$this->small->id, $nfc->id],
+        'experience_template' => 'digital_bouquet',
+        'flower_addon' => true,
+    ]))->assertSessionHasNoErrors();
+
+    $order = Order::sole();
+
+    expect($order->flowers_fee)->toBe(0)
+        ->and($order->experience->flower_addon)->toBeFalse()
+        ->and($order->experience->showsFlowers())->toBeTrue();
+});
+
+test('a gift without a memory page is never charged for flowers', function () {
+    config(['taptale.flowers_addon_price' => 500]);
+
+    $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
+        'experience_template' => 'anniversary',
+        'flower_addon' => true,
+    ]))->assertSessionHasNoErrors();
+
+    expect(Order::sole())->flowers_fee->toBe(0)->experience->toBeNull();
+});
+
+test('promo codes discount the items but never the flowers add-on', function () {
+    config(['taptale.flowers_addon_price' => 500]);
+    PromoCode::factory()->create(['code' => 'ALLFREE', 'discount_value' => 100]);
+    $nfc = ProductOption::factory()->for($this->product)->group(OptionGroup::Nfc)->costing(15000)->create([
+        'enables_digital_experience' => true,
+    ]);
+
+    $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
+        'option_ids' => [$this->small->id, $nfc->id],
+        'experience_template' => 'birthday',
+        'flower_addon' => true,
+        'promo_code' => 'ALLFREE',
+    ]))->assertSessionHasNoErrors();
+
+    $order = Order::sole();
+
+    expect($order)
+        ->discount->toBe($order->subtotal)
+        ->flowers_fee->toBe(500)
+        ->total->toBe(500 + 15000);
+});
+
 test('choosing a PayMongo method sends the customer straight to secure checkout', function () {
     config(['services.paymongo.secret_key' => 'sk_test_secret']);
     $payMongo = PaymentMethod::factory()->create(['driver' => 'paymongo']);
@@ -434,8 +585,8 @@ test('promo codes that cannot be used are rejected without placing the order', f
 
 test('a code whose uses are all taken by paid and recent unpaid orders is fully used', function () {
     $promoCode = PromoCode::factory()->create(['code' => 'FIRST2', 'max_uses' => 2]);
-    Order::factory()->for($promoCode)->status(OrderStatus::InProduction)->create();
-    Order::factory()->for($promoCode)->status(OrderStatus::AwaitingPayment)->create(['created_at' => now()->subHours(2)]);
+    Order::factory()->for($promoCode)->status(OrderStatus::InProduction)->create(['customer_phone' => '0918 000 0001']);
+    Order::factory()->for($promoCode)->status(OrderStatus::AwaitingPayment)->create(['customer_phone' => '0918 000 0002', 'created_at' => now()->subHours(2)]);
 
     $this->actingAs($this->customer)
         ->post(route('orders.store'), orderPayload($this, ['promo_code' => 'FIRST2']))
@@ -445,6 +596,7 @@ test('a code whose uses are all taken by paid and recent unpaid orders is fully 
 test('an unpaid order stops holding its promo use after the hold window', function () {
     $promoCode = PromoCode::factory()->create(['code' => 'FIRST1', 'max_uses' => 1]);
     Order::factory()->for($promoCode)->status(OrderStatus::AwaitingPayment)->create([
+        'customer_phone' => '0918 000 0001',
         'created_at' => now()->subHours((int) config('taptale.promo_hold_hours') + 1),
     ]);
 
@@ -453,6 +605,26 @@ test('an unpaid order stops holding its promo use after the hold window', functi
         ->assertSessionHasNoErrors();
 
     expect($promoCode->heldUses())->toBe(1);
+});
+
+test('a one-use promo cannot be used again with the same phone number in another format', function () {
+    $promoCode = PromoCode::factory()->create(['code' => 'ONCE']);
+    Order::factory()->for($promoCode)->status(OrderStatus::InProduction)->create(['customer_phone' => '+63 917 123 4567']);
+
+    $this->actingAs($this->customer)
+        ->post(route('orders.store'), orderPayload($this, ['promo_code' => 'ONCE', 'customer_phone' => '0917-123-4567']))
+        ->assertSessionHasErrors(['promo_code' => 'This promo code has already been used with this phone number.']);
+});
+
+test('a customer can place only a few orders a day, cancelled ones included', function () {
+    config(['taptale.max_orders_per_day' => 2, 'taptale.max_unpaid_orders' => 5]);
+    Order::factory()->for($this->customer)->status(OrderStatus::Cancelled)->create();
+    Order::factory()->for($this->customer)->status(OrderStatus::Cancelled)->create(['created_at' => now()->subHours(23)]);
+    Order::factory()->for($this->customer)->status(OrderStatus::Completed)->create(['created_at' => now()->subDays(2)]);
+
+    $this->actingAs($this->customer)
+        ->post(route('orders.store'), orderPayload($this))
+        ->assertSessionHasErrors(['order' => 'You have placed 2 orders in the last 24 hours. Please try again tomorrow, or contact us if you need a bigger order.']);
 });
 
 test('a customer with too many unpaid orders is asked to pay or cancel one first', function () {
@@ -471,8 +643,15 @@ test('an unknown promo code is rejected', function () {
         ->assertSessionHasErrors(['promo_code' => 'This promo code does not exist.']);
 });
 
+test('only signed-in customers can try promo codes', function () {
+    PromoCode::factory()->create(['code' => 'LOVE10']);
+
+    $this->getJson(route('promo-codes.check', ['code' => 'love10', 'subtotal' => 44000]))->assertUnauthorized();
+});
+
 test('the wizard checks a promo code before the order is placed', function () {
     PromoCode::factory()->create(['code' => 'LOVE10', 'discount_value' => 10, 'min_subtotal' => 30000]);
+    $this->actingAs($this->customer);
 
     $this->getJson(route('promo-codes.check', ['code' => 'love10', 'subtotal' => 44000]))
         ->assertOk()

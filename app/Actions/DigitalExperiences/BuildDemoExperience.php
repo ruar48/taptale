@@ -3,6 +3,8 @@
 namespace App\Actions\DigitalExperiences;
 
 use App\Enums\ExperienceTemplate;
+use App\Enums\FlowerRain;
+use App\Enums\FlowerStyle;
 
 /**
  * Sample content used to preview a memory page template before buying.
@@ -12,9 +14,12 @@ use App\Enums\ExperienceTemplate;
 class BuildDemoExperience
 {
     /**
+     * Flower designs can start with a chosen look, so a link can open the
+     * bouquet demo with, say, white flowers and raining photos.
+     *
      * @return array<string, mixed>
      */
-    public function handle(ExperienceTemplate $template): array
+    public function handle(ExperienceTemplate $template, FlowerStyle $flowerStyle = FlowerStyle::Bouquet, FlowerRain $flowerRain = FlowerRain::None): array
     {
         $copy = $this->copy($template);
         $moments = [
@@ -36,9 +41,12 @@ class BuildDemoExperience
             'sender_name' => $copy['sender'],
             'message' => $copy['message'],
             'quote' => $copy['quote'],
-            'flowers_note' => $template->isGarden()
+            'flowers_note' => $template === ExperienceTemplate::DigitalBouquet
                 ? 'Real flowers wilt, but these will bloom for you every time you open this.'
                 : 'These white tulips make me think of your genuine soul.',
+            'flower_style' => $flowerStyle->value,
+            'flower_rain' => $flowerRain->value,
+            'flower_addon' => false,
             'photo_rain_layer' => 'front',
             'event_date' => $copy['date'],
             'video_url' => null,
@@ -68,10 +76,6 @@ class BuildDemoExperience
     private function copy(ExperienceTemplate $template): array
     {
         $letter = "Hi love,\n\nIt's kind of amazing how fast time has passed. It doesn't feel that long, but we've already shared so many memories together. From the random conversations to the small moments that might seem simple to others, they all mean a lot to me because I experienced them with you.\n\nThank you for being patient with me, for understanding me, and for staying by my side through everything. I'm really grateful to have you in my life.";
-
-        if ($template->isGarden()) {
-            return ['title' => 'Flowers for you', 'subtitle' => 'Ones that will never wilt', 'recipient' => 'my love', 'sender' => 'yours always', 'message' => $letter, 'quote' => 'I would pick you in every garden.', 'date' => 'Picked just for you'];
-        }
 
         return match ($template) {
             ExperienceTemplate::Monthsary => ['title' => 'Happy 6th Monthsary', 'subtitle' => 'My Love!', 'recipient' => 'my love', 'sender' => 'yours always', 'message' => $letter, 'quote' => 'We are together in every situation.', 'date' => 'Our 6 months together'],

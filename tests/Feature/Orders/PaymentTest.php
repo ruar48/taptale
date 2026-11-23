@@ -153,3 +153,13 @@ test('an adjustment changes the order total', function () {
 
     expect($order->fresh())->adjustment->toBe(-10000)->total->toBe(65000);
 });
+
+test('an adjustment keeps the flowers add-on in the order total', function () {
+    $order = Order::factory()->create(['subtotal' => 50000, 'customization_fee' => 0, 'flowers_fee' => 500, 'delivery_fee' => 15000, 'total' => 65500]);
+
+    $this->actingAs($this->admin)
+        ->put(route('admin.orders.adjust', $order), ['adjustment' => '-100', 'adjustment_note' => 'Loyalty discount'])
+        ->assertSessionHasNoErrors();
+
+    expect($order->fresh())->total->toBe(55500);
+});

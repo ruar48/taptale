@@ -124,6 +124,8 @@ export function AudioProvider({
                     src={src}
                     loop
                     preload="none"
+                    onPlay={() => setPlaying(true)}
+                    onPause={() => setPlaying(false)}
                     onEnded={() => setPlaying(false)}
                 />
             )}
@@ -331,11 +333,11 @@ export function PhotoFill({
         );
     }
 
-    const photoIndex = src
-        ? Number(src.match(/\/photos\/(\d+)/)?.[1] ?? NaN)
-        : NaN;
+    // Page photos are server URLs for the owner and browser blob URLs in a
+    // demo draft, so the frame finds its photo by position in the list.
+    const photoIndex = src && context ? context.photos.indexOf(src) : -1;
 
-    if (src && context?.editable && !Number.isNaN(photoIndex)) {
+    if (src && context?.editable && photoIndex !== -1) {
         return (
             <span
                 className={cn(

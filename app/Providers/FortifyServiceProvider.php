@@ -127,12 +127,26 @@ class FortifyServiceProvider extends ServiceProvider
             return [
                 Limit::perMinute(5)->by(Str::transliterate(Str::lower(is_string($email) ? $email : '')).'|'.$network),
                 Limit::perMinute(30)->by('network:'.$network),
+                Limit::perMinute(90)->by('wide-network:'.ThrottleRequestsByNetwork::wideNetworkOf($request->ip())),
             ];
         });
 
-        RateLimiter::for('registrations', fn (Request $request) => Limit::perMinutes(10, 5)->by(ThrottleRequestsByNetwork::visitorKey($request)));
+        // Each sends an email. Tight per network (IPv6 /64), looser across the
+        // wider block one customer may own (IPv6 /48).
+        // Accounts also get a daily ceiling: every per-account limit (unpaid
+        // orders, daily orders, one promo use) is multiplied by how many
+        // accounts one place can open.
+        RateLimiter::for('registrations', fn (Request $request) => [
+            Limit::perMinutes(10, 5)->by(ThrottleRequestsByNetwork::visitorKey($request)),
+            Limit::perMinutes(10, 15)->by('wide:'.ThrottleRequestsByNetwork::wideNetworkOf($request->ip())),
+            Limit::perDay(10)->by('day:'.ThrottleRequestsByNetwork::visitorKey($request)),
+            Limit::perDay(30)->by('day-wide:'.ThrottleRequestsByNetwork::wideNetworkOf($request->ip())),
+        ]);
 
-        RateLimiter::for('password-reset-links', fn (Request $request) => Limit::perMinutes(10, 5)->by(ThrottleRequestsByNetwork::visitorKey($request)));
+        RateLimiter::for('password-reset-links', fn (Request $request) => [
+            Limit::perMinutes(10, 5)->by(ThrottleRequestsByNetwork::visitorKey($request)),
+            Limit::perMinutes(10, 15)->by('wide:'.ThrottleRequestsByNetwork::wideNetworkOf($request->ip())),
+        ]);
 
         RateLimiter::for('passkeys', function (Request $request) {
             $credential = $request->input('credential.id');

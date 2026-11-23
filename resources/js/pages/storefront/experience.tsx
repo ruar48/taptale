@@ -1,6 +1,15 @@
 import { Head, Link, router } from "@inertiajs/react";
-import { Camera, Eye, Pencil, Sparkles, X } from "lucide-react";
-import { Fragment, useState } from "react";
+import {
+    Camera,
+    Eye,
+    Flower2,
+    Pencil,
+    RotateCcw,
+    ShoppingBag,
+    Sparkles,
+    X,
+} from "lucide-react";
+import { Fragment, useEffect, useState } from "react";
 import { toast } from "sonner";
 import ExperienceContentController from "@/actions/App/Http/Controllers/Account/ExperienceContentController";
 import ExperiencePhotoController from "@/actions/App/Http/Controllers/Account/ExperiencePhotoController";
@@ -15,7 +24,10 @@ import {
 } from "@/components/taptale/experience/custom-sections";
 import { Gate } from "@/components/taptale/experience/gates";
 import { RecipientActions } from "@/components/taptale/experience/recipient-actions";
-import { ExperienceSection } from "@/components/taptale/experience/sections";
+import {
+    ExperienceSection,
+    FlowersSection,
+} from "@/components/taptale/experience/sections";
 import {
     AddPhotoButton,
     AudioProvider,
@@ -25,6 +37,8 @@ import {
 import type { PhotoSlot } from "@/components/taptale/experience/shared";
 import { DesignSwitcher } from "@/components/taptale/experience/design-switcher";
 import type { DesignOptions } from "@/components/taptale/experience/design-switcher";
+import { useMoney } from "@/hooks/use-money";
+import { usePageDraft } from "@/hooks/use-page-draft";
 import { home } from "@/routes";
 import { edit as editExperience } from "@/routes/account/experiences";
 import { templates as memoryPages } from "@/routes/experiences";
@@ -32,13 +46,16 @@ import { create as startOrder } from "@/routes/orders";
 import type { DigitalExperience } from "@/types";
 
 export default function Experience({
-    experience,
+    experience: pageExperience,
     isPreview,
     isDemo = false,
     canEdit = false,
     isRecipient = false,
     hasHearted = false,
     designOptions = null,
+    orderProduct = null,
+    maxDraftPhotos = 24,
+    flowersAddonPrice = 0,
 }: {
     experience: DigitalExperience;
     isPreview: boolean;
@@ -47,9 +64,28 @@ export default function Experience({
     isRecipient?: boolean;
     hasHearted?: boolean;
     designOptions?: DesignOptions | null;
+    /** Demo only: the keychain the "order with this page" button opens. */
+    orderProduct?: string | null;
+    maxDraftPhotos?: number;
+    /** Demo only: what adding the flowers to this design costs at checkout. */
+    flowersAddonPrice?: number;
 }) {
+    /*
+     * A demo is editable by anyone: their words and photos stay in this
+     * browser as a draft until they order a keychain with the page.
+     */
+    const draft = usePageDraft(pageExperience, isDemo, maxDraftPhotos);
+    const experience = isDemo ? draft.experience : pageExperience;
+    const editable = canEdit || isDemo;
     const theme = themeFor(experience.theme);
     const preset = presetFor(experience.template);
+    const money = useMoney();
+    /*
+     * Designs other than the bouquet show the flowers only when they were
+     * added (bought at checkout, or chosen on a demo before ordering).
+     */
+    const hasOwnFlowers = preset.sections.includes("bouquet");
+    const showsAddedFlowers = !hasOwnFlowers && experience.flower_addon;
     const [opened, setOpened] = useState(
         () =>
             preset.gate === null ||
@@ -58,6 +94,12 @@ export default function Experience({
                     "0"),
     );
     const [lightbox, setLightbox] = useState<string | null>(null);
+    /*
+     * The order wizard previews demos in a frame and has its own "use this
+     * design" buttons, so the demo's navigation stays out of the frame.
+     */
+    const [isEmbedded, setIsEmbedded] = useState(false);
+    useEffect(() => setIsEmbedded(window.self !== window.top), []);
     const [uploading, setUploading] = useState(false);
 
     const photos = experience.photos.map((photo) => photo.url);
@@ -77,11 +119,12 @@ export default function Experience({
         );
 
     /*
-     * Visitors see photos repeat so every frame is filled. The owner sees
-     * empty frames instead, so they can tap one and add a picture.
+     * Visitors see photos repeat so every frame is filled. Whoever edits
+     * the page sees empty frames instead, so they can tap one and add a
+     * picture.
      */
     const photoAt = (index: number): string | null => {
-        if (canEdit) {
+        if (editable) {
             return photos[index] ?? null;
         }
 
@@ -89,6 +132,14 @@ export default function Experience({
     };
 
     const addPhotos = (files: File[], moment?: number, slot?: PhotoSlot) => {
+        if (isDemo) {
+            if (!draft.processing) {
+                void draft.addPhotos(files, moment);
+            }
+
+            return;
+        }
+
         if (!canEdit || uploading) {
             return;
         }
@@ -117,6 +168,14 @@ export default function Experience({
     };
 
     const replacePhoto = (index: number, file: File) => {
+        if (isDemo) {
+            if (!draft.processing) {
+                void draft.replacePhoto(index, file);
+            }
+
+            return;
+        }
+
         if (!canEdit || uploading) {
             return;
         }
@@ -143,7 +202,7 @@ export default function Experience({
         );
     };
 
-    const saveText = (field: string, value: string): Promise<boolean> =>
+    const saveTextOnServer = (field: string, value: string): Promise<boolean> =>
         new Promise((resolve) => {
             router.patch(
                 ExperienceContentController.update.url(experience.code),
@@ -163,6 +222,11 @@ export default function Experience({
             );
         });
 
+    const saveText = (field: string, value: string): Promise<boolean> =>
+        isDemo
+            ? draft.saveText(field, value)
+            : saveTextOnServer(field, value);
+
     return (
         <ExperienceContext.Provider
             value={{
@@ -173,8 +237,8 @@ export default function Experience({
                 photoAt,
                 moments: experience.moments,
                 openPhoto: setLightbox,
-                editable: canEdit,
-                uploading,
+                editable,
+                uploading: isDemo ? draft.processing : uploading,
                 addPhotos,
                 replacePhoto,
                 saveText,
@@ -191,22 +255,96 @@ export default function Experience({
                         <div className="sticky top-0 z-40 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-amber-100 px-4 py-2 text-center text-sm text-amber-900">
                             {isDemo ? (
                                 <>
-                                    <Sparkles className="size-4" /> Demo of the
-                                    “{experience.title}” design with sample
-                                    words. You can edit every word and photo
-                                    once you create yours.
-                                    <Link
-                                        href={memoryPages()}
-                                        className="font-semibold underline underline-offset-2"
+                                    <Sparkles className="size-4" />
+                                    <span>
+                                        Make it yours: tap any word or empty
+                                        frame to change it. It stays on this
+                                        device until you order.
+                                    </span>
+                                    <AddPhotoButton
+                                        multiple
+                                        className="inline-flex"
                                     >
-                                        More designs
-                                    </Link>
-                                    <Link
-                                        href={startOrder()}
-                                        className="font-semibold underline underline-offset-2"
-                                    >
-                                        Create yours
-                                    </Link>
+                                        <span className="inline-flex items-center gap-1 font-semibold underline underline-offset-2">
+                                            <Camera className="size-3.5" />
+                                            {draft.processing
+                                                ? "Adding…"
+                                                : "Add photos"}
+                                        </span>
+                                    </AddPhotoButton>
+                                    {!hasOwnFlowers &&
+                                        !experience.flower_addon && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    draft.setFlowerAddon(true);
+                                                    window.setTimeout(
+                                                        () =>
+                                                            document
+                                                                .getElementById(
+                                                                    "page-flowers",
+                                                                )
+                                                                ?.scrollIntoView({
+                                                                    behavior:
+                                                                        "smooth",
+                                                                }),
+                                                        50,
+                                                    );
+                                                }}
+                                                className="inline-flex items-center gap-1 font-semibold underline underline-offset-2"
+                                            >
+                                                <Flower2 className="size-3.5" />
+                                                Add flowers
+                                                {flowersAddonPrice > 0 &&
+                                                    ` (+${money(flowersAddonPrice)})`}
+                                            </button>
+                                        )}
+                                    {draft.hasChanges && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (
+                                                    window.confirm(
+                                                        "Start over with the sample page? Your words and photos on this design will be removed from this device.",
+                                                    )
+                                                ) {
+                                                    draft.reset();
+                                                }
+                                            }}
+                                            className="inline-flex items-center gap-1 font-semibold underline underline-offset-2"
+                                        >
+                                            <RotateCcw className="size-3.5" />
+                                            Start over
+                                        </button>
+                                    )}
+                                    {!isEmbedded && (
+                                        <Link
+                                            href={memoryPages()}
+                                            className="font-semibold underline underline-offset-2"
+                                        >
+                                            More designs
+                                        </Link>
+                                    )}
+                                    {!isEmbedded && (
+                                        <Link
+                                            href={startOrder({
+                                                query: {
+                                                    ...(orderProduct
+                                                        ? {
+                                                              product:
+                                                                  orderProduct,
+                                                          }
+                                                        : {}),
+                                                    page: experience.template,
+                                                },
+                                            })}
+                                            onClick={() => draft.keep()}
+                                            className="inline-flex items-center gap-1.5 rounded-full bg-amber-900 px-3.5 py-1 font-semibold text-amber-50 shadow-sm transition hover:bg-amber-950"
+                                        >
+                                            <ShoppingBag className="size-3.5" />
+                                            Order a keychain with this page
+                                        </Link>
+                                    )}
                                 </>
                             ) : (
                                 <>
@@ -269,6 +407,19 @@ export default function Experience({
                         {preset.sections.map((section, index) => (
                             <Fragment key={section}>
                                 <ExperienceSection section={section} />
+                                {index === 0 && showsAddedFlowers && (
+                                    <FlowersSection
+                                        isAddon
+                                        onRemove={
+                                            isDemo
+                                                ? () =>
+                                                      draft.setFlowerAddon(
+                                                          false,
+                                                      )
+                                                : undefined
+                                        }
+                                    />
+                                )}
                                 {customSectionsAt(index + 1).map(
                                     (customSection) => (
                                         <CustomSection

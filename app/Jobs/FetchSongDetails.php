@@ -25,9 +25,11 @@ class FetchSongDetails
             return;
         }
 
+        // Over the page budget the details stay empty; the page then looks the
+        // song up through the visitor search when someone opens it.
         $details = blank($experience->song_title)
             ? null
-            : $lookupSong->handle($experience->song_title, $experience->song_artist);
+            : $lookupSong->forPage($experience->song_title, $experience->song_artist, $experience->user_id);
 
         $experience->forceFill(['song_details' => $details])->saveQuietly();
     }

@@ -212,6 +212,12 @@ export function OrderPriceBreakdown({ order }: { order: Order }) {
                     value={money(order.customization_fee)}
                 />
             )}
+            {order.flowers_fee > 0 && (
+                <Line
+                    label="Flowers on tap page"
+                    value={money(order.flowers_fee)}
+                />
+            )}
             <Line
                 label="Delivery"
                 value={

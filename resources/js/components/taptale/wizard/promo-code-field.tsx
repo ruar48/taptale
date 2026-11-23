@@ -44,11 +44,23 @@ export function PromoCodeField({
                 }),
                 { headers: { Accept: 'application/json' } },
             );
+            if (response.status === 401) {
+                setError(
+                    'Sign in or create your account below, then apply your promo code.',
+                );
+
+                return;
+            }
+
             const body = await response.json();
 
             if (response.ok) {
                 onChange(body as AppliedPromo);
                 setCode('');
+            } else if (response.status === 429) {
+                setError(
+                    'Too many codes tried. Please wait a minute and try again.',
+                );
             } else {
                 setError(
                     body?.errors?.code?.[0] ??

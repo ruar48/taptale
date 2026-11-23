@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /**
  * @property int $id
@@ -85,24 +86,97 @@ class PromoCode extends Model
      */
     public function heldUses(): int
     {
-        $paymentStage = array_values(array_filter(OrderStatus::cases(), fn (OrderStatus $status): bool => $status->isPaymentStage()));
-
-        return $this->orders()
-            ->where('status', '!=', OrderStatus::Cancelled)
-            ->where(fn (Builder $query) => $query
-                ->whereNotIn('status', $paymentStage)
-                ->orWhere('created_at', '>=', now()->subHours((int) config('taptale.promo_hold_hours'))))
-            ->count();
+        return $this->holdingOrders()->count();
     }
 
     /**
-     * Whether the customer already has an order (not cancelled) with this code.
+     * Orders that currently hold a use of the code (see {@see self::heldUses()}).
+     *
+     * @return HasMany<Order, $this>
+     */
+    private function holdingOrders(): HasMany
+    {
+        return $this->orders()
+            ->where('status', '!=', OrderStatus::Cancelled)
+            ->where(fn (Builder $query) => $query
+                ->whereNotIn('status', OrderStatus::paymentStage())
+                ->orWhere('created_at', '>=', now()->subHours((int) config('taptale.promo_hold_hours'))));
+    }
+
+    /**
+     * The inbox an email address really reaches, used as the customer's
+     * identity for one-use codes: lower case, without a "+tag", and for
+     * Gmail without dots and with googlemail.com read as gmail.com. Many
+     * accounts made from aliases of one inbox are then one customer.
+     */
+    public static function customerIdentity(string $email): string
+    {
+        [$local, $domain] = array_pad(explode('@', mb_strtolower(trim($email)), 2), 2, '');
+        $local = Str::before($local, '+');
+
+        if (in_array($domain, ['gmail.com', 'googlemail.com'], true)) {
+            $local = str_replace('.', '', $local);
+            $domain = 'gmail.com';
+        }
+
+        return $local.'@'.$domain;
+    }
+
+    /**
+     * A phone number reduced to its national digits, so every way of writing
+     * one Philippine mobile number ("0917 555 0101", "+63 917 555 0101",
+     * "+63 0917 555 0101", "0063 917 555 0101") becomes "9175550101".
+     * Strips the international dialling prefix (00), then the country code
+     * (63), then the trunk zero.
+     */
+    public static function phoneIdentity(string $phone): string
+    {
+        $digits = (string) preg_replace('/\D+/', '', $phone);
+
+        if (str_starts_with($digits, '00')) {
+            $digits = substr($digits, 2);
+        }
+
+        if (str_starts_with($digits, '63') && strlen($digits) >= 11) {
+            $digits = substr($digits, 2);
+        }
+
+        return ltrim($digits, '0');
+    }
+
+    /**
+     * Whether an order holding a use of this code went to the same delivery
+     * phone. Accounts on a catch-all email domain all reach one person, but
+     * that person still gives one phone number for delivery.
+     *
+     * Only orders that hold a use count (paid, or unpaid and recent), so
+     * someone who types a stranger's number into an order they never pay
+     * cannot block that stranger from the code for long.
+     */
+    public function wasUsedWithPhone(?string $phone): bool
+    {
+        $identity = self::phoneIdentity((string) $phone);
+
+        if (strlen($identity) < 7) {
+            return false;
+        }
+
+        return $this->holdingOrders()
+            ->pluck('customer_phone')
+            ->contains(fn (?string $usedPhone): bool => self::phoneIdentity((string) $usedPhone) === $identity);
+    }
+
+    /**
+     * Whether the customer, or another account behind the same inbox, already
+     * has an order (not cancelled) with this code.
      */
     public function wasUsedBy(User $customer): bool
     {
         return $this->orders()
-            ->where('user_id', $customer->id)
             ->where('status', '!=', OrderStatus::Cancelled)
+            ->where(fn (Builder $query) => $query
+                ->where('user_id', $customer->id)
+                ->orWhere('promo_identity', self::customerIdentity($customer->email)))
             ->exists();
     }
 
@@ -110,7 +184,7 @@ class PromoCode extends Model
      * Why this code cannot be used on an order with the given subtotal (by
      * the given customer, when known), or null when it can.
      */
-    public function rejectionReason(int $subtotal, ?User $customer = null): ?string
+    public function rejectionReason(int $subtotal, ?User $customer = null, ?string $phone = null): ?string
     {
         if (! $this->is_active
             || ($this->starts_at !== null && $this->starts_at->isFuture())
@@ -120,6 +194,10 @@ class PromoCode extends Model
 
         if ($customer !== null && $this->wasUsedBy($customer)) {
             return 'You have already used this promo code.';
+        }
+
+        if ($this->wasUsedWithPhone($phone)) {
+            return 'This promo code has already been used with this phone number.';
         }
 
         if ($this->max_uses !== null && $this->heldUses() >= $this->max_uses) {

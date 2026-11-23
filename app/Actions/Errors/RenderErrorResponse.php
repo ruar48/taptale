@@ -2,6 +2,7 @@
 
 namespace App\Actions\Errors;
 
+use App\Http\Middleware\ThrottleRequestsByNetwork;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Inertia\ExceptionResponse;
@@ -20,8 +21,8 @@ use Symfony\Component\HttpFoundation\Response;
  *   memory pages open from the keychain or QR code, not from a copied link.
  * - Images, audio, downloads and file-like paths (bots probing /.env, *.php)
  *   keep Laravel's bare response instead of a full page.
- * - One visitor gets at most NOT_FOUND_LIMIT "not found" answers a minute;
- *   after that they get a bare 429 that costs nothing to build.
+ * - One visitor (an IPv4 address or an IPv6 /64) gets at most NOT_FOUND_LIMIT
+ *   "not found" answers a minute; after that a bare 429 that costs nothing.
  *
  * Server errors keep Laravel's debug page while APP_DEBUG is on, and JSON
  * requests keep their JSON errors.
@@ -125,9 +126,12 @@ class RenderErrorResponse
         ]);
     }
 
+    /**
+     * Keyed by network, so rotating through one IPv6 /64 counts as one visitor.
+     */
     private function notFoundKey(Request $request): string
     {
-        return 'not-found:'.$request->ip();
+        return 'not-found:'.ThrottleRequestsByNetwork::visitorKey($request);
     }
 
     /**

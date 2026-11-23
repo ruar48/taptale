@@ -4,12 +4,15 @@ import type { Product, ProductOption } from '@/types';
 export type PricingConfig = {
     delivery_fee: number;
     free_delivery_threshold: number;
+    /** Charged once when flowers are added to a page design without them. */
+    flowers_addon_price: number;
 };
 
 export type PriceBreakdown = {
     unitPrice: number;
     subtotal: number;
     customizationFee: number;
+    flowersFee: number;
     deliveryFee: number;
     discount: number;
     total: number;
@@ -57,10 +60,14 @@ export function calculatePrice(
     designMode: DesignMode | null,
     config: PricingConfig,
     promo: AppliedPromo | null = null,
+    withFlowers = false,
 ): PriceBreakdown {
     const selected = (product.options ?? []).filter((option) =>
         optionIds.includes(option.id),
     );
+    const hasTapPage =
+        product.has_digital_experience ||
+        selected.some((option) => option.enables_digital_experience);
     const modifiers = selected.reduce(
         (sum, option) => sum + option.price_modifier,
         0,
@@ -69,6 +76,9 @@ export function calculatePrice(
     const safeQuantity = Math.max(0, quantity || 0);
     const subtotal = unitPrice * safeQuantity;
     const customizationFee = designMode === 'assisted' ? product.design_fee : 0;
+    // Charged once, outside the items subtotal, so promos never discount it.
+    const flowersFee =
+        withFlowers && hasTapPage ? Math.max(0, config.flowers_addon_price) : 0;
     const deliveryFee =
         config.free_delivery_threshold > 0 &&
         subtotal >= config.free_delivery_threshold
@@ -81,9 +91,10 @@ export function calculatePrice(
         unitPrice,
         subtotal,
         customizationFee,
+        flowersFee,
         deliveryFee,
         discount,
-        total: subtotal - discount + customizationFee + deliveryFee,
+        total: subtotal - discount + customizationFee + flowersFee + deliveryFee,
         selected,
     };
 }
