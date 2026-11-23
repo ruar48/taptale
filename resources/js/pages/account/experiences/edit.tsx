@@ -186,11 +186,21 @@ export default function EditExperience({
 
     const { data, setData, errors } = form;
     const preset = presetFor(data.template);
-    const usesMoments = preset.sections.some(
-        (section) => section === 'timeline' || section === 'polaroid_wall',
+    // Added sections from the page designs use the same moments and date.
+    const addedSections = (experience.custom_sections ?? []).map(
+        (section) => section.type,
     );
+    const usesMoments =
+        preset.sections.some(
+            (section) => section === 'timeline' || section === 'polaroid_wall',
+        ) ||
+        addedSections.some(
+            (type) => type === 'story_timeline' || type === 'polaroid_wall',
+        );
     const usesGifts = preset.sections.includes('gifts');
-    const usesCountdown = preset.sections.includes('countdown');
+    const usesCountdown =
+        preset.sections.includes('countdown') ||
+        addedSections.includes('countdown');
     // The bouquet design includes the flowers; other designs only show
     // them when the flowers add-on was bought at checkout.
     const showsFlowers =

@@ -8,6 +8,7 @@ use App\Enums\DesignMode;
 use App\Enums\ExperienceTemplate;
 use App\Enums\OrderFileKind;
 use App\Enums\OrderStatus;
+use App\Http\Controllers\Account\ExperienceSectionController;
 use App\Models\Category;
 use App\Models\DigitalExperience;
 use App\Models\Order;
@@ -117,7 +118,7 @@ class PlaceOrder
                     'message' => $order->personalization['message'] ?? null,
                     'event_date' => $order->personalization['date'] ?? null,
                     'photos' => [],
-                    ...$this->designedPage($data['page'] ?? null),
+                    ...$this->designedPage($data['page'] ?? null, $withFlowers),
                 ]);
                 $experience->user()->associate($customer);
                 $order->experience()->save($experience);
@@ -156,11 +157,12 @@ class PlaceOrder
     /**
      * The memory page the customer designed on a demo, limited to the fields
      * they could edit there. Text they cleared stays empty; the headline
-     * falls back to the order's names when left blank.
+     * falls back to the order's names when left blank. The spot chosen for
+     * the flowers is kept only when the flowers add-on is being paid for.
      *
      * @return array<string, mixed>
      */
-    private function designedPage(mixed $page): array
+    private function designedPage(mixed $page, bool $withFlowers): array
     {
         if (! is_array($page)) {
             return [];
@@ -198,6 +200,18 @@ class PlaceOrder
         }
 
         if (is_array($page['custom_sections'] ?? null)) {
+            $hasFlowers = false;
+            $sections = array_filter($page['custom_sections'], function (array $section) use ($withFlowers, &$hasFlowers): bool {
+                if (($section['type'] ?? null) !== ExperienceSectionController::FLOWERS) {
+                    return true;
+                }
+
+                $keep = $withFlowers && ! $hasFlowers;
+                $hasFlowers = true;
+
+                return $keep;
+            });
+
             $content['custom_sections'] = array_values(array_map(fn (array $section): array => [
                 'id' => (string) $section['id'],
                 'type' => (string) $section['type'],
@@ -209,7 +223,7 @@ class PlaceOrder
                     'photo' => is_numeric($slot['photo'] ?? null) ? (int) $slot['photo'] : null,
                     'caption' => $clean($slot['caption'] ?? null),
                 ], is_array($section['slots'] ?? null) ? $section['slots'] : [])),
-            ], $page['custom_sections']));
+            ], $sections));
         }
 
         return $content;

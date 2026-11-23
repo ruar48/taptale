@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Account;
 
+use App\Enums\ExperienceTemplate;
 use App\Http\Controllers\Controller;
 use App\Models\DigitalExperience;
 use Illuminate\Http\RedirectResponse;
@@ -13,9 +14,10 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 /**
- * Extra sections (polaroid timeline, film strip, scrapbook, album or note)
- * the owner adds between the template's own sections, with their own photo
- * slots and background color.
+ * Extra sections the owner adds between the template's own sections: their
+ * own polaroid timeline, film strip, scrapbook, album or note (with photo
+ * slots and a background color), one of the page designs' sections that
+ * shows the page's own words, moments and photos, or the flowers.
  */
 class ExperienceSectionController extends Controller
 {
@@ -30,10 +32,26 @@ class ExperienceSectionController extends Controller
         'scrapbook' => 4,
         'album' => 6,
         'note' => 0,
+        'story_timeline' => 0,
+        'polaroid_wall' => 0,
+        'gallery' => 0,
+        'letter' => 0,
+        'quote' => 0,
+        'song' => 0,
+        'countdown' => 0,
+        'video' => 0,
+        'flowers' => 0,
     ];
 
     /**
-     * Add a section in the chosen style after the given number of template sections.
+     * Where the flowers go. Flowers are a paid add-on chosen at checkout, so
+     * a page only gets this section once they are bought, and only once.
+     */
+    public const FLOWERS = 'flowers';
+
+    /**
+     * Add a section in the chosen style after the given number of template
+     * sections. Adding the flowers again moves them to the new spot.
      */
     public function store(Request $request, DigitalExperience $experience): RedirectResponse
     {
@@ -45,6 +63,10 @@ class ExperienceSectionController extends Controller
         ]);
 
         $sections = $experience->custom_sections ?? [];
+
+        if ($validated['type'] === self::FLOWERS) {
+            return $this->placeFlowers($experience, $sections, (int) $validated['position']);
+        }
 
         if (count($sections) >= DigitalExperience::MAX_CUSTOM_SECTIONS) {
             throw ValidationException::withMessages([
@@ -77,7 +99,7 @@ class ExperienceSectionController extends Controller
         Gate::authorize('update', $experience);
 
         $validated = $request->validate([
-            'type' => ['sometimes', Rule::in(array_keys(self::TYPES))],
+            'type' => ['sometimes', Rule::in(array_diff(array_keys(self::TYPES), [self::FLOWERS]))],
             'background' => ['sometimes', 'nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'slot_count' => ['sometimes', 'integer', 'min:1', 'max:'.DigitalExperience::MAX_SECTION_SLOTS],
         ], [
@@ -132,6 +154,51 @@ class ExperienceSectionController extends Controller
         $experience->update(['custom_sections' => array_values($sections)]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Section removed.')]);
+
+        return back();
+    }
+
+    /**
+     * Put the bought flowers at a spot on the page, moving them if they
+     * already have one.
+     *
+     * @param  list<array<string, mixed>>  $sections
+     *
+     * @throws ValidationException
+     */
+    private function placeFlowers(DigitalExperience $experience, array $sections, int $position): RedirectResponse
+    {
+        if (! $experience->flower_addon || ! $experience->showsFlowers() || $experience->template === ExperienceTemplate::DigitalBouquet) {
+            throw ValidationException::withMessages([
+                'type' => $experience->template === ExperienceTemplate::DigitalBouquet
+                    ? 'This design already opens with its flowers.'
+                    : 'Flowers can be added to this page design when ordering.',
+            ]);
+        }
+
+        $index = collect($sections)->search(fn (array $section): bool => $section['type'] === self::FLOWERS);
+
+        if ($index !== false) {
+            $sections[$index]['position'] = $position;
+        } elseif (count($sections) >= DigitalExperience::MAX_CUSTOM_SECTIONS) {
+            throw ValidationException::withMessages([
+                'position' => 'Your page can have at most '.DigitalExperience::MAX_CUSTOM_SECTIONS.' extra sections.',
+            ]);
+        } else {
+            $sections[] = [
+                'id' => Str::lower(Str::random(8)),
+                'type' => self::FLOWERS,
+                'position' => $position,
+                'title' => null,
+                'text' => null,
+                'background' => null,
+                'slots' => [],
+            ];
+        }
+
+        $experience->update(['custom_sections' => array_values($sections)]);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Your flowers moved here.')]);
 
         return back();
     }

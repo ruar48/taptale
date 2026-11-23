@@ -1,24 +1,37 @@
 import { router } from "@inertiajs/react";
 import {
     BookHeart,
+    Crown,
     Film,
+    Flower2,
+    GalleryVerticalEnd,
     Heart,
     Images,
+    Layers,
     LayoutGrid,
+    Mail,
+    Milestone,
     Minus,
+    Music,
     Palette,
     PenLine,
     Plus,
+    Quote,
     Route,
     Shapes,
+    Timer,
     Trash2,
+    Video,
     X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, ComponentType } from "react";
 import { toast } from "sonner";
 import ExperienceSectionController from "@/actions/App/Http/Controllers/Account/ExperienceSectionController";
+import type { SectionKey } from "@/components/taptale/experience/config";
 import {
+    ExperienceSection,
+    FlowersSection,
     PolaroidConnector,
     ROTATIONS,
 } from "@/components/taptale/experience/sections";
@@ -38,13 +51,18 @@ import type { ExperienceCustomSection, ExperienceSectionType } from "@/types";
 /** Most photo slots one extra section can hold (mirrors the server limit). */
 const MAX_SLOTS = 12;
 
-/** The section styles an owner can insert, in the order the picker shows them. */
+/**
+ * The section styles an owner can insert, in the order the picker shows them.
+ * Styles with `shared` are the sections of the page designs themselves: they
+ * show the page's own words, photos and moments rather than their own.
+ */
 const SECTION_STYLES: {
     type: ExperienceSectionType;
     label: string;
     description: string;
     titlePlaceholder: string;
     icon: ComponentType<{ className?: string }>;
+    shared?: SectionKey;
 }[] = [
     {
         type: "timeline",
@@ -80,6 +98,70 @@ const SECTION_STYLES: {
         description: "A heading and a short message, no photos.",
         titlePlaceholder: "A little note",
         icon: PenLine,
+    },
+    {
+        type: "story_timeline",
+        label: "Story timeline",
+        description: "Your moments down a timeline, each with a date and photo.",
+        titlePlaceholder: "Every chapter of us",
+        icon: Milestone,
+        shared: "timeline",
+    },
+    {
+        type: "polaroid_wall",
+        label: "Polaroid wall",
+        description: "Your moments pinned up as polaroids.",
+        titlePlaceholder: "Our favorite moments",
+        icon: Layers,
+        shared: "polaroid_wall",
+    },
+    {
+        type: "gallery",
+        label: "Photo gallery",
+        description: "Every photo on your page in one gallery.",
+        titlePlaceholder: "Moments I love with you",
+        icon: GalleryVerticalEnd,
+        shared: "gallery",
+    },
+    {
+        type: "letter",
+        label: "Love letter",
+        description: "Your message on a sheet of letter paper.",
+        titlePlaceholder: "A letter for you",
+        icon: Mail,
+        shared: "letter_paper",
+    },
+    {
+        type: "quote",
+        label: "Quote",
+        description: "Your favorite line, big and bold.",
+        titlePlaceholder: "Our quote",
+        icon: Quote,
+        shared: "quote",
+    },
+    {
+        type: "song",
+        label: "Our song",
+        description: "Your song with its player and lyrics.",
+        titlePlaceholder: "Our song",
+        icon: Music,
+        shared: "song",
+    },
+    {
+        type: "countdown",
+        label: "Countdown",
+        description: "A live countdown to your date.",
+        titlePlaceholder: "Counting down",
+        icon: Timer,
+        shared: "countdown",
+    },
+    {
+        type: "video",
+        label: "Video",
+        description: "Your video, played right on the page.",
+        titlePlaceholder: "Our video",
+        icon: Video,
+        shared: "video",
     },
 ];
 
@@ -146,6 +228,28 @@ export function CustomSection({
     const [previewBackground, setPreviewBackground] = useState<string | null>(
         null,
     );
+    const shared = styleFor(section.type).shared;
+
+    if (section.type === "flowers") {
+        return <PlacedFlowers section={section} />;
+    }
+
+    // A page design's own section, showing the page's words and photos.
+    if (shared) {
+        return (
+            <div className="relative">
+                {editable && (
+                    <div className="pt-6">
+                        <SectionToolbar
+                            section={section}
+                            onPreviewBackground={setPreviewBackground}
+                        />
+                    </div>
+                )}
+                <ExperienceSection section={shared} />
+            </div>
+        );
+    }
 
     /*
      * Visitors only see slots that have something in them; the owner sees
@@ -197,6 +301,29 @@ export function CustomSection({
             )}
             {section.type === "note" && <NoteBody section={section} />}
         </SectionShell>
+    );
+}
+
+/**
+ * The flowers add-on at the spot the customer chose. Only bought flowers
+ * show, and never a second time on the bouquet design.
+ */
+function PlacedFlowers({ section }: { section: ExperienceCustomSection }) {
+    const { experience, preset, sectionActions } = useExperience();
+
+    if (!experience.flower_addon || preset.sections.includes("bouquet")) {
+        return null;
+    }
+
+    return (
+        <FlowersSection
+            isAddon
+            onRemove={
+                sectionActions
+                    ? () => sectionActions.remove(section.id)
+                    : undefined
+            }
+        />
     );
 }
 
@@ -547,6 +674,8 @@ function SectionToolbar({
     };
 
     const count = section.slots.length;
+    // A page design's own section keeps the page's look and photos.
+    const isShared = Boolean(styleFor(section.type).shared);
 
     return (
         <div className="relative z-20 mx-auto mb-8 flex w-fit max-w-full flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded-2xl bg-white/95 px-4 py-2.5 font-sans text-sm text-[#3A2A30] shadow-lg">
@@ -570,6 +699,11 @@ function SectionToolbar({
                 </select>
             </label>
 
+            {isShared ? (
+                <span className="text-xs text-[#776D75]">
+                    Shows what is already on your page
+                </span>
+            ) : (
             <div className="flex flex-wrap items-center gap-1.5">
                 <Palette className="size-4 text-[#B23A62]" aria-hidden />
                 <span className="sr-only">Background color</span>
@@ -619,8 +753,9 @@ function SectionToolbar({
                     />
                 </label>
             </div>
+            )}
 
-            {section.type !== "note" && (
+            {!isShared && section.type !== "note" && (
                 <div className="flex items-center gap-1.5">
                     <Images className="size-4 text-[#B23A62]" aria-hidden />
                     <button
@@ -658,11 +793,20 @@ function SectionToolbar({
     );
 }
 
+/** How the premium flowers show in the section picker, if they can be added. */
+export type FlowersOption = { badge: string; description: string } | null;
+
 /**
- * Owner-only button between sections. It opens a picker of section styles
- * and inserts the chosen one at that spot.
+ * Button between sections for whoever edits the page. It opens a picker of
+ * section styles and inserts the chosen one at that spot.
  */
-export function AddSectionButton({ position }: { position: number }) {
+export function AddSectionButton({
+    position,
+    flowers = null,
+}: {
+    position: number;
+    flowers?: FlowersOption;
+}) {
     const { experience, sectionActions } = useExperience();
     const [picking, setPicking] = useState(false);
     const [adding, setAdding] = useState(false);
@@ -704,6 +848,7 @@ export function AddSectionButton({ position }: { position: number }) {
             {picking && (
                 <SectionPicker
                     adding={adding}
+                    flowers={flowers}
                     onPick={add}
                     onClose={() => !adding && setPicking(false)}
                 />
@@ -714,10 +859,12 @@ export function AddSectionButton({ position }: { position: number }) {
 
 function SectionPicker({
     adding,
+    flowers,
     onPick,
     onClose,
 }: {
     adding: boolean;
+    flowers: FlowersOption;
     onPick: (type: ExperienceSectionType) => void;
     onClose: () => void;
 }) {
@@ -727,7 +874,7 @@ function SectionPicker({
             onClick={onClose}
         >
             <div
-                className="w-full max-w-lg rounded-t-3xl bg-white p-5 text-left font-sans text-[#343039] shadow-2xl sm:rounded-3xl"
+                className="max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-white p-5 text-left font-sans text-[#343039] shadow-2xl sm:rounded-3xl"
                 onClick={(event) => event.stopPropagation()}
                 role="dialog"
                 aria-label="Choose a section style"
@@ -749,29 +896,70 @@ function SectionPicker({
                     You can change the style, colors and number of photos
                     afterwards.
                 </p>
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                    {SECTION_STYLES.map((style) => (
-                        <button
-                            key={style.type}
-                            type="button"
-                            disabled={adding}
-                            onClick={() => onPick(style.type)}
-                            className="flex items-start gap-3 rounded-2xl border border-[#E4D8CE] p-3 text-left transition hover:border-[#B86F83] hover:bg-[#FBF3EE] disabled:opacity-50"
-                        >
-                            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#FBE3E6] text-[#B23A62]">
-                                <style.icon className="size-4" />
-                            </span>
-                            <span>
-                                <span className="block text-sm font-semibold">
-                                    {style.label}
-                                </span>
-                                <span className="mt-0.5 block text-xs text-[#776D75]">
-                                    {style.description}
+                {flowers && (
+                    <button
+                        type="button"
+                        disabled={adding}
+                        onClick={() => onPick("flowers")}
+                        className="mt-4 flex w-full items-start gap-3 rounded-2xl border-2 border-[#E9B949] bg-gradient-to-br from-[#FFF8E6] to-[#FDEBEF] p-3 text-left transition hover:border-[#D9A21E] disabled:opacity-50"
+                    >
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#B23A62] text-white">
+                            <Flower2 className="size-4" />
+                        </span>
+                        <span className="flex-1">
+                            <span className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+                                Blooming flowers
+                                <span className="inline-flex items-center gap-1 rounded-full bg-[#E9B949] px-2 py-0.5 text-[11px] font-bold text-[#4A3203]">
+                                    <Crown className="size-3" />
+                                    {flowers.badge}
                                 </span>
                             </span>
-                        </button>
-                    ))}
-                </div>
+                            <span className="mt-0.5 block text-xs text-[#776D75]">
+                                {flowers.description}
+                            </span>
+                        </span>
+                    </button>
+                )}
+                {[
+                    {
+                        heading: "With its own photos",
+                        styles: SECTION_STYLES.filter((style) => !style.shared),
+                    },
+                    {
+                        heading:
+                            "From the page designs, using your page's words, moments and photos",
+                        styles: SECTION_STYLES.filter((style) => style.shared),
+                    },
+                ].map((group) => (
+                    <div key={group.heading} className="mt-4">
+                        <p className="mb-2 text-xs font-semibold tracking-wide text-[#776D75] uppercase">
+                            {group.heading}
+                        </p>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                            {group.styles.map((style) => (
+                                <button
+                                    key={style.type}
+                                    type="button"
+                                    disabled={adding}
+                                    onClick={() => onPick(style.type)}
+                                    className="flex items-start gap-3 rounded-2xl border border-[#E4D8CE] p-3 text-left transition hover:border-[#B86F83] hover:bg-[#FBF3EE] disabled:opacity-50"
+                                >
+                                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#FBE3E6] text-[#B23A62]">
+                                        <style.icon className="size-4" />
+                                    </span>
+                                    <span>
+                                        <span className="block text-sm font-semibold">
+                                            {style.label}
+                                        </span>
+                                        <span className="mt-0.5 block text-xs text-[#776D75]">
+                                            {style.description}
+                                        </span>
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                ))}
             </div>
         </div>
     );

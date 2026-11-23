@@ -391,6 +391,25 @@ export function usePageDraft(
 
     const sectionActions: SectionActions = {
         add: (type, position) => {
+            const flowers = current.custom_sections.find(
+                (section) => section.type === 'flowers',
+            );
+
+            // The flowers are one paid add-on: adding them again moves them.
+            if (type === 'flowers' && flowers) {
+                store({
+                    ...current,
+                    flower_addon: true,
+                    custom_sections: current.custom_sections.map((section) =>
+                        section.id === flowers.id
+                            ? { ...section, position }
+                            : section,
+                    ),
+                });
+
+                return;
+            }
+
             if (current.custom_sections.length >= MAX_CUSTOM_SECTIONS) {
                 toast.error(
                     `Your page can have at most ${MAX_CUSTOM_SECTIONS} extra sections.`,
@@ -401,6 +420,8 @@ export function usePageDraft(
 
             store({
                 ...current,
+                // Picking the flowers adds the add-on, charged at checkout.
+                ...(type === 'flowers' ? { flower_addon: true } : {}),
                 custom_sections: [
                     ...current.custom_sections,
                     {
@@ -452,18 +473,35 @@ export function usePageDraft(
             });
             onFinish?.();
         },
-        remove: (id) =>
+        remove: (id) => {
+            const removed = current.custom_sections.find(
+                (section) => section.id === id,
+            );
+
             store({
                 ...current,
+                ...(removed?.type === 'flowers' ? { flower_addon: false } : {}),
                 custom_sections: current.custom_sections.filter(
                     (section) => section.id !== id,
                 ),
-            }),
+            });
+        },
     };
 
-    /** Add or remove the flowers on a design that does not include them. */
+    /**
+     * Add or remove the flowers on a design that does not include them.
+     * Removing them also takes away the spot they were placed in.
+     */
     const setFlowerAddon = (isAdded: boolean) => {
-        store({ ...current, flower_addon: isAdded });
+        store({
+            ...current,
+            flower_addon: isAdded,
+            custom_sections: isAdded
+                ? current.custom_sections
+                : current.custom_sections.filter(
+                      (section) => section.type !== 'flowers',
+                  ),
+        });
     };
 
     /** Keep the page as it looks now, even if nothing was changed yet. */

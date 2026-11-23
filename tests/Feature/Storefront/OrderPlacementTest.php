@@ -440,6 +440,33 @@ test('extra sections and raining photos made on a demo come with the order', fun
     Storage::disk('local')->assertExists($experience->rain_photos);
 });
 
+test('the spot chosen for the flowers on a demo is kept only with the paid add-on', function (bool $flowerAddon, int $expectedSections) {
+    $nfc = ProductOption::factory()->for($this->product)->group(OptionGroup::Nfc)->costing(15000)->create([
+        'enables_digital_experience' => true,
+    ]);
+    $flowersSection = ['id' => 'flow1234', 'type' => 'flowers', 'position' => 3, 'slots' => []];
+    $noteSection = ['id' => 'note1234', 'type' => 'note', 'position' => 1, 'title' => 'Hi', 'slots' => []];
+
+    $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
+        'option_ids' => [$this->small->id, $nfc->id],
+        'experience_template' => 'anniversary',
+        'flower_addon' => $flowerAddon,
+        'page' => [
+            'title' => 'Year one',
+            'custom_sections' => [$noteSection, $flowersSection, [...$flowersSection, 'id' => 'flow5678']],
+        ],
+    ]))->assertSessionHasNoErrors();
+
+    $experience = Order::sole()->experience;
+
+    expect($experience->custom_sections)->toHaveCount($expectedSections)
+        ->and($experience->flower_addon)->toBe($flowerAddon)
+        ->and(collect($experience->custom_sections)->where('type', 'flowers')->count())->toBe($flowerAddon ? 1 : 0);
+})->with([
+    'flowers bought' => [true, 2],
+    'flowers not bought' => [false, 1],
+]);
+
 test('extra sections on a designed page must be valid', function () {
     $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
         'page' => [

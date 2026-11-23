@@ -51,7 +51,51 @@ test('the owner adds a section in the chosen style between the template sections
     'scrapbook board' => ['scrapbook', 4],
     'photo album' => ['album', 6],
     'text note' => ['note', 0],
+    'story timeline from the page designs' => ['story_timeline', 0],
+    'love letter from the page designs' => ['letter', 0],
 ]);
+
+test('flowers can only be placed on a page that bought them', function () {
+    $experience = DigitalExperience::factory()->create(['template' => 'anniversary']);
+
+    $this->actingAs($experience->user)
+        ->post(route('account.experiences.sections.store', $experience), ['position' => 1, 'type' => 'flowers'])
+        ->assertSessionHasErrors(['type' => 'Flowers can be added to this page design when ordering.']);
+
+    expect($experience->fresh()->custom_sections)->toBeNull();
+
+    $experience->update(['flower_addon' => true]);
+
+    $this->actingAs($experience->user)
+        ->post(route('account.experiences.sections.store', $experience), ['position' => 1, 'type' => 'flowers'])
+        ->assertSessionHasNoErrors();
+    $this->actingAs($experience->user)
+        ->post(route('account.experiences.sections.store', $experience), ['position' => 4, 'type' => 'flowers'])
+        ->assertSessionHasNoErrors();
+
+    $sections = $experience->fresh()->custom_sections;
+
+    expect($sections)->toHaveCount(1)
+        ->and($sections[0])->toMatchArray(['type' => 'flowers', 'position' => 4, 'slots' => []]);
+});
+
+test('the bouquet design cannot get its flowers a second time', function () {
+    $experience = DigitalExperience::factory()->create(['template' => 'digital_bouquet', 'flower_addon' => true]);
+
+    $this->actingAs($experience->user)
+        ->post(route('account.experiences.sections.store', $experience), ['position' => 1, 'type' => 'flowers'])
+        ->assertSessionHasErrors(['type' => 'This design already opens with its flowers.']);
+});
+
+test('a section cannot be switched into the flowers', function () {
+    $experience = DigitalExperience::factory()->create(['custom_sections' => [timelineSection()]]);
+
+    $this->actingAs($experience->user)
+        ->patch(route('account.experiences.sections.update', [$experience, 'abc12345']), ['type' => 'flowers'])
+        ->assertSessionHasErrors('type');
+
+    expect($experience->fresh()->custom_sections[0]['type'])->toBe('timeline');
+});
 
 test('only known section styles can be added', function () {
     $experience = DigitalExperience::factory()->create();

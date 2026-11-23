@@ -257,7 +257,16 @@ export type ExperienceSectionType =
     | 'film_strip'
     | 'scrapbook'
     | 'album'
-    | 'note';
+    | 'note'
+    | 'story_timeline'
+    | 'polaroid_wall'
+    | 'gallery'
+    | 'letter'
+    | 'quote'
+    | 'song'
+    | 'countdown'
+    | 'video'
+    | 'flowers';
 
 /** An extra section the owner added between the template's own sections. */
 export type ExperienceCustomSection = {

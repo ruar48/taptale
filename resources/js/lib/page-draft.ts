@@ -40,6 +40,15 @@ export const SECTION_SLOT_COUNTS: Record<ExperienceSectionType, number> = {
     scrapbook: 4,
     album: 6,
     note: 0,
+    story_timeline: 0,
+    polaroid_wall: 0,
+    gallery: 0,
+    letter: 0,
+    quote: 0,
+    song: 0,
+    countdown: 0,
+    video: 0,
+    flowers: 0,
 };
 
 export type PageDraftMoment = {

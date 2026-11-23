@@ -23,6 +23,7 @@ import {
     AddSectionButton,
     CustomSection,
 } from "@/components/taptale/experience/custom-sections";
+import type { FlowersOption } from "@/components/taptale/experience/custom-sections";
 import { Gate } from "@/components/taptale/experience/gates";
 import { RecipientActions } from "@/components/taptale/experience/recipient-actions";
 import {
@@ -87,6 +88,31 @@ export default function Experience({
      */
     const hasOwnFlowers = preset.sections.includes("bouquet");
     const showsAddedFlowers = !hasOwnFlowers && experience.flower_addon;
+    // Placed flowers show where they were put, instead of after the opening.
+    const hasPlacedFlowers = (experience.custom_sections ?? []).some(
+        (section) => section.type === "flowers",
+    );
+    /*
+     * The premium flowers in the section picker: on a demo they add the
+     * add-on (charged at checkout); on a page that bought them they move.
+     */
+    const flowersOption: FlowersOption = hasOwnFlowers
+        ? null
+        : isDemo
+          ? {
+                badge:
+                    flowersAddonPrice > 0
+                        ? `Premium · +${money(flowersAddonPrice)}`
+                        : "Premium",
+                description:
+                    "Glowing flowers bloom right here, with petals or your photos raining down. Added to your keychain order at checkout.",
+            }
+          : canEdit && experience.flower_addon
+            ? {
+                  badge: "Bought",
+                  description: "Move your flowers to this spot.",
+              }
+            : null;
     const [opened, setOpened] = useState(
         () =>
             preset.gate === null ||
@@ -467,7 +493,9 @@ export default function Experience({
                         {preset.sections.map((section, index) => (
                             <Fragment key={section}>
                                 <ExperienceSection section={section} />
-                                {index === 0 && showsAddedFlowers && (
+                                {index === 0 &&
+                                    showsAddedFlowers &&
+                                    !hasPlacedFlowers && (
                                     <FlowersSection
                                         isAddon
                                         onRemove={
@@ -489,7 +517,10 @@ export default function Experience({
                                     ),
                                 )}
                                 {editable && (
-                                    <AddSectionButton position={index + 1} />
+                                    <AddSectionButton
+                                        position={index + 1}
+                                        flowers={flowersOption}
+                                    />
                                 )}
                             </Fragment>
                         ))}
