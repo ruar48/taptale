@@ -51,6 +51,7 @@ class BuildDemoExperience
             'event_date' => $copy['date'],
             'video_url' => null,
             'video_file_url' => null,
+            'video_frame' => 'plain',
             'music_url' => 'https://www.youtube.com/watch?v=iKzRIweSBLA',
             'song_title' => 'Perfect',
             'song_artist' => 'Ed Sheeran',

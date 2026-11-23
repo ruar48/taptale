@@ -1,0 +1,275 @@
+/*
+ * Frames for the memory page video
+ * (resources/js/components/taptale/experience/video-frames.tsx).
+ */
+
+/* Polaroid: a taped-on instant photo with a handwritten line. */
+.vf-polaroid {
+    position: relative;
+    padding: 14px 14px 64px;
+    border-radius: 4px;
+    background: #fffdf8;
+    box-shadow: 0 25px 50px -20px rgb(0 0 0 / 0.45);
+    transform: rotate(-1.2deg);
+}
+
+.vf-polaroid::before,
+.vf-polaroid::after {
+    content: '';
+    position: absolute;
+    top: -12px;
+    width: 92px;
+    height: 26px;
+    background: rgb(255 236 200 / 0.78);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
+}
+
+.vf-polaroid::before {
+    left: 18px;
+    transform: rotate(-8deg);
+}
+
+.vf-polaroid::after {
+    right: 18px;
+    transform: rotate(7deg);
+}
+
+/* Film reel: a dark strip with sprocket holes along both edges. */
+.vf-film {
+    position: relative;
+    padding: 36px 14px;
+    border-radius: 6px;
+    background: #121212;
+    box-shadow: 0 25px 50px -20px rgb(0 0 0 / 0.6);
+}
+
+.vf-film::before,
+.vf-film::after {
+    content: '';
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    height: 12px;
+    border-radius: 2px;
+    background: repeating-linear-gradient(
+        90deg,
+        #f3ede2 0 12px,
+        transparent 12px 26px
+    );
+    opacity: 0.85;
+}
+
+.vf-film::before {
+    top: 12px;
+}
+
+.vf-film::after {
+    bottom: 12px;
+}
+
+/* Retro TV: a wooden set with a curved screen, knobs and an antenna. */
+.vf-tv {
+    position: relative;
+    margin-top: 56px;
+    padding: 20px clamp(64px, 16%, 120px) 20px 20px;
+    border-radius: 28px;
+    background: linear-gradient(160deg, #c98b55, #8a5a33);
+    box-shadow:
+        inset 0 2px 0 rgb(255 255 255 / 0.3),
+        inset 0 -6px 0 rgb(0 0 0 / 0.18),
+        0 30px 60px -25px rgb(0 0 0 / 0.6);
+}
+
+.vf-tv-screen {
+    overflow: hidden;
+    border: 6px solid #2b2420;
+    border-radius: 22px / 30px;
+    background: #000;
+    box-shadow: inset 0 0 30px rgb(0 0 0 / 0.8);
+}
+
+.vf-tv-panel {
+    position: absolute;
+    top: 26px;
+    right: 18px;
+    bottom: 26px;
+    width: clamp(34px, 9%, 72px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+.vf-tv-knob {
+    width: 100%;
+    aspect-ratio: 1;
+    max-width: 46px;
+    border-radius: 9999px;
+    background: radial-gradient(circle at 35% 30%, #f5e6d3, #6b4b33 70%);
+    box-shadow: 0 3px 6px rgb(0 0 0 / 0.35);
+}
+
+.vf-tv-grille {
+    flex: 1;
+    width: 100%;
+    border-radius: 8px;
+    background: repeating-linear-gradient(
+        0deg,
+        rgb(43 36 32 / 0.65) 0 3px,
+        transparent 3px 7px
+    );
+}
+
+.vf-tv::before,
+.vf-tv::after {
+    content: '';
+    position: absolute;
+    top: -52px;
+    left: 50%;
+    width: 3px;
+    height: 60px;
+    border-radius: 3px;
+    background: #4a3a30;
+    transform-origin: bottom center;
+}
+
+.vf-tv::before {
+    transform: translateX(-50%) rotate(-28deg);
+}
+
+.vf-tv::after {
+    transform: translateX(-50%) rotate(28deg);
+}
+
+/* Hearts: a pink frame with a ribbon bow and hearts floating around. */
+.vf-hearts {
+    position: relative;
+    margin-top: 26px;
+    padding: 12px;
+    border-radius: 32px;
+    background: linear-gradient(135deg, #ff9cc2, #ff5f9e 50%, #ffc1d6);
+    box-shadow: 0 25px 50px -20px rgb(255 79 139 / 0.55);
+}
+
+.vf-hearts-heart {
+    position: absolute;
+    color: #ff5f9e;
+    animation: vf-bob 3.6s ease-in-out infinite;
+}
+
+@keyframes vf-bob {
+    0%,
+    100% {
+        transform: translateY(0) rotate(-8deg);
+    }
+    50% {
+        transform: translateY(-10px) rotate(8deg);
+    }
+}
+
+/* Cinema: red curtains and a glowing "Now showing" marquee. */
+.vf-cinema {
+    position: relative;
+    overflow: hidden;
+    padding: 74px clamp(30px, 8%, 64px) 26px;
+    border-radius: 18px;
+    background: radial-gradient(70% 60% at 50% 40%, #3a1a1f, #140708);
+    box-shadow: 0 30px 60px -25px rgb(0 0 0 / 0.7);
+}
+
+.vf-cinema::before,
+.vf-cinema::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: clamp(26px, 7%, 58px);
+    background: repeating-linear-gradient(
+        90deg,
+        #7a0f1d 0 7px,
+        #a3192c 7px 14px,
+        #5e0a15 14px 19px
+    );
+    box-shadow: inset 0 -20px 30px rgb(0 0 0 / 0.35);
+}
+
+.vf-cinema::before {
+    left: 0;
+    border-bottom-right-radius: 70% 22%;
+}
+
+.vf-cinema::after {
+    right: 0;
+    border-bottom-left-radius: 70% 22%;
+}
+
+.vf-cinema-marquee {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    max-width: 80%;
+    overflow: hidden;
+    padding: 7px 20px;
+    border: 3px dotted #ffd76a;
+    border-radius: 10px;
+    background: #2a1a10;
+    color: #ffe7a3;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transform: translateX(-50%);
+    animation: vf-marquee-glow 2.4s ease-in-out infinite;
+}
+
+@keyframes vf-marquee-glow {
+    0%,
+    100% {
+        box-shadow: 0 0 10px rgb(255 215 106 / 0.35);
+    }
+    50% {
+        box-shadow: 0 0 22px rgb(255 215 106 / 0.75);
+    }
+}
+
+/* Phone: a phone with a rounded screen, best for clips filmed upright. */
+.vf-phone {
+    position: relative;
+    width: min(300px, 78%);
+    margin-inline: auto;
+    padding: 11px;
+    border-radius: 46px;
+    background: #111;
+    box-shadow:
+        0 0 0 2px #3a3a3a,
+        0 30px 60px -25px rgb(0 0 0 / 0.6);
+}
+
+.vf-phone::before {
+    content: '';
+    position: absolute;
+    top: 22px;
+    left: 50%;
+    z-index: 2;
+    width: 74px;
+    height: 20px;
+    border-radius: 9999px;
+    background: #111;
+    transform: translateX(-50%);
+}
+
+.vf-phone-screen {
+    overflow: hidden;
+    aspect-ratio: 9 / 19;
+    border-radius: 36px;
+    background: #000;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vf-hearts-heart,
+    .vf-cinema-marquee {
+        animation: none;
+    }
+}

@@ -238,6 +238,33 @@ test('the owner adds a video link on the page, and only safe links are kept', fu
     expect($experience->fresh()->video_url)->toBe('https://youtu.be/abc123');
 });
 
+test('the owner picks a frame for the video, on the page or in the editor', function () {
+    $experience = DigitalExperience::factory()->create();
+
+    expect($experience->fresh()->video_frame)->toBe('plain');
+
+    $this->actingAs($experience->user)
+        ->patch(route('account.experiences.content', $experience), ['field' => 'video_frame', 'value' => 'cinema'])
+        ->assertSessionHasNoErrors();
+
+    expect($experience->fresh()->video_frame)->toBe('cinema');
+
+    $this->actingAs($experience->user)
+        ->patch(route('account.experiences.content', $experience), ['field' => 'video_frame', 'value' => 'disco'])
+        ->assertSessionHasErrors('value');
+
+    $this->actingAs($experience->user)
+        ->put(route('account.experiences.update', $experience), [
+            'template' => 'classic',
+            'theme' => 'cream',
+            'title' => 'Us',
+            'video_frame' => 'phone',
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($experience->fresh()->video_frame)->toBe('phone');
+});
+
 test('another customer cannot add photos to someone else\'s page', function () {
     $experience = DigitalExperience::factory()->create(['photos' => []]);
 

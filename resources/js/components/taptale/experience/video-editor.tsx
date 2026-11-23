@@ -2,6 +2,9 @@ import { usePage } from '@inertiajs/react';
 import { Film, Loader2, RefreshCw, Trash2, Upload } from 'lucide-react';
 import { useState } from 'react';
 import { useExperience } from '@/components/taptale/experience/shared';
+import { VIDEO_FRAMES } from '@/components/taptale/experience/video-frames';
+import { cn } from '@/lib/utils';
+import type { VideoFrame } from '@/types';
 
 type Business = {
     email: string | null;
@@ -74,6 +77,18 @@ export function VideoEditor() {
         setSavingLink(false);
     };
 
+    const [savingFrame, setSavingFrame] = useState(false);
+
+    const chooseFrame = async (frame: VideoFrame) => {
+        if (frame === (experience.video_frame ?? 'plain')) {
+            return;
+        }
+
+        setSavingFrame(true);
+        await saveText('video_frame', frame);
+        setSavingFrame(false);
+    };
+
     const fileInput = (
         <input
             type="file"
@@ -97,6 +112,40 @@ export function VideoEditor() {
                 Upload a short clip up to {maxMegabytes} MB, or paste a YouTube
                 or Vimeo link for a longer video.
             </p>
+
+            <p className="mt-4 mb-2 text-xs font-semibold tracking-wide text-[#776D75] uppercase">
+                Frame
+            </p>
+            <div
+                className="flex flex-wrap gap-2"
+                role="radiogroup"
+                aria-label="Video frame"
+            >
+                {VIDEO_FRAMES.map((option) => {
+                    const selected =
+                        (experience.video_frame ?? 'plain') === option.value;
+
+                    return (
+                        <button
+                            key={option.value}
+                            type="button"
+                            role="radio"
+                            aria-checked={selected}
+                            disabled={savingFrame}
+                            onClick={() => void chooseFrame(option.value)}
+                            className={cn(
+                                'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition disabled:opacity-60',
+                                selected
+                                    ? 'border-[#B23A62] bg-[#FBE3E6] text-[#B23A62]'
+                                    : 'border-[#E4D8CE] hover:bg-black/5',
+                            )}
+                        >
+                            <option.icon className="size-3.5" />
+                            {option.label}
+                        </button>
+                    );
+                })}
+            </div>
 
             {addVideo && (
                 <div className="mt-3 flex flex-wrap items-center gap-2">

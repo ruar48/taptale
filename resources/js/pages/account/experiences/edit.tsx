@@ -37,6 +37,7 @@ import {
     themeStyle,
 } from '@/components/taptale/experience/config';
 import { contactFor } from '@/components/taptale/experience/video-editor';
+import { VIDEO_FRAMES } from '@/components/taptale/experience/video-frames';
 import { FileDropzone } from '@/components/taptale/file-dropzone';
 import { Panel } from '@/components/taptale/order-parts';
 import { Button } from '@/components/ui/button';
@@ -59,6 +60,7 @@ import type {
     FlowerRain,
     FlowerStyle,
     PhotoRainLayer,
+    VideoFrame,
 } from '@/types';
 
 type Props = {
@@ -129,6 +131,7 @@ type ExperienceForm = {
     photo_rain_layer: PhotoRainLayer;
     event_date: string;
     video_url: string;
+    video_frame: VideoFrame;
     music_url: string;
     song_title: string;
     song_artist: string;
@@ -177,6 +180,7 @@ export default function EditExperience({
         photo_rain_layer: experience.photo_rain_layer,
         event_date: experience.event_date ?? '',
         video_url: experience.video_url ?? '',
+        video_frame: experience.video_frame ?? 'plain',
         music_url: experience.music_url ?? '',
         song_title: experience.song_title ?? '',
         song_artist: experience.song_artist ?? '',
@@ -1227,6 +1231,45 @@ export default function EditExperience({
                                             above.
                                         </p>
                                     )}
+                                </div>
+                                <div className="sm:col-span-2">
+                                    <Label className="mb-2 block">
+                                        Video frame
+                                    </Label>
+                                    <div
+                                        className="flex flex-wrap gap-2"
+                                        role="radiogroup"
+                                        aria-label="Video frame"
+                                    >
+                                        {VIDEO_FRAMES.map((option) => (
+                                            <button
+                                                key={option.value}
+                                                type="button"
+                                                role="radio"
+                                                aria-checked={
+                                                    data.video_frame ===
+                                                    option.value
+                                                }
+                                                onClick={() =>
+                                                    setData(
+                                                        'video_frame',
+                                                        option.value,
+                                                    )
+                                                }
+                                                className={cn(
+                                                    'inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-sm transition',
+                                                    data.video_frame ===
+                                                        option.value
+                                                        ? 'border-rose'
+                                                        : 'border-border hover:border-rose/40',
+                                                )}
+                                            >
+                                                <option.icon className="size-4" />
+                                                {option.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <InputError message={errors.video_frame} />
                                 </div>
                             </div>
                         </Panel>

@@ -219,6 +219,16 @@ export type FlowerStyle =
 /** What falls from the sky over the flowers. */
 export type FlowerRain = 'none' | 'petals' | 'photos' | 'both';
 
+/** The frame the page video plays in. */
+export type VideoFrame =
+    | 'plain'
+    | 'polaroid'
+    | 'film'
+    | 'tv'
+    | 'hearts'
+    | 'cinema'
+    | 'phone';
+
 export type ExperienceTemplateKey =
     | 'monthsary'
     | 'birthday'
@@ -318,6 +328,7 @@ export type DigitalExperience = {
     video_url: string | null;
     /** A short video file uploaded to the page (or kept in a demo draft). */
     video_file_url: string | null;
+    video_frame: VideoFrame;
     music_url: string | null;
     song_title: string | null;
     song_artist: string | null;

@@ -78,6 +78,7 @@ class StoreOrderRequest extends FormRequest
             'page.song_artist' => ['nullable', 'string', 'max:120'],
             'page.music_url' => ['nullable', 'url:https', 'max:500'],
             'page.video_url' => ['nullable', 'url:https', 'max:500'],
+            'page.video_frame' => ['nullable', 'string', Rule::in(DigitalExperience::VIDEO_FRAMES)],
             'page.flower_style' => ['nullable', Rule::enum(FlowerStyle::class)],
             'page.flower_rain' => ['nullable', Rule::enum(FlowerRain::class)],
             'page.photo_rain_layer' => ['nullable', Rule::enum(PhotoRainLayer::class)],

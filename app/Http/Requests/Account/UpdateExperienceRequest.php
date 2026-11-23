@@ -45,6 +45,7 @@ class UpdateExperienceRequest extends FormRequest
             'photo_rain_layer' => [Rule::excludeIf(! $this->showsFlowers()), 'sometimes', Rule::enum(PhotoRainLayer::class)],
             'event_date' => ['nullable', 'string', 'max:60'],
             'video_url' => ['nullable', 'url:https', 'max:500'],
+            'video_frame' => ['sometimes', 'string', Rule::in(DigitalExperience::VIDEO_FRAMES)],
             'music_url' => ['nullable', 'url:https', 'max:500'],
             'song_title' => ['nullable', 'string', 'max:120'],
             'song_artist' => ['nullable', 'string', 'max:120'],

@@ -171,7 +171,7 @@ class PlaceOrder
         }
 
         $textFields = ['title', 'subtitle', 'recipient_name', 'sender_name', 'message', 'quote', 'flowers_note', 'event_date', 'song_title', 'song_artist', 'music_url', 'video_url'];
-        $choiceFields = ['flower_style', 'flower_rain', 'photo_rain_layer', 'song_ornament', 'song_background'];
+        $choiceFields = ['flower_style', 'flower_rain', 'photo_rain_layer', 'song_ornament', 'song_background', 'video_frame'];
         $clean = fn (mixed $value): ?string => trim((string) $value) === '' ? null : trim((string) $value);
 
         $content = [];

@@ -22,6 +22,7 @@ import { FlowerScene } from '@/components/taptale/experience/flower-scenes';
 import { NightGarden } from '@/components/taptale/experience/night-garden';
 import { SongPlayer } from '@/components/taptale/experience/song-player';
 import { VideoEditor } from '@/components/taptale/experience/video-editor';
+import { VideoFrameView } from '@/components/taptale/experience/video-frames';
 import {
     HEARTS_BACKDROP_STYLE,
     HeartFlourish,
@@ -1253,46 +1254,62 @@ function Gallery() {
 function VideoSection() {
     const { experience, editable } = useExperience();
     const embed = embedFor(experience.video_url);
+    const frame = experience.video_frame ?? 'plain';
 
     if (!experience.video_url && !experience.video_file_url && !editable) {
         return null;
     }
 
+    // The phone frame has an upright screen; every other frame is 16:9.
+    const screen = frame === 'phone' ? 'size-full' : 'aspect-video w-full';
+
+    const player = experience.video_file_url ? (
+        <video
+            key={experience.video_file_url}
+            src={experience.video_file_url}
+            controls
+            playsInline
+            preload="metadata"
+            className={cn(screen, 'bg-black object-contain')}
+        />
+    ) : embed ? (
+        <iframe
+            src={embed.src}
+            title="Our video"
+            className={cn(screen, 'block')}
+            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            allowFullScreen
+            loading="lazy"
+        />
+    ) : experience.video_url ? (
+        <a
+            href={experience.video_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(
+                screen,
+                'flex items-center justify-center gap-3 bg-[var(--x-accent)] font-medium text-[var(--x-accent-ink)]',
+            )}
+        >
+            <Play className="size-6" /> Watch our video
+        </a>
+    ) : (
+        <div
+            className={cn(
+                screen,
+                'flex flex-col items-center justify-center gap-2 bg-neutral-900 text-sm text-white/70',
+            )}
+        >
+            <Play className="size-8" /> Your video plays here
+        </div>
+    );
+
     return (
         <SectionShell surface>
             <Reveal>
-                {experience.video_file_url ? (
-                    <div className="mx-auto max-w-3xl overflow-hidden rounded-3xl bg-black shadow-2xl">
-                        <video
-                            key={experience.video_file_url}
-                            src={experience.video_file_url}
-                            controls
-                            playsInline
-                            preload="metadata"
-                            className="aspect-video w-full"
-                        />
-                    </div>
-                ) : !experience.video_url ? null : embed ? (
-                    <div className="mx-auto aspect-video max-w-3xl overflow-hidden rounded-3xl shadow-2xl">
-                        <iframe
-                            src={embed.src}
-                            title="Our video"
-                            className="size-full"
-                            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                            allowFullScreen
-                            loading="lazy"
-                        />
-                    </div>
-                ) : (
-                    <a
-                        href={experience.video_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mx-auto flex max-w-sm items-center justify-center gap-3 rounded-3xl bg-[var(--x-accent)] p-5 font-medium text-[var(--x-accent-ink)]"
-                    >
-                        <Play className="size-6" /> Watch our video
-                    </a>
-                )}
+                <VideoFrameView frame={frame} title={experience.title}>
+                    {player}
+                </VideoFrameView>
                 {editable && <VideoEditor />}
             </Reveal>
         </SectionShell>
