@@ -8,7 +8,6 @@ import {
     Loader2,
     Lock,
     Nfc,
-    Pencil,
     QrCode,
     ShieldCheck,
     Star,
@@ -24,6 +23,10 @@ import QrPhPaymentController from "@/actions/App/Http/Controllers/Account/QrPhPa
 import PaymentController from "@/actions/App/Http/Controllers/Account/PaymentController";
 import ReviewController from "@/actions/App/Http/Controllers/Account/ReviewController";
 import InputError from "@/components/input-error";
+import {
+    ExperienceEditor,
+    type ExperienceEditorProps,
+} from "@/components/taptale/experience/experience-editor";
 import { FileDropzone } from "@/components/taptale/file-dropzone";
 import { OrderDesignEditor } from "@/components/taptale/order-design-editor";
 import { ProofApproval } from "@/components/taptale/proof-approval";
@@ -60,7 +63,6 @@ import { useClipboard } from "@/hooks/use-clipboard";
 import { useMoney } from "@/hooks/use-money";
 import { formatDate, formatFileSize, toPesoInput } from "@/lib/money";
 import { cn } from "@/lib/utils";
-import { edit as editExperience } from "@/routes/account/experiences";
 import {
     index as ordersIndex,
     show as orderShow,
@@ -71,12 +73,15 @@ type Props = {
     order: Order;
     paymentMethods: PaymentMethod[];
     maxUploadKilobytes: number;
+    /** The website the keychain opens, edited right on this page. */
+    website: ExperienceEditorProps | null;
 };
 
 export default function OrderShow({
     order,
     paymentMethods,
     maxUploadKilobytes,
+    website,
 }: Props) {
     setLayoutProps({
         breadcrumbs: [
@@ -182,7 +187,7 @@ export default function OrderShow({
                     </div>
                 )}
 
-                {order.experience && <WebsiteHero order={order} />}
+                {website && <ExperienceEditor {...website} embedded />}
 
                 {order.is_design_editable && (
                     <OrderDesignEditor
@@ -550,7 +555,11 @@ export default function OrderShow({
     );
 }
 
-function PaymentForm({ order, paymentMethods, maxUploadKilobytes }: Props) {
+function PaymentForm({
+    order,
+    paymentMethods,
+    maxUploadKilobytes,
+}: Omit<Props, "website">) {
     const money = useMoney();
     const form = useForm<{
         payment_method_id: number | null;
@@ -903,74 +912,6 @@ function UploadFiles({
                 </Button>
             </div>
         </form>
-    );
-}
-
-/**
- * The website the keychain opens is the heart of the gift, so it leads the
- * order page: a clear call to design it, with its status and QR code.
- */
-function WebsiteHero({ order }: { order: Order }) {
-    const experience = order.experience!;
-
-    return (
-        <section className="overflow-hidden rounded-2xl bg-gradient-to-br from-plum to-plum-dark p-5 text-white sm:p-6">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                    <div className="flex items-center gap-2 text-blush">
-                        <Nfc className="size-5" />
-                        <p className="text-xs font-semibold tracking-[0.2em] uppercase">
-                            Your website · the main gift
-                        </p>
-                    </div>
-                    <h2 className="mt-2 font-display text-2xl">
-                        {experience.is_published
-                            ? experience.title
-                            : "Design the page they see when they tap"}
-                    </h2>
-                    <p className="mt-1 max-w-xl text-sm text-white/75">
-                        {experience.is_published
-                            ? `Live · ${experience.view_count ?? 0} opens. `
-                            : "Not published yet. "}
-                        Pick a design, then add your message, photos, song and
-                        video. You can change your words and photos anytime.
-                    </p>
-                    <div className="mt-4 flex flex-wrap items-center gap-3">
-                        <Button
-                            asChild
-                            className="h-11 rounded-full bg-cream px-6 text-plum hover:bg-white"
-                        >
-                            <Link href={editExperience(experience.code)}>
-                                <Pencil className="size-4" /> Edit your website
-                            </Link>
-                        </Button>
-                        {experience.public_url && (
-                            <a
-                                href={experience.public_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="flex items-center gap-1.5 text-sm text-white/80 hover:text-white"
-                            >
-                                <ExternalLink className="size-3.5" /> Open page
-                            </a>
-                        )}
-                    </div>
-                </div>
-                {experience.qr_url && (
-                    <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:text-center">
-                        <img
-                            src={experience.qr_url}
-                            alt="QR code for your website"
-                            className="size-24 rounded-xl bg-white p-1.5"
-                        />
-                        <p className="max-w-40 text-xs text-white/70">
-                            Whoever taps the keychain can share it with a link
-                            that lasts up to 30 days.
-                        </p>
-                    </div>
-                )}
-            </div>
-        </section>
     );
 }
 

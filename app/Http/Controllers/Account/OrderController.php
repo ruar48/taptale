@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Account;
 
+use App\Actions\DigitalExperiences\BuildExperienceEditor;
 use App\Actions\Payments\ClosePayMongoCheckout;
 use App\Enums\ActivityType;
 use App\Enums\OrderStatus;
@@ -35,7 +36,7 @@ class OrderController extends Controller
     /**
      * Show an order with its design proofs, files, payments and timeline.
      */
-    public function show(Request $request, Order $order): Response
+    public function show(Request $request, Order $order, BuildExperienceEditor $buildEditor): Response
     {
         Gate::authorize('update', $order);
 
@@ -58,6 +59,10 @@ class OrderController extends Controller
             // to pay a balance from the order page.
             'paymentMethods' => PaymentMethodResource::collection(PaymentMethod::active()->where('driver', '!=', 'cod')->get()),
             'maxUploadKilobytes' => (int) config('taptale.max_upload_kilobytes'),
+            // The website the keychain opens is edited right on this page.
+            'website' => $order->experience !== null
+                ? $buildEditor->handle($order->experience, $request->user())
+                : null,
         ]);
     }
 

@@ -73,15 +73,15 @@ class CatalogSeeder extends Seeder
                 'name' => 'Personalized Acrylic Keychain',
                 'short' => 'Crystal-clear acrylic printed with your favorite photo and words.',
                 'art' => 'acrylic', 'price' => 14900, 'fee' => 5000, 'days' => [3, 5],
-                'featured' => true, 'bestseller' => true, 'photos' => 2, 'experience' => false,
-                'options' => $this->keychainOptions(withNfcUpgrade: true),
+                'featured' => true, 'bestseller' => true, 'photos' => 2, 'experience' => true,
+                'options' => $this->keychainOptions(),
             ],
             'nfc-keychain' => [
                 'name' => 'NFC Memory Keychain',
                 'short' => 'Tap it with a phone to open a private page of your photos, video, and message.',
                 'art' => 'nfc', 'price' => 34900, 'fee' => 8000, 'days' => [5, 7],
                 'featured' => true, 'bestseller' => true, 'photos' => 3, 'experience' => true,
-                'options' => $this->keychainOptions(withNfcUpgrade: false),
+                'options' => $this->keychainOptions(),
             ],
             'qr-keepsake' => [
                 'name' => 'Personalized QR Keepsake',
@@ -116,14 +116,14 @@ class CatalogSeeder extends Seeder
                 'name' => 'Matching Couple Keychains',
                 'short' => 'Two halves of one story — a matching pair for you and your person.',
                 'art' => 'keepsake', 'price' => 27900, 'fee' => 6000, 'days' => [3, 5],
-                'featured' => false, 'bestseller' => true, 'photos' => 2, 'experience' => false,
-                'options' => $this->keychainOptions(withNfcUpgrade: true),
+                'featured' => false, 'bestseller' => true, 'photos' => 2, 'experience' => true,
+                'options' => $this->keychainOptions(),
             ],
             'souvenir-keychain-bulk' => [
                 'name' => 'Event Souvenir Keychains',
                 'short' => 'Personalized keychains for guests — priced per piece for events.',
                 'art' => 'acrylic', 'price' => 6900, 'fee' => 15000, 'days' => [7, 12],
-                'featured' => true, 'bestseller' => false, 'photos' => 2, 'experience' => false,
+                'featured' => true, 'bestseller' => false, 'photos' => 2, 'experience' => true,
                 'min' => 20, 'max' => 1000,
                 'options' => [
                     [OptionGroup::Size, 'Small (40 mm)', 0, true],
@@ -155,15 +155,13 @@ class CatalogSeeder extends Seeder
                 'name' => 'Mini CD Album Keychain',
                 'short' => 'A tiny jewel case with your own album cover, tracklist and a printed mini disc inside.',
                 'art' => 'cd', 'price' => 15900, 'fee' => 6000, 'days' => [4, 6],
-                'featured' => true, 'bestseller' => true, 'photos' => 3, 'experience' => false,
+                'featured' => true, 'bestseller' => true, 'photos' => 3, 'experience' => true,
                 'options' => [
                     [OptionGroup::Size, 'Mini case (45 × 40 mm)', 0, true],
                     [OptionGroup::Size, 'Large case (60 × 54 mm)', 4000],
                     [OptionGroup::Color, 'Silver ball chain', 0, true, '#C0C0C0'],
                     [OptionGroup::Color, 'Black ball chain', 0, false, '#343039'],
                     [OptionGroup::Color, 'Pastel pink chain', 1000, false, '#E9C9C9'],
-                    [OptionGroup::Nfc, 'No NFC', 0, true],
-                    [OptionGroup::Nfc, 'NFC readable — tap to play your song', 6000, false, null, true],
                     [OptionGroup::AddOn, 'Extra printed disc', 2000],
                     ...$this->packagingOptions(),
                 ],
@@ -172,7 +170,7 @@ class CatalogSeeder extends Seeder
                 'name' => 'Music Player Acrylic Keychain',
                 'short' => 'Your photo as the album art of "your song" — with a play bar and scannable song code look.',
                 'art' => 'music', 'price' => 9900, 'fee' => 4000, 'days' => [3, 5],
-                'featured' => true, 'bestseller' => true, 'photos' => 1, 'experience' => false,
+                'featured' => true, 'bestseller' => true, 'photos' => 1, 'experience' => true,
                 'options' => [
                     [OptionGroup::Size, 'Standard (54 × 86 mm)', 0, true],
                     [OptionGroup::Size, 'Large (63 × 100 mm)', 3000],
@@ -181,8 +179,6 @@ class CatalogSeeder extends Seeder
                     [OptionGroup::Color, 'Silver ring', 0, true, '#C0C0C0'],
                     [OptionGroup::Color, 'Gold ring', 0, false, '#D4AF37'],
                     [OptionGroup::Color, 'Rose gold ring', 0, false, '#B76E79'],
-                    [OptionGroup::Nfc, 'No NFC', 0, true],
-                    [OptionGroup::Nfc, 'Add NFC — tap to open your song & memories', 12000, false, null, true],
                     ...$this->packagingOptions(),
                 ],
             ],
@@ -190,7 +186,7 @@ class CatalogSeeder extends Seeder
                 'name' => 'Photobooth Strip Keychain',
                 'short' => 'Four of your favorite shots in a classic photobooth strip, sealed in clear acrylic.',
                 'art' => 'strip', 'price' => 4900, 'fee' => 3000, 'days' => [3, 5],
-                'featured' => false, 'bestseller' => true, 'photos' => 4, 'experience' => false,
+                'featured' => false, 'bestseller' => true, 'photos' => 4, 'experience' => true,
                 'options' => [
                     [OptionGroup::Size, 'Mini strip (25 × 75 mm)', 0, true],
                     [OptionGroup::Size, 'Classic strip (35 × 105 mm)', 2000],
@@ -220,7 +216,7 @@ class CatalogSeeder extends Seeder
                 'name' => 'Engraved Wooden Keychain',
                 'short' => 'Your photo and a heartfelt line, laser-engraved on real wood.',
                 'art' => 'wood', 'price' => 8800, 'fee' => 4000, 'days' => [3, 6],
-                'featured' => true, 'bestseller' => true, 'photos' => 1, 'experience' => false,
+                'featured' => true, 'bestseller' => true, 'photos' => 1, 'experience' => true,
                 'options' => [
                     [OptionGroup::Material, 'Maple (light)', 0, true],
                     [OptionGroup::Material, 'Walnut (dark)', 2000],
@@ -236,7 +232,7 @@ class CatalogSeeder extends Seeder
                 'name' => 'Die-cut Photo Keychain',
                 'short' => 'Your favorite person, pet or meme cut to shape with a glossy sticker-style outline.',
                 'art' => 'diecut', 'price' => 6900, 'fee' => 3000, 'days' => [3, 5],
-                'featured' => false, 'bestseller' => false, 'photos' => 2, 'experience' => false,
+                'featured' => false, 'bestseller' => false, 'photos' => 2, 'experience' => true,
                 'options' => [
                     [OptionGroup::Size, 'Small (50 mm)', 0, true],
                     [OptionGroup::Size, 'Large (70 mm)', 2500],
@@ -252,7 +248,7 @@ class CatalogSeeder extends Seeder
                 'name' => 'Pinoy Calendar Keychain',
                 'short' => 'Your photo above a calendar of your special month, with your sweetest line spelled out in the date boxes.',
                 'art' => 'calendar', 'price' => 9900, 'fee' => 4000, 'days' => [3, 5],
-                'featured' => true, 'bestseller' => true, 'photos' => 1, 'experience' => false,
+                'featured' => true, 'bestseller' => true, 'photos' => 1, 'experience' => true,
                 'options' => [
                     [OptionGroup::Size, 'Standard (45 × 60 mm)', 0, true],
                     [OptionGroup::Size, 'Large (54 × 72 mm)', 2500],
@@ -316,7 +312,7 @@ class CatalogSeeder extends Seeder
     /**
      * @return list<array{0: OptionGroup, 1: string, 2: int, 3?: bool, 4?: string|null, 5?: bool}>
      */
-    private function keychainOptions(bool $withNfcUpgrade): array
+    private function keychainOptions(): array
     {
         $options = [
             [OptionGroup::Size, 'Petite (45 mm)', 0, true],
@@ -337,11 +333,6 @@ class CatalogSeeder extends Seeder
             [OptionGroup::AddOn, 'Initial charm', 3500],
             [OptionGroup::AddOn, 'Tassel', 2500],
         ];
-
-        if ($withNfcUpgrade) {
-            $options[] = [OptionGroup::Nfc, 'No NFC', 0, true];
-            $options[] = [OptionGroup::Nfc, 'Add NFC tap chip + digital memory page', 15000, false, null, true];
-        }
 
         return [...$options, ...$this->packagingOptions()];
     }

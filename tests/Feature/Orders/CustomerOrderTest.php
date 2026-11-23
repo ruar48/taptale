@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\OrderStatus;
+use App\Models\DigitalExperience;
 use App\Models\Order;
 use App\Models\OrderActivity;
 use App\Models\OrderFile;
@@ -40,6 +41,27 @@ test('internal notes are hidden from the customer', function () {
             ->component('account/orders/show')
             ->has('order.activities', 1)
             ->where('order.activities.0.body', 'Your design is coming along!'));
+});
+
+test('the customer edits the website their keychain opens right on the order page', function () {
+    $order = Order::factory()->create();
+    $experience = DigitalExperience::factory()->for($order)->for($order->user)->create();
+
+    $this->actingAs($order->user)
+        ->get(route('account.orders.show', $order))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('website.experience.code', $experience->code)
+            ->where('website.order.reference', $order->reference)
+            ->where('website.adminEditing', null)
+            ->has('website.templates'));
+});
+
+test('an order without a website has no website editor', function () {
+    $order = Order::factory()->create();
+
+    $this->actingAs($order->user)
+        ->get(route('account.orders.show', $order))
+        ->assertInertia(fn (Assert $page) => $page->where('website', null));
 });
 
 test('an approved self-design is reported as approved before any proof exists', function () {

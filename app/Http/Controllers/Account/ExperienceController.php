@@ -2,15 +2,12 @@
 
 namespace App\Http\Controllers\Account;
 
+use App\Actions\DigitalExperiences\BuildExperienceEditor;
 use App\Actions\DigitalExperiences\StoreExperiencePhoto;
 use App\Enums\ExperienceTemplate;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\UpdateExperienceRequest;
-use App\Http\Resources\DigitalExperienceResource;
 use App\Models\DigitalExperience;
-use App\Models\ExperienceReply;
-use App\Models\ExperienceView;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -52,48 +49,11 @@ class ExperienceController extends Controller
     /**
      * Show the editor for a customer's NFC / QR digital experience.
      */
-    public function edit(Request $request, DigitalExperience $experience): Response
+    public function edit(Request $request, DigitalExperience $experience, BuildExperienceEditor $buildEditor): Response
     {
         Gate::authorize('update', $experience);
 
-        $experience->load([
-            'order:id,reference,product_name,status,customer_name',
-            'replies' => fn (HasMany $query) => $query->limit(50),
-        ]);
-
-        $isAdminEditing = $experience->user_id !== $request->user()->id;
-
-        return Inertia::render('account/experiences/edit', [
-            'experience' => new DigitalExperienceResource($experience),
-            'order' => [
-                'reference' => $experience->order->reference,
-                'product_name' => $experience->order->product_name,
-            ],
-            'adminEditing' => $isAdminEditing ? ['customer_name' => $experience->order->customer_name] : null,
-            'stats' => [
-                'views' => $experience->view_count,
-                'hearts' => $experience->heart_count,
-                'views_this_week' => $experience->views()->where('created_at', '>=', now()->subDays(7))->count(),
-                'recent_views' => $experience->views()->latest()->latest('id')->limit(8)->get(['id', 'device', 'created_at'])
-                    ->map(fn (ExperienceView $view): array => [
-                        'id' => $view->id,
-                        'device' => $view->device,
-                        'created_at' => $view->created_at->toIso8601String(),
-                    ]),
-            ],
-            'replies' => $experience->replies->map(fn (ExperienceReply $reply): array => [
-                'id' => $reply->id,
-                'name' => $reply->name,
-                'message' => $reply->message,
-                'created_at' => $reply->created_at?->toIso8601String(),
-            ]),
-            'templates' => ExperienceTemplate::options(),
-            'isTemplateLocked' => $experience->isTemplateLocked(),
-            'themes' => DigitalExperience::THEMES,
-            'maxPhotos' => DigitalExperience::MAX_PHOTOS,
-            'maxMoments' => DigitalExperience::MAX_MOMENTS,
-            'maxUploadKilobytes' => (int) config('taptale.max_upload_kilobytes'),
-        ]);
+        return Inertia::render('account/experiences/edit', $buildEditor->handle($experience, $request->user()));
     }
 
     /**
