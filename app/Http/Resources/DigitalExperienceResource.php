@@ -47,6 +47,7 @@ class DigitalExperienceResource extends JsonResource
             'video_url' => $this->video_url,
             'video_file_url' => $this->video_path !== null ? route('experiences.video', $this->resource) : null,
             'video_frame' => $this->video_frame,
+            'video_background' => $this->video_background,
             'music_url' => $this->music_url,
             'song_title' => $this->song_title,
             'song_artist' => $this->song_artist,

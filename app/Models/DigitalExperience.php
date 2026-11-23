@@ -39,6 +39,7 @@ use Illuminate\Support\Str;
  * @property string|null $video_url
  * @property string|null $video_path A short video file uploaded to the page
  * @property string $video_frame The frame the video plays in (see VIDEO_FRAMES)
+ * @property string $video_background The backdrop behind the video (see VIDEO_BACKGROUNDS)
  * @property string|null $music_url
  * @property string|null $song_title
  * @property string|null $song_artist
@@ -62,7 +63,7 @@ use Illuminate\Support\Str;
 #[RouteKey('code')]
 #[Fillable([
     'template', 'title', 'subtitle', 'recipient_name', 'sender_name', 'message', 'quote', 'flowers_note', 'flower_style', 'flower_rain', 'flower_addon',
-    'photo_rain_layer', 'event_date', 'video_url', 'video_path', 'video_frame', 'music_url', 'song_title', 'song_artist', 'song_ornament', 'song_background', 'photos', 'rain_photos', 'moments', 'custom_sections', 'theme',
+    'photo_rain_layer', 'event_date', 'video_url', 'video_path', 'video_frame', 'video_background', 'music_url', 'song_title', 'song_artist', 'song_ornament', 'song_background', 'photos', 'rain_photos', 'moments', 'custom_sections', 'theme',
     'nfc_tag_uid', 'is_published', 'unlocks_at',
 ])]
 class DigitalExperience extends Model
@@ -86,6 +87,13 @@ class DigitalExperience extends Model
      * @var list<string>
      */
     public const VIDEO_FRAMES = ['plain', 'polaroid', 'film', 'tv', 'hearts', 'cinema', 'phone'];
+
+    /**
+     * Backdrops behind the page video: the page theme or a designed scene.
+     *
+     * @var list<string>
+     */
+    public const VIDEO_BACKGROUNDS = ['theme', 'theater', 'starry', 'hearts', 'sunset', 'retro', 'confetti'];
 
     /**
      * Maximum number of timeline / polaroid moments.
@@ -121,6 +129,7 @@ class DigitalExperience extends Model
         'flower_rain' => 'none',
         'flower_addon' => false,
         'video_frame' => 'plain',
+        'video_background' => 'theme',
         'photo_rain_layer' => 'front',
         'song_ornament' => 'none',
         'song_background' => 'theme',

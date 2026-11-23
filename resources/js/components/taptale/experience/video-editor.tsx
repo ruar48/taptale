@@ -2,7 +2,10 @@ import { usePage } from '@inertiajs/react';
 import { Film, Loader2, RefreshCw, Trash2, Upload } from 'lucide-react';
 import { useState } from 'react';
 import { useExperience } from '@/components/taptale/experience/shared';
-import { VIDEO_FRAMES } from '@/components/taptale/experience/video-frames';
+import {
+    VIDEO_BACKGROUNDS,
+    VIDEO_FRAMES,
+} from '@/components/taptale/experience/video-frames';
 import { cn } from '@/lib/utils';
 import type { VideoFrame } from '@/types';
 
@@ -79,15 +82,22 @@ export function VideoEditor() {
 
     const [savingFrame, setSavingFrame] = useState(false);
 
-    const chooseFrame = async (frame: VideoFrame) => {
-        if (frame === (experience.video_frame ?? 'plain')) {
+    const chooseStyle = async (
+        field: 'video_frame' | 'video_background',
+        value: string,
+        current: string,
+    ) => {
+        if (value === current) {
             return;
         }
 
         setSavingFrame(true);
-        await saveText('video_frame', frame);
+        await saveText(field, value);
         setSavingFrame(false);
     };
+
+    const chooseFrame = (frame: VideoFrame) =>
+        chooseStyle('video_frame', frame, experience.video_frame ?? 'plain');
 
     const fileInput = (
         <input
@@ -141,6 +151,55 @@ export function VideoEditor() {
                             )}
                         >
                             <option.icon className="size-3.5" />
+                            {option.label}
+                        </button>
+                    );
+                })}
+            </div>
+
+            <p className="mt-4 mb-2 text-xs font-semibold tracking-wide text-[#776D75] uppercase">
+                Background
+            </p>
+            <div
+                className="flex flex-wrap gap-2"
+                role="radiogroup"
+                aria-label="Video background"
+            >
+                {VIDEO_BACKGROUNDS.map((option) => {
+                    const selected =
+                        (experience.video_background ?? 'theme') ===
+                        option.value;
+
+                    return (
+                        <button
+                            key={option.value}
+                            type="button"
+                            role="radio"
+                            aria-checked={selected}
+                            disabled={savingFrame}
+                            onClick={() =>
+                                void chooseStyle(
+                                    'video_background',
+                                    option.value,
+                                    experience.video_background ?? 'theme',
+                                )
+                            }
+                            className={cn(
+                                'inline-flex items-center gap-1.5 rounded-full border py-1 pr-3 pl-1 text-xs font-semibold transition disabled:opacity-60',
+                                selected
+                                    ? 'border-[#B23A62] bg-[#FBE3E6] text-[#B23A62]'
+                                    : 'border-[#E4D8CE] hover:bg-black/5',
+                            )}
+                        >
+                            <span
+                                className={cn(
+                                    'size-6 shrink-0 rounded-full ring-1 ring-black/10',
+                                    option.value === 'theme'
+                                        ? 'bg-[var(--x-surface)]'
+                                        : `vb-${option.value}`,
+                                )}
+                                aria-hidden
+                            />
                             {option.label}
                         </button>
                     );

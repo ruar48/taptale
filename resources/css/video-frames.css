@@ -273,3 +273,146 @@
         animation: none;
     }
 }
+
+/*
+ * Backdrops behind the video section. The class goes on the section; the
+ * vb-*-art pieces are painted behind its content.
+ */
+.vb-theater {
+    background:
+        radial-gradient(60% 55% at 50% 30%, rgb(255 225 160 / 0.16), transparent 70%),
+        linear-gradient(180deg, #2a0a10, #12040a 75%);
+}
+
+.vb-theater-valance {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 48px;
+    background:
+        radial-gradient(circle at 50% 0, #8e1426 0 30px, transparent 31px) 0 0 /
+            60px 48px repeat-x,
+        linear-gradient(#8e1426, #8e1426) 0 0 / 100% 16px no-repeat;
+    filter: drop-shadow(0 6px 6px rgb(0 0 0 / 0.45));
+}
+
+.vb-theater-light {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: min(900px, 90%);
+    height: 85%;
+    background: linear-gradient(180deg, rgb(255 236 190 / 0.22), transparent 85%);
+    clip-path: polygon(44% 0, 56% 0, 88% 100%, 12% 100%);
+    transform: translateX(-50%);
+}
+
+.vb-theater-seats {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 92px;
+    background:
+        radial-gradient(circle at 50% 100%, #160509 0 27px, transparent 28px)
+            32px 0 / 64px 62px repeat-x,
+        radial-gradient(circle at 50% 100%, #070103 0 27px, transparent 28px) 0
+            30px / 64px 62px repeat-x;
+}
+
+.vb-starry {
+    background: radial-gradient(120% 80% at 50% 100%, #2a1f4d, #0b0b1f 60%, #05050f);
+}
+
+.vb-starry-stars {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(1.5px 1.5px at 20px 30px, #fff, transparent),
+        radial-gradient(1px 1px at 90px 120px, #fff, transparent),
+        radial-gradient(1.5px 1.5px at 160px 60px, #ffe9b0, transparent),
+        radial-gradient(1px 1px at 230px 180px, #fff, transparent),
+        radial-gradient(2px 2px at 300px 90px, #fff, transparent),
+        radial-gradient(1px 1px at 60px 200px, #cfe3ff, transparent);
+    background-size: 340px 220px;
+    animation: vb-twinkle 4s ease-in-out infinite alternate;
+}
+
+.vb-starry-moon {
+    position: absolute;
+    top: 36px;
+    right: 8%;
+    width: 64px;
+    height: 64px;
+    border-radius: 9999px;
+    box-shadow: inset -14px 8px 0 0 #ffe9b0;
+    filter: drop-shadow(0 0 14px rgb(255 233 176 / 0.6));
+}
+
+@keyframes vb-twinkle {
+    from {
+        opacity: 0.55;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.vb-hearts {
+    background-color: #ffe6ef;
+    background-image:
+        radial-gradient(60% 50% at 50% 45%, rgb(255 255 255 / 0.7), transparent 70%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cpath d='M20 22c-4-5-12-2.5-12 4 0 5.5 12 12 12 12s12-6.5 12-12c0-6.5-8-9-12-4z' fill='%23ffb3cc'/%3E%3Cpath d='M54 52c-3-3.5-8.5-1.8-8.5 2.8 0 4 8.5 8.5 8.5 8.5s8.5-4.5 8.5-8.5c0-4.6-5.5-6.3-8.5-2.8z' fill='%23ffc9db'/%3E%3C/svg%3E");
+}
+
+.vb-sunset {
+    background: linear-gradient(180deg, #ffb38a 0%, #ff8fa3 45%, #b86f9e 75%, #5b3a7a 100%);
+}
+
+.vb-sunset-sun {
+    position: absolute;
+    left: 50%;
+    bottom: 16%;
+    width: min(46vmin, 420px);
+    aspect-ratio: 1;
+    border-radius: 9999px;
+    background: radial-gradient(circle, #fff3c4, #ffd27a 45%, transparent 70%);
+    opacity: 0.85;
+    transform: translateX(-50%);
+}
+
+.vb-sunset-sea {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 20%;
+    background:
+        repeating-linear-gradient(180deg, rgb(255 255 255 / 0.14) 0 2px, transparent 2px 12px),
+        linear-gradient(180deg, #7a4a8a, #3d2a5c);
+}
+
+.vb-retro {
+    background-color: #f6e3c3;
+    background-image:
+        radial-gradient(circle at 100% 50%, transparent 20%, #e3874c 21% 34%, transparent 35% 55%, #c25b2e 56% 69%, transparent 70%),
+        radial-gradient(circle at 0 50%, transparent 20%, #e3874c 21% 34%, transparent 35% 55%, #c25b2e 56% 69%, transparent 70%);
+    background-position: 0 0, 40px 40px;
+    background-size: 80px 80px;
+}
+
+.vb-confetti {
+    background-color: #fff8f1;
+    background-image:
+        radial-gradient(circle, #ff5f9e 0 3px, transparent 4px),
+        radial-gradient(circle, #ffd23f 0 3px, transparent 4px),
+        radial-gradient(circle, #4fa8ff 0 3px, transparent 4px),
+        radial-gradient(circle, #6fd39a 0 2.5px, transparent 3.5px),
+        radial-gradient(circle, #b38cff 0 3px, transparent 4px);
+    background-position: 10px 20px, 60px 80px, 120px 10px, 30px 60px, 90px 110px;
+    background-size: 140px 120px, 110px 150px, 170px 130px, 90px 100px, 200px 160px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vb-starry-stars {
+        animation: none;
+    }
+}

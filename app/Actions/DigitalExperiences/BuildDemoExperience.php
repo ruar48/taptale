@@ -52,6 +52,7 @@ class BuildDemoExperience
             'video_url' => null,
             'video_file_url' => null,
             'video_frame' => 'plain',
+            'video_background' => 'theme',
             'music_url' => 'https://www.youtube.com/watch?v=iKzRIweSBLA',
             'song_title' => 'Perfect',
             'song_artist' => 'Ed Sheeran',

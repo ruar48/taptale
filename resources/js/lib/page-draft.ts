@@ -5,6 +5,7 @@ import type {
     FlowerRain,
     FlowerStyle,
     PhotoRainLayer,
+    VideoBackground,
     VideoFrame,
 } from '@/types';
 
@@ -84,6 +85,7 @@ export type PageDraftContent = {
     music_url: string | null;
     video_url: string | null;
     video_frame: VideoFrame;
+    video_background: VideoBackground;
     flower_style: FlowerStyle;
     flower_rain: FlowerRain;
     /** Flowers added to a design without them, charged at checkout. */
@@ -153,6 +155,15 @@ export const PAGE_CHOICES = {
         'cinema',
         'phone',
     ],
+    video_background: [
+        'theme',
+        'theater',
+        'starry',
+        'hearts',
+        'sunset',
+        'retro',
+        'confetti',
+    ],
 } as const;
 
 /**
@@ -175,6 +186,7 @@ export function pageContentFrom(
         music_url: experience.music_url,
         video_url: experience.video_url,
         video_frame: experience.video_frame,
+        video_background: experience.video_background,
         flower_style: experience.flower_style,
         flower_rain: experience.flower_rain,
         flower_addon: experience.flower_addon,

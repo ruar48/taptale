@@ -37,7 +37,10 @@ import {
     themeStyle,
 } from '@/components/taptale/experience/config';
 import { contactFor } from '@/components/taptale/experience/video-editor';
-import { VIDEO_FRAMES } from '@/components/taptale/experience/video-frames';
+import {
+    VIDEO_BACKGROUNDS,
+    VIDEO_FRAMES,
+} from '@/components/taptale/experience/video-frames';
 import { FileDropzone } from '@/components/taptale/file-dropzone';
 import { Panel } from '@/components/taptale/order-parts';
 import { Button } from '@/components/ui/button';
@@ -60,6 +63,7 @@ import type {
     FlowerRain,
     FlowerStyle,
     PhotoRainLayer,
+    VideoBackground,
     VideoFrame,
 } from '@/types';
 
@@ -132,6 +136,7 @@ type ExperienceForm = {
     event_date: string;
     video_url: string;
     video_frame: VideoFrame;
+    video_background: VideoBackground;
     music_url: string;
     song_title: string;
     song_artist: string;
@@ -181,6 +186,7 @@ export default function EditExperience({
         event_date: experience.event_date ?? '',
         video_url: experience.video_url ?? '',
         video_frame: experience.video_frame ?? 'plain',
+        video_background: experience.video_background ?? 'theme',
         music_url: experience.music_url ?? '',
         song_title: experience.song_title ?? '',
         song_artist: experience.song_artist ?? '',
@@ -1270,6 +1276,55 @@ export default function EditExperience({
                                         ))}
                                     </div>
                                     <InputError message={errors.video_frame} />
+                                </div>
+                                <div className="sm:col-span-2">
+                                    <Label className="mb-2 block">
+                                        Video background
+                                    </Label>
+                                    <div
+                                        className="flex flex-wrap gap-2"
+                                        role="radiogroup"
+                                        aria-label="Video background"
+                                    >
+                                        {VIDEO_BACKGROUNDS.map((option) => (
+                                            <button
+                                                key={option.value}
+                                                type="button"
+                                                role="radio"
+                                                aria-checked={
+                                                    data.video_background ===
+                                                    option.value
+                                                }
+                                                onClick={() =>
+                                                    setData(
+                                                        'video_background',
+                                                        option.value,
+                                                    )
+                                                }
+                                                className={cn(
+                                                    'flex items-center gap-2 rounded-full border-2 py-1 pr-3 pl-1 text-sm transition',
+                                                    data.video_background ===
+                                                        option.value
+                                                        ? 'border-rose'
+                                                        : 'border-border hover:border-rose/40',
+                                                )}
+                                            >
+                                                <span
+                                                    className={cn(
+                                                        'size-7 rounded-full ring-1 ring-black/10',
+                                                        option.value === 'theme'
+                                                            ? 'bg-muted'
+                                                            : `vb-${option.value}`,
+                                                    )}
+                                                    aria-hidden
+                                                />
+                                                {option.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <InputError
+                                        message={errors.video_background}
+                                    />
                                 </div>
                             </div>
                         </Panel>

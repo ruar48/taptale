@@ -22,7 +22,10 @@ import { FlowerScene } from '@/components/taptale/experience/flower-scenes';
 import { NightGarden } from '@/components/taptale/experience/night-garden';
 import { SongPlayer } from '@/components/taptale/experience/song-player';
 import { VideoEditor } from '@/components/taptale/experience/video-editor';
-import { VideoFrameView } from '@/components/taptale/experience/video-frames';
+import {
+    VideoBackdropArt,
+    VideoFrameView,
+} from '@/components/taptale/experience/video-frames';
 import {
     HEARTS_BACKDROP_STYLE,
     HeartFlourish,
@@ -1255,6 +1258,8 @@ function VideoSection() {
     const { experience, editable } = useExperience();
     const embed = embedFor(experience.video_url);
     const frame = experience.video_frame ?? 'plain';
+    const background = experience.video_background ?? 'theme';
+    const scene = background === 'theme' ? null : background;
 
     if (!experience.video_url && !experience.video_file_url && !editable) {
         return null;
@@ -1305,7 +1310,13 @@ function VideoSection() {
     );
 
     return (
-        <SectionShell surface>
+        <SectionShell
+            surface={!scene}
+            className={scene ? `vb-${scene}` : undefined}
+            backdrop={
+                scene ? <VideoBackdropArt background={scene} /> : undefined
+            }
+        >
             <Reveal>
                 <VideoFrameView frame={frame} title={experience.title}>
                     {player}

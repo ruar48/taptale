@@ -34,6 +34,7 @@ class ExperienceContentController extends Controller
         'event_date' => ['nullable', 'string', 'max:60'],
         'video_url' => ['nullable', 'url:https', 'max:500'],
         'video_frame' => ['required', 'string', 'in:plain,polaroid,film,tv,hearts,cinema,phone'],
+        'video_background' => ['required', 'string', 'in:theme,theater,starry,hearts,sunset,retro,confetti'],
         'song_title' => ['nullable', 'string', 'max:120'],
         'song_artist' => ['nullable', 'string', 'max:120'],
         'song_ornament' => ['required', 'string', 'in:none,hearts'],

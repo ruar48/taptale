@@ -370,6 +370,7 @@ test('a page designed on a demo becomes the memory page, photos and all', functi
             'flower_rain' => 'photos',
             'photo_rain_layer' => 'back',
             'video_frame' => 'film',
+            'video_background' => 'starry',
             'moments' => [
                 ['date' => 'June 2', 'title' => 'Baguio', 'caption' => 'Our first trip', 'photo' => 1],
                 ['date' => null, 'title' => 'No photo yet', 'caption' => null, 'photo' => null],
@@ -389,6 +390,7 @@ test('a page designed on a demo becomes the memory page, photos and all', functi
         ->flower_rain->value->toBe('photos')
         ->photo_rain_layer->value->toBe('back')
         ->video_frame->toBe('film')
+        ->video_background->toBe('starry')
         ->photos->toHaveCount(3)
         ->moments->toBe([
             ['date' => 'June 2', 'title' => 'Baguio', 'caption' => 'Our first trip', 'photo' => 1],

@@ -229,6 +229,16 @@ export type VideoFrame =
     | 'cinema'
     | 'phone';
 
+/** The backdrop behind the page video. */
+export type VideoBackground =
+    | 'theme'
+    | 'theater'
+    | 'starry'
+    | 'hearts'
+    | 'sunset'
+    | 'retro'
+    | 'confetti';
+
 export type ExperienceTemplateKey =
     | 'monthsary'
     | 'birthday'
@@ -329,6 +339,7 @@ export type DigitalExperience = {
     /** A short video file uploaded to the page (or kept in a demo draft). */
     video_file_url: string | null;
     video_frame: VideoFrame;
+    video_background: VideoBackground;
     music_url: string | null;
     song_title: string | null;
     song_artist: string | null;

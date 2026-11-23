@@ -9,7 +9,64 @@ import {
 } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
 import '../../../../css/video-frames.css';
-import type { VideoFrame } from '@/types';
+import type { VideoBackground, VideoFrame } from '@/types';
+
+/**
+ * Backdrops behind the page video. "theme" keeps the page's own color; the
+ * others are designed scenes, previewed in the picker by their swatch class.
+ */
+export const VIDEO_BACKGROUNDS: { value: VideoBackground; label: string }[] = [
+    { value: 'theme', label: 'Theme' },
+    { value: 'theater', label: 'Theater' },
+    { value: 'starry', label: 'Starry night' },
+    { value: 'hearts', label: 'Hearts' },
+    { value: 'sunset', label: 'Sunset' },
+    { value: 'retro', label: 'Retro' },
+    { value: 'confetti', label: 'Confetti' },
+];
+
+/** The extra pieces some backdrops paint behind the video. */
+export function VideoBackdropArt({
+    background,
+}: {
+    background: VideoBackground;
+}) {
+    switch (background) {
+        case 'theater':
+            return (
+                <div
+                    className="pointer-events-none absolute inset-0"
+                    aria-hidden
+                >
+                    <span className="vb-theater-light" />
+                    <span className="vb-theater-valance" />
+                    <span className="vb-theater-seats" />
+                </div>
+            );
+        case 'starry':
+            return (
+                <div
+                    className="pointer-events-none absolute inset-0"
+                    aria-hidden
+                >
+                    <span className="vb-starry-stars" />
+                    <span className="vb-starry-moon" />
+                </div>
+            );
+        case 'sunset':
+            return (
+                <div
+                    className="pointer-events-none absolute inset-0"
+                    aria-hidden
+                >
+                    <span className="vb-sunset-sun" />
+                    <span className="vb-sunset-sea" />
+                </div>
+            );
+        default:
+            return null;
+    }
+}
 
 /** The frames a page video can play in, in the order the picker shows them. */
 export const VIDEO_FRAMES: {

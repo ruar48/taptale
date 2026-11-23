@@ -259,10 +259,29 @@ test('the owner picks a frame for the video, on the page or in the editor', func
             'theme' => 'cream',
             'title' => 'Us',
             'video_frame' => 'phone',
+            'video_background' => 'sunset',
         ])
         ->assertSessionHasNoErrors();
 
-    expect($experience->fresh()->video_frame)->toBe('phone');
+    expect($experience->fresh())
+        ->video_frame->toBe('phone')
+        ->video_background->toBe('sunset');
+});
+
+test('the owner picks a background behind the video', function () {
+    $experience = DigitalExperience::factory()->create();
+
+    expect($experience->fresh()->video_background)->toBe('theme');
+
+    $this->actingAs($experience->user)
+        ->patch(route('account.experiences.content', $experience), ['field' => 'video_background', 'value' => 'theater'])
+        ->assertSessionHasNoErrors();
+
+    $this->actingAs($experience->user)
+        ->patch(route('account.experiences.content', $experience), ['field' => 'video_background', 'value' => 'lava'])
+        ->assertSessionHasErrors('value');
+
+    expect($experience->fresh()->video_background)->toBe('theater');
 });
 
 test('another customer cannot add photos to someone else\'s page', function () {
