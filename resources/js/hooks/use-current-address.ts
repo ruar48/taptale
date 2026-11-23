@@ -29,29 +29,38 @@ type NominatimAddress = Partial<
 const REVERSE_GEOCODE_URL = 'https://nominatim.openstreetmap.org/reverse';
 
 /**
+ * Beyond this many metres the browser is guessing from the IP address or
+ * nearby Wi-Fi (common on laptops), which can land in the wrong town.
+ */
+const MAX_USABLE_ACCURACY_METERS = 2000;
+
+/**
+ * Beyond this the town is right but the street is likely off.
+ */
+const PRECISE_ACCURACY_METERS = 150;
+
+/**
  * Turns an OpenStreetMap address into the checkout's Philippine address
- * fields. Barangays show up as quarter / suburb / village depending on the
- * area, and Metro Manila has a region instead of a province.
+ * fields. Barangays show up as village in towns and quarter / suburb in
+ * cities. Metro Manila has a region instead of a province, while other
+ * regions (like CAR for Baguio) are never a valid province.
  */
 function toCheckoutAddress(address: NominatimAddress): DetectedAddress {
     const street = [address.house_number, address.road]
         .filter(Boolean)
         .join(' ');
     const barangay =
+        address.village ??
         address.quarter ??
         address.suburb ??
-        address.village ??
         address.neighbourhood;
+    const metroManila =
+        address.region === 'Metro Manila' ? address.region : undefined;
 
     return {
         address_line: [street, barangay].filter(Boolean).join(', '),
-        city:
-            address.city ??
-            address.town ??
-            address.municipality ??
-            address.village ??
-            '',
-        province: address.state ?? address.province ?? address.region ?? '',
+        city: address.city ?? address.town ?? address.municipality ?? '',
+        province: address.state ?? address.province ?? metroManila ?? '',
         postal_code: address.postcode ?? '',
     };
 }
@@ -60,8 +69,8 @@ function currentPosition(): Promise<GeolocationPosition> {
     return new Promise((resolve, reject) =>
         navigator.geolocation.getCurrentPosition(resolve, reject, {
             enableHighAccuracy: true,
-            timeout: 15000,
-            maximumAge: 60000,
+            timeout: 20000,
+            maximumAge: 0,
         }),
     );
 }
@@ -86,6 +95,7 @@ function positionErrorMessage(error: GeolocationPositionError): string {
 export function useCurrentAddress() {
     const [isLocating, setIsLocating] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [notice, setNotice] = useState<string | null>(null);
 
     const [isSupported, setIsSupported] = useState(false);
 
@@ -103,6 +113,7 @@ export function useCurrentAddress() {
 
         setIsLocating(true);
         setError(null);
+        setNotice(null);
 
         try {
             let position: GeolocationPosition;
@@ -114,6 +125,16 @@ export function useCurrentAddress() {
                     positionErrorMessage(
                         positionError as GeolocationPositionError,
                     ),
+                );
+
+                return null;
+            }
+
+            const accuracy = position.coords.accuracy;
+
+            if (accuracy > MAX_USABLE_ACCURACY_METERS) {
+                setError(
+                    `Your device could only estimate your location to within about ${Math.round(accuracy / 1000)} km, so we didn’t fill it in. Try on your phone with location (GPS) on, or type your address.`,
                 );
 
                 return null;
@@ -148,6 +169,12 @@ export function useCurrentAddress() {
                 return null;
             }
 
+            if (accuracy > PRECISE_ACCURACY_METERS) {
+                setNotice(
+                    `Your location is only accurate to about ${Math.round(accuracy)} m — please check the street and barangay.`,
+                );
+            }
+
             return toCheckoutAddress(result.address);
         } catch {
             setError(
@@ -160,5 +187,5 @@ export function useCurrentAddress() {
         }
     };
 
-    return { locate, isLocating, isSupported, error };
+    return { locate, isLocating, isSupported, error, notice };
 }

@@ -1,6 +1,6 @@
-import { Link } from '@inertiajs/react';
-import { ContactInline, LegalPage } from '@/components/taptale/legal-page';
-import { index as accountOrders } from '@/routes/account/orders';
+import { Link } from "@inertiajs/react";
+import { ContactInline, LegalPage } from "@/components/taptale/legal-page";
+import { index as accountOrders } from "@/routes/account/orders";
 
 export default function Returns() {
     return (
@@ -16,7 +16,7 @@ export default function Returns() {
             }
             sections={[
                 {
-                    id: 'we-will-fix',
+                    id: "we-will-fix",
                     title: "When we'll replace or refund your order",
                     content: (
                         <>
@@ -44,7 +44,7 @@ export default function Returns() {
                     ),
                 },
                 {
-                    id: 'not-covered',
+                    id: "not-covered",
                     title: "What isn't covered",
                     content: (
                         <>
@@ -55,8 +55,11 @@ export default function Returns() {
                             <ul>
                                 <li>a change of mind;</li>
                                 <li>
-                                    mistakes in a design you approved, such as a
-                                    misspelled name or a wrong date;
+                                    mistakes in a design you approved, whether
+                                    you customized it yourself with the live
+                                    preview or approved a proof from us, such as
+                                    a misspelled name, a wrong date or a photo
+                                    you chose. Approved designs are final;
                                 </li>
                                 <li>
                                     small differences in color between your
@@ -76,14 +79,14 @@ export default function Returns() {
                     ),
                 },
                 {
-                    id: 'how-to-claim',
-                    title: 'How to report a problem',
+                    id: "how-to-claim",
+                    title: "How to report a problem",
                     content: (
                         <ol>
                             <li>
-                                Contact us at <ContactInline />{' '}
+                                Contact us at <ContactInline />{" "}
                                 <strong>within 7 days of delivery</strong>.
-                                Include your order reference (for example, from{' '}
+                                Include your order reference (for example, from{" "}
                                 <Link href={accountOrders()}>My orders</Link>
                                 ).
                             </li>
@@ -100,8 +103,8 @@ export default function Returns() {
                     ),
                 },
                 {
-                    id: 'cancellations',
-                    title: 'Cancelling an order',
+                    id: "cancellations",
+                    title: "Cancelling an order",
                     content: (
                         <ul>
                             <li>
@@ -110,9 +113,15 @@ export default function Returns() {
                                 pending or waiting for payment.
                             </li>
                             <li>
+                                <strong>Cash on delivery:</strong> work starts
+                                right after you order, so contact us as soon as
+                                possible if you need to cancel. The same rules
+                                below apply.
+                            </li>
+                            <li>
                                 <strong>
                                     After you pay, before design work starts:
-                                </strong>{' '}
+                                </strong>{" "}
                                 contact us and we'll cancel the order and refund
                                 you in full.
                             </li>
@@ -123,16 +132,20 @@ export default function Returns() {
                                 already done.
                             </li>
                             <li>
-                                <strong>After production starts:</strong> the
-                                order can't be cancelled, because the item is
-                                being made just for you.
+                                <strong>
+                                    After you approve your design, or once
+                                    production starts:
+                                </strong>{" "}
+                                the order can't be cancelled or changed, because
+                                your approval is final and the item is being
+                                made just for you.
                             </li>
                         </ul>
                     ),
                 },
                 {
-                    id: 'refunds',
-                    title: 'How refunds are paid',
+                    id: "refunds",
+                    title: "How refunds are paid",
                     content: (
                         <ul>
                             <li>

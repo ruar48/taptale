@@ -15,6 +15,7 @@ enum ActivityType: string
     case ProofSent = 'proof_sent';
     case RevisionRequested = 'revision_requested';
     case DesignApproved = 'design_approved';
+    case DesignSubmitted = 'design_submitted';
     case FilesUploaded = 'files_uploaded';
     case Cancelled = 'cancelled';
     case ReviewSubmitted = 'review_submitted';

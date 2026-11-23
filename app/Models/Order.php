@@ -35,7 +35,8 @@ use Illuminate\Validation\ValidationException;
  * @property list<array{id: int, group: string, group_label: string, name: string, price_modifier: int}> $selected_options
  * @property DesignMode $design_mode
  * @property array<string, mixed> $personalization
- * @property Carbon|null $preview_approved_at
+ * @property Carbon|null $preview_approved_at When the customer approved the design they made themselves. Approval is final
+ * @property Carbon|null $design_submitted_at When the customer handed their photos and details to the studio to arrange
  * @property int $quantity
  * @property int $unit_price
  * @property int $subtotal
@@ -69,7 +70,7 @@ use Illuminate\Validation\ValidationException;
 #[RouteKey('reference')]
 #[Fillable([
     'status', 'category_id', 'product_id', 'template_id', 'product_name', 'template_name',
-    'selected_options', 'design_mode', 'personalization', 'preview_approved_at',
+    'selected_options', 'design_mode', 'personalization', 'preview_approved_at', 'design_submitted_at',
     'quantity', 'unit_price', 'subtotal', 'customization_fee', 'flowers_fee', 'delivery_fee', 'adjustment', 'adjustment_note', 'promo_code_id', 'promo_code', 'promo_identity', 'discount', 'total',
     'customer_name', 'customer_email', 'customer_phone', 'address_line', 'city', 'province', 'postal_code', 'customer_notes', 'is_gift', 'gift_message',
     'payment_method_id', 'courier', 'tracking_number', 'tracking_url',
@@ -122,6 +123,7 @@ class Order extends Model
             'selected_options' => 'array',
             'personalization' => 'array',
             'preview_approved_at' => 'datetime',
+            'design_submitted_at' => 'datetime',
             'quantity' => 'integer',
             'unit_price' => 'integer',
             'subtotal' => 'integer',
@@ -295,6 +297,20 @@ class Order extends Model
 
         return $this->design_mode === DesignMode::SelfCustomized
             && $this->preview_approved_at !== null;
+    }
+
+    /**
+     * Whether the customer can still finish the design from their order page,
+     * by customizing it themselves or by sending their photos and details to
+     * the studio. This ends when they approve it (approval is final), hand it
+     * to the studio, or the studio sends a design proof.
+     */
+    public function isDesignEditableByCustomer(): bool
+    {
+        return $this->status->isOpen()
+            && $this->preview_approved_at === null
+            && $this->design_submitted_at === null
+            && $this->latestProof === null;
     }
 
     /**

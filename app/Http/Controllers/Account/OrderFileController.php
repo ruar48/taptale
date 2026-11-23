@@ -38,6 +38,10 @@ class OrderFileController extends Controller
             throw ValidationException::withMessages(['files' => 'Files can only be added to open orders.']);
         }
 
+        if ($order->loadMissing('latestProof')->isDesignApproved()) {
+            throw ValidationException::withMessages(['files' => 'Your design is approved and final, so files can no longer be added.']);
+        }
+
         if ($order->files()->count() + count($validated['files']) > self::MAX_FILES_PER_ORDER) {
             throw ValidationException::withMessages(['files' => 'An order can have at most '.self::MAX_FILES_PER_ORDER.' files.']);
         }

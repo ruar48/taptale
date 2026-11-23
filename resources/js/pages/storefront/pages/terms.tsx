@@ -1,10 +1,10 @@
-import { Link } from '@inertiajs/react';
+import { Link } from "@inertiajs/react";
 import {
     ContactInline,
     LegalPage,
     useBusiness,
-} from '@/components/taptale/legal-page';
-import { privacy, returns, shipping } from '@/routes/pages';
+} from "@/components/taptale/legal-page";
+import { privacy, returns, shipping } from "@/routes/pages";
 
 export default function Terms() {
     const business = useBusiness();
@@ -23,8 +23,8 @@ export default function Terms() {
             }
             sections={[
                 {
-                    id: 'about-these-terms',
-                    title: '1. About these terms',
+                    id: "about-these-terms",
+                    title: "1. About these terms",
                     content: (
                         <>
                             <p>
@@ -33,12 +33,12 @@ export default function Terms() {
                                 using the website or placing an order.
                             </p>
                             <p>
-                                These terms work together with our{' '}
-                                <Link href={privacy()}>Privacy policy</Link>,{' '}
+                                These terms work together with our{" "}
+                                <Link href={privacy()}>Privacy policy</Link>,{" "}
                                 <Link href={shipping()}>
                                     Shipping & delivery policy
-                                </Link>{' '}
-                                and{' '}
+                                </Link>{" "}
+                                and{" "}
                                 <Link href={returns()}>
                                     Returns & refunds policy
                                 </Link>
@@ -48,8 +48,8 @@ export default function Terms() {
                     ),
                 },
                 {
-                    id: 'eligibility-and-accounts',
-                    title: '2. Eligibility and your account',
+                    id: "eligibility-and-accounts",
+                    title: "2. Eligibility and your account",
                     content: (
                         <>
                             <p>
@@ -78,19 +78,42 @@ export default function Terms() {
                     ),
                 },
                 {
-                    id: 'orders',
-                    title: '3. Orders and personalization',
+                    id: "orders",
+                    title: "3. Orders and personalization",
                     content: (
                         <>
                             <p>
                                 When you place an order, you are offering to buy
                                 the items in it. A contract is formed when we
-                                confirm your payment. We may decline or cancel
-                                an order before then, for example if an item is
-                                unavailable or a price was shown in error. If
-                                you have already paid, we will refund you in
-                                full.
+                                confirm your payment or, for cash on delivery,
+                                when we confirm your order. We may decline or
+                                cancel an order before then, for example if an
+                                item is unavailable or a price was shown in
+                                error. If you have already paid, we will refund
+                                you in full.
                             </p>
+                            <ul>
+                                <li>
+                                    You need to confirm your email address
+                                    before you can place an order.
+                                </li>
+                                <li>
+                                    To keep our queue fair, we limit how many
+                                    unpaid orders one account can have open and
+                                    how many orders it can place in a day.
+                                </li>
+                                <li>
+                                    An order that stays unpaid for 14 days is
+                                    cancelled automatically, and the photos and
+                                    files uploaded for it are deleted.
+                                </li>
+                                <li>
+                                    Promo codes follow the conditions shown with
+                                    them, such as a minimum spend, an end date
+                                    or a limited number of uses. A code used on
+                                    an order you cancel can be used again.
+                                </li>
+                            </ul>
                             <h3>Content you provide</h3>
                             <p>
                                 You keep ownership of the photos, text, audio
@@ -121,55 +144,107 @@ export default function Terms() {
                     ),
                 },
                 {
-                    id: 'prices-and-payment',
-                    title: '4. Prices and payment',
+                    id: "prices-and-payment",
+                    title: "4. Prices and payment",
                     content: (
                         <>
                             <ul>
                                 <li>
                                     Prices are in Philippine pesos (₱). Your
                                     order summary shows the item price, options,
-                                    any customization fee and the delivery fee
-                                    before you place the order.
+                                    any customization or add-on fee (such as
+                                    flowers for your memory page), any promo
+                                    discount and the delivery fee before you
+                                    place the order.
                                 </li>
                                 <li>
-                                    You can pay online through our payment
-                                    partner, or with one of the payment methods
-                                    listed at checkout and then upload your
-                                    receipt.
+                                    You can pay with QR Ph through our payment
+                                    partner, or choose cash on delivery at
+                                    checkout where it is offered.
                                 </li>
                                 <li>
-                                    We start work on your order only after your
-                                    full payment is confirmed. Uploaded receipts
-                                    are checked by our team; we may reject a
-                                    payment we cannot match and ask you to send
-                                    it again.
+                                    <strong>QR Ph:</strong> we start work on
+                                    your order once your payment is confirmed by
+                                    our payment partner.
                                 </li>
                                 <li>
-                                    We do not see or store your full card
-                                    details. Online payments are handled by our
-                                    payment partner.
+                                    <strong>Cash on delivery:</strong> we start
+                                    work right after you order. Please pay the
+                                    exact amount shown on your order to the
+                                    courier when your gift arrives. Because
+                                    every gift is made just for you, please
+                                    choose cash on delivery only if you are sure
+                                    you will accept the parcel.
+                                </li>
+                                <li>
+                                    We do not see or store your bank, card or
+                                    e-wallet login details. Online payments are
+                                    handled by our payment partner.
                                 </li>
                             </ul>
                         </>
                     ),
                 },
                 {
-                    id: 'design-proofs',
-                    title: '5. Design proofs and approval',
+                    id: "design-proofs",
+                    title: "5. Finishing and approving your design",
                     content: (
                         <>
                             <p>
-                                When our designers prepare your gift, we send
-                                you a design proof in your account. You can
-                                approve it or ask for changes. Production starts
-                                only after you approve.
+                                After you order, you finish your design from
+                                your order page. We do not make anything until
+                                your design is complete and approved. You can
+                                finish it in one of two ways:
                             </p>
                             <ul>
                                 <li>
+                                    <strong>Customize it yourself.</strong> Add
+                                    your photos, names, date, song and message
+                                    to the template you chose, check the live
+                                    preview, and approve it. You can save and
+                                    come back as often as you like before you
+                                    approve.
+                                </li>
+                                <li>
+                                    <strong>Send it to us.</strong> Send your
+                                    photos and details (and a short description
+                                    if our designers are creating your design).
+                                    We put your design together and send you a
+                                    design proof in your account. You can
+                                    approve it or ask for changes. Once sent,
+                                    your details can no longer be edited from
+                                    your order page; ask for changes on the
+                                    proof instead.
+                                </li>
+                            </ul>
+                            <h3>Approval is final</h3>
+                            <ul>
+                                <li>
+                                    <strong>
+                                        Once you approve a design, whether your
+                                        own live preview or a proof from us, it
+                                        is final and cannot be changed or
+                                        undone.
+                                    </strong>{" "}
+                                    We produce exactly what it shows, and you
+                                    can no longer add or replace photos or files
+                                    for it.
+                                </li>
+                                <li>
                                     Please check names, dates, spelling and
-                                    photos carefully. Once you approve a proof,
-                                    we produce exactly what it shows.
+                                    photos carefully before you approve.
+                                    Mistakes in a design you approved are not
+                                    covered by our{" "}
+                                    <Link href={returns()}>
+                                        Returns & refunds policy
+                                    </Link>
+                                    .
+                                </li>
+                                <li>
+                                    Approval covers your physical keepsake. If
+                                    your gift has a memory page, you can keep
+                                    editing its content from your account (see
+                                    section 8).
                                 </li>
                                 <li>
                                     Colors can look slightly different on screen
@@ -186,37 +261,43 @@ export default function Terms() {
                     ),
                 },
                 {
-                    id: 'cancellations',
-                    title: '6. Cancellations',
+                    id: "cancellations",
+                    title: "6. Cancellations",
                     content: (
                         <>
                             <p>
                                 You can cancel an order yourself from your
                                 account while it is still pending or waiting for
-                                payment. After that, please contact us at{' '}
-                                <ContactInline />. Because every gift is made
-                                for one person, we may not be able to cancel an
-                                order once design work or production has
-                                started. See our{' '}
+                                payment and nothing has been paid. Cash on
+                                delivery orders go straight to design, so please
+                                contact us at <ContactInline /> to cancel one.
+                                Because every gift is made for one person, we
+                                may not be able to cancel an order once design
+                                work has started, and{" "}
+                                <strong>
+                                    an order cannot be cancelled after you
+                                    approve its design
+                                </strong>
+                                . See our{" "}
                                 <Link href={returns()}>
                                     Returns & refunds policy
-                                </Link>{' '}
+                                </Link>{" "}
                                 for details.
                             </p>
                         </>
                     ),
                 },
                 {
-                    id: 'delivery-and-returns',
-                    title: '7. Delivery, returns and refunds',
+                    id: "delivery-and-returns",
+                    title: "7. Delivery, returns and refunds",
                     content: (
                         <p>
-                            Delivery times and fees are explained in our{' '}
+                            Delivery times and fees are explained in our{" "}
                             <Link href={shipping()}>
                                 Shipping & delivery policy
                             </Link>
                             . Damaged, defective or wrong items are covered by
-                            our{' '}
+                            our{" "}
                             <Link href={returns()}>
                                 Returns & refunds policy
                             </Link>
@@ -227,8 +308,8 @@ export default function Terms() {
                     ),
                 },
                 {
-                    id: 'memory-pages',
-                    title: '8. Memory pages',
+                    id: "memory-pages",
+                    title: "8. Memory pages",
                     content: (
                         <>
                             <p>
@@ -239,7 +320,9 @@ export default function Terms() {
                             <ul>
                                 <li>
                                     A memory page is not listed or searchable on
-                                    our website, but{' '}
+                                    our website and opens only through the
+                                    private link on the gift's tag or QR code.
+                                    Even so,{" "}
                                     <strong>
                                         anyone who has the gift, the link or the
                                         QR code can open it
@@ -248,10 +331,19 @@ export default function Terms() {
                                     others to see.
                                 </li>
                                 <li>
-                                    You are responsible for the content you add
-                                    and can edit it from your account. We may
-                                    remove content that breaks these terms or
-                                    the law.
+                                    You are responsible for the content you add,
+                                    including photos, videos, songs and
+                                    messages, and can edit it from your account.
+                                    You can switch the page's design until your
+                                    keepsake ships; after that, the design stays
+                                    as it is but you can still edit the content.
+                                    We may remove content that breaks these
+                                    terms or the law.
+                                </li>
+                                <li>
+                                    Visitors can leave hearts and replies on a
+                                    memory page. You can see them in your
+                                    account.
                                 </li>
                                 <li>
                                     We work to keep memory pages online and
@@ -266,8 +358,8 @@ export default function Terms() {
                     ),
                 },
                 {
-                    id: 'intellectual-property',
-                    title: '9. Our designs and website',
+                    id: "intellectual-property",
+                    title: "9. Our designs and website",
                     content: (
                         <p>
                             Our website, logo, templates, artwork and designs
@@ -280,8 +372,8 @@ export default function Terms() {
                     ),
                 },
                 {
-                    id: 'acceptable-use',
-                    title: '10. Using the website',
+                    id: "acceptable-use",
+                    title: "10. Using the website",
                     content: (
                         <>
                             <p>You agree not to:</p>
@@ -308,8 +400,8 @@ export default function Terms() {
                     ),
                 },
                 {
-                    id: 'liability',
-                    title: '11. Our responsibility to you',
+                    id: "liability",
+                    title: "11. Our responsibility to you",
                     content: (
                         <>
                             <p>
@@ -331,8 +423,8 @@ export default function Terms() {
                     ),
                 },
                 {
-                    id: 'changes',
-                    title: '12. Changes to these terms',
+                    id: "changes",
+                    title: "12. Changes to these terms",
                     content: (
                         <p>
                             We may update these terms from time to time. The
@@ -343,8 +435,8 @@ export default function Terms() {
                     ),
                 },
                 {
-                    id: 'governing-law',
-                    title: '13. Governing law',
+                    id: "governing-law",
+                    title: "13. Governing law",
                     content: (
                         <p>
                             These terms are governed by the laws of the Republic

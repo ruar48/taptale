@@ -142,6 +142,15 @@ Route::middleware('auth')->group(function () {
         Route::post('orders/{order}/proofs/{proof}/revision', [Account\DesignProofController::class, 'requestRevision'])
             ->middleware(PreventDuplicateSubmissions::class)
             ->name('orders.proofs.revision');
+        Route::post('orders/{order}/design', [Account\OrderDesignController::class, 'update'])
+            ->middleware(['throttle:30,1,order-design-saves', PreventDuplicateSubmissions::class])
+            ->name('orders.design.update');
+        Route::post('orders/{order}/design/approve', [Account\OrderDesignController::class, 'approve'])
+            ->middleware(['throttle:10,1,order-design-approvals', PreventDuplicateSubmissions::class])
+            ->name('orders.design.approve');
+        Route::post('orders/{order}/design/submit', [Account\OrderDesignController::class, 'submit'])
+            ->middleware(['throttle:10,1,order-design-approvals', PreventDuplicateSubmissions::class])
+            ->name('orders.design.submit');
 
         Route::get('experiences/{experience}', [Account\ExperienceController::class, 'edit'])->name('experiences.edit');
         Route::put('experiences/{experience}', [Account\ExperienceController::class, 'update'])->name('experiences.update');

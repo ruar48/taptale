@@ -307,7 +307,7 @@ test('personalization can be skipped and added after ordering', function () {
     expect($order->preview_approved_at)->toBeNull()
         ->and($order->isDesignApproved())->toBeFalse()
         ->and($order->customization_fee)->toBe(0)
-        ->and($order->activities()->sole()->body)->toContain('Add your photos and details');
+        ->and($order->activities()->sole()->body)->toContain('Finish your design from this page');
 });
 
 test('without skipping, a self-designed order still needs names and approval', function () {

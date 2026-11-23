@@ -11,23 +11,23 @@ import {
     Star,
     Truck,
     XCircle,
-} from 'lucide-react';
-import type { ReactNode } from 'react';
-import { useMoney } from '@/hooks/use-money';
-import { formatDate } from '@/lib/money';
-import { cn } from '@/lib/utils';
-import type { Order, OrderActivity } from '@/types';
+} from "lucide-react";
+import type { ReactNode } from "react";
+import { useMoney } from "@/hooks/use-money";
+import { formatDate } from "@/lib/money";
+import { cn } from "@/lib/utils";
+import type { Order, OrderActivity } from "@/types";
 
 const STAGES = [
-    { icon: CreditCard, label: 'Order & payment' },
-    { icon: Paintbrush, label: 'Design' },
-    { icon: Gift, label: 'Production' },
-    { icon: Truck, label: 'Shipping' },
-    { icon: CheckCircle2, label: 'Delivered' },
+    { icon: CreditCard, label: "Order & payment" },
+    { icon: Paintbrush, label: "Design" },
+    { icon: Gift, label: "Production" },
+    { icon: Truck, label: "Shipping" },
+    { icon: CheckCircle2, label: "Delivered" },
 ];
 
 export function OrderProgress({ order }: { order: Order }) {
-    const cancelled = order.status === 'cancelled';
+    const cancelled = order.status === "cancelled";
 
     return (
         <ol className="grid grid-cols-5 gap-1">
@@ -35,11 +35,11 @@ export function OrderProgress({ order }: { order: Order }) {
                 const stage = index + 1;
                 const done =
                     !cancelled &&
-                    (stage < order.stage || order.status === 'completed');
+                    (stage < order.stage || order.status === "completed");
                 const current =
                     !cancelled &&
                     stage === order.stage &&
-                    order.status !== 'completed';
+                    order.status !== "completed";
 
                 return (
                     <li
@@ -50,22 +50,22 @@ export function OrderProgress({ order }: { order: Order }) {
                             {index > 0 && (
                                 <span
                                     className={cn(
-                                        'absolute right-1/2 h-0.5 w-full',
+                                        "absolute right-1/2 h-0.5 w-full",
                                         done || current
-                                            ? 'bg-rose'
-                                            : 'bg-border',
+                                            ? "bg-rose"
+                                            : "bg-border",
                                     )}
                                 />
                             )}
                             <span
                                 className={cn(
-                                    'relative z-10 flex size-10 items-center justify-center rounded-full border-2 transition sm:size-12',
-                                    done && 'border-rose bg-rose text-white',
+                                    "relative z-10 flex size-10 items-center justify-center rounded-full border-2 transition sm:size-12",
+                                    done && "border-rose bg-rose text-white",
                                     current &&
-                                        'border-plum bg-plum text-white ring-4 ring-blush/60 dark:border-blush dark:bg-blush dark:text-plum-dark dark:ring-rose/30',
+                                        "border-plum bg-plum text-white ring-4 ring-blush/60 dark:border-blush dark:bg-blush dark:text-plum-dark dark:ring-rose/30",
                                     !done &&
                                         !current &&
-                                        'border-border bg-card text-muted-foreground',
+                                        "border-border bg-card text-muted-foreground",
                                 )}
                             >
                                 <Icon className="size-4 sm:size-5" />
@@ -73,10 +73,10 @@ export function OrderProgress({ order }: { order: Order }) {
                         </div>
                         <span
                             className={cn(
-                                'mt-2 text-[11px] leading-tight sm:text-xs',
+                                "mt-2 text-[11px] leading-tight sm:text-xs",
                                 current
-                                    ? 'font-semibold text-plum dark:text-blush'
-                                    : 'text-muted-foreground',
+                                    ? "font-semibold text-plum dark:text-blush"
+                                    : "text-muted-foreground",
                             )}
                         >
                             {label}
@@ -100,6 +100,7 @@ const ACTIVITY_ICONS: Record<string, typeof Package> = {
     proof_sent: FileImage,
     revision_requested: Paintbrush,
     design_approved: BadgeCheck,
+    design_submitted: Paintbrush,
     files_uploaded: FileImage,
     cancelled: XCircle,
     review_submitted: Star,
@@ -125,23 +126,23 @@ export function OrderTimeline({
                     <li key={activity.id} className="relative">
                         <span
                             className={cn(
-                                'absolute top-0 -left-[37px] flex size-7 items-center justify-center rounded-full border-2 border-background',
+                                "absolute top-0 -left-[37px] flex size-7 items-center justify-center rounded-full border-2 border-background",
                                 activity.is_internal
-                                    ? 'bg-amber-100 text-amber-800'
-                                    : 'bg-blush-light text-plum dark:bg-rose/20 dark:text-blush',
+                                    ? "bg-amber-100 text-amber-800"
+                                    : "bg-blush-light text-plum dark:bg-rose/20 dark:text-blush",
                             )}
                         >
                             <Icon className="size-3.5" />
                         </span>
                         <div className="flex flex-wrap items-baseline gap-x-2">
                             <p className="text-sm font-medium">
-                                {activity.type === 'status_changed' &&
+                                {activity.type === "status_changed" &&
                                 activity.status_label
                                     ? `Status: ${activity.status_label}`
-                                    : activity.type === 'note'
+                                    : activity.type === "note"
                                       ? activity.is_internal
-                                          ? 'Internal note'
-                                          : 'Message from Taptale'
+                                          ? "Internal note"
+                                          : "Message from Taptale"
                                       : titleFor(activity.type)}
                             </p>
                             {activity.is_internal && (
@@ -159,7 +160,7 @@ export function OrderTimeline({
                             {formatDate(activity.created_at, true)}
                             {showAuthors && activity.author
                                 ? ` · ${activity.author}`
-                                : ''}
+                                : ""}
                         </p>
                     </li>
                 );
@@ -171,19 +172,20 @@ export function OrderTimeline({
 function titleFor(type: string): string {
     return (
         {
-            placed: 'Order placed',
-            payment_submitted: 'Payment submitted',
-            payment_verified: 'Payment verified',
-            payment_rejected: 'Payment not verified',
-            refunded: 'Refund issued',
-            adjusted: 'Order total adjusted',
-            proof_sent: 'Design ready for review',
-            revision_requested: 'Revision requested',
-            design_approved: 'Design approved',
-            files_uploaded: 'Files uploaded',
-            cancelled: 'Order cancelled',
-            review_submitted: 'Review submitted',
-        }[type] ?? 'Update'
+            placed: "Order placed",
+            payment_submitted: "Payment submitted",
+            payment_verified: "Payment verified",
+            payment_rejected: "Payment not verified",
+            refunded: "Refund issued",
+            adjusted: "Order total adjusted",
+            proof_sent: "Design ready for review",
+            revision_requested: "Revision requested",
+            design_approved: "Design approved",
+            design_submitted: "Photos & details sent",
+            files_uploaded: "Files uploaded",
+            cancelled: "Order cancelled",
+            review_submitted: "Review submitted",
+        }[type] ?? "Update"
     );
 }
 
@@ -201,7 +203,7 @@ export function OrderPriceBreakdown({ order }: { order: Order }) {
                     label={
                         order.promo_code
                             ? `Promo · ${order.promo_code}`
-                            : 'Promo discount'
+                            : "Promo discount"
                     }
                     value={`−${money(order.discount)}`}
                 />
@@ -222,7 +224,7 @@ export function OrderPriceBreakdown({ order }: { order: Order }) {
                 label="Delivery"
                 value={
                     order.delivery_fee === 0
-                        ? 'Free'
+                        ? "Free"
                         : money(order.delivery_fee)
                 }
             />
@@ -231,7 +233,7 @@ export function OrderPriceBreakdown({ order }: { order: Order }) {
                     label={
                         order.adjustment_note
                             ? `Adjustment · ${order.adjustment_note}`
-                            : 'Adjustment'
+                            : "Adjustment"
                     }
                     value={money(order.adjustment)}
                 />
@@ -250,8 +252,8 @@ export function OrderPriceBreakdown({ order }: { order: Order }) {
                         <dd
                             className={cn(
                                 order.balance_due
-                                    ? 'text-rose'
-                                    : 'text-emerald-600',
+                                    ? "text-rose"
+                                    : "text-emerald-600",
                             )}
                         >
                             {money(order.balance_due ?? 0)}
@@ -280,7 +282,7 @@ export function OrderSpecs({ order }: { order: Order }) {
             )}
             <Spec
                 label="Template"
-                value={order.template_name ?? 'Custom design'}
+                value={order.template_name ?? "Custom design"}
             />
             <Spec label="Design" value={order.design_mode_label} />
             <Spec label="Quantity" value={String(order.quantity)} />
@@ -306,14 +308,14 @@ function Spec({ label, value }: { label: string; value: string }) {
 
 export function PersonalizationDetails({ order }: { order: Order }) {
     const entries: [string, string | undefined][] = [
-        ['Names', order.personalization.names],
-        ['Date', order.personalization.date],
-        ['Message', order.personalization.message],
-        ['Song / album title', order.personalization.song_title],
-        ['Artist', order.personalization.artist],
-        ['Design brief', order.personalization.design_brief],
-        ['Special instructions', order.personalization.instructions],
-        ['Order notes', order.customer_notes ?? undefined],
+        ["Names", order.personalization.names],
+        ["Date", order.personalization.date],
+        ["Message", order.personalization.message],
+        ["Song / album title", order.personalization.song_title],
+        ["Artist", order.personalization.artist],
+        ["Design brief", order.personalization.design_brief],
+        ["Special instructions", order.personalization.instructions],
+        ["Order notes", order.customer_notes ?? undefined],
     ];
 
     const filled = entries.filter(([, value]) => value);
@@ -371,7 +373,7 @@ export function Panel({
 }) {
     return (
         <section
-            className={cn('rounded-2xl border bg-card p-5 sm:p-6', className)}
+            className={cn("rounded-2xl border bg-card p-5 sm:p-6", className)}
         >
             {(title || action) && (
                 <div className="mb-4 flex items-start justify-between gap-4">

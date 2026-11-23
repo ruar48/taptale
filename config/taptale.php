@@ -113,7 +113,7 @@ return [
         'instagram_url' => env('TAPTALE_INSTAGRAM_URL'),
     ],
 
-    'policies_updated_on' => env('TAPTALE_POLICIES_UPDATED_ON', '2026-11-22'),
+    'policies_updated_on' => env('TAPTALE_POLICIES_UPDATED_ON', '2026-11-24'),
 
     /*
     | Calendar dates the team enters (promo code start and end days) are

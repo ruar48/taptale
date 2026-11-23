@@ -1,4 +1,4 @@
-import { Head, Link, router, setLayoutProps, useForm } from '@inertiajs/react';
+import { Head, Link, router, setLayoutProps, useForm } from "@inertiajs/react";
 import {
     BadgeCheck,
     Banknote,
@@ -15,17 +15,18 @@ import {
     Star,
     Truck,
     Upload,
-} from 'lucide-react';
-import { useState } from 'react';
-import DesignProofController from '@/actions/App/Http/Controllers/Account/DesignProofController';
-import OrderController from '@/actions/App/Http/Controllers/Account/OrderController';
-import OnlinePaymentController from '@/actions/App/Http/Controllers/Account/OnlinePaymentController';
-import OrderFileController from '@/actions/App/Http/Controllers/Account/OrderFileController';
-import QrPhPaymentController from '@/actions/App/Http/Controllers/Account/QrPhPaymentController';
-import PaymentController from '@/actions/App/Http/Controllers/Account/PaymentController';
-import ReviewController from '@/actions/App/Http/Controllers/Account/ReviewController';
-import InputError from '@/components/input-error';
-import { FileDropzone } from '@/components/taptale/file-dropzone';
+} from "lucide-react";
+import { useState } from "react";
+import DesignProofController from "@/actions/App/Http/Controllers/Account/DesignProofController";
+import OrderController from "@/actions/App/Http/Controllers/Account/OrderController";
+import OnlinePaymentController from "@/actions/App/Http/Controllers/Account/OnlinePaymentController";
+import OrderFileController from "@/actions/App/Http/Controllers/Account/OrderFileController";
+import QrPhPaymentController from "@/actions/App/Http/Controllers/Account/QrPhPaymentController";
+import PaymentController from "@/actions/App/Http/Controllers/Account/PaymentController";
+import ReviewController from "@/actions/App/Http/Controllers/Account/ReviewController";
+import InputError from "@/components/input-error";
+import { FileDropzone } from "@/components/taptale/file-dropzone";
+import { OrderDesignEditor } from "@/components/taptale/order-design-editor";
 import {
     OrderPriceBreakdown,
     OrderProgress,
@@ -33,14 +34,15 @@ import {
     OrderTimeline,
     Panel,
     PersonalizationDetails,
-} from '@/components/taptale/order-parts';
+} from "@/components/taptale/order-parts";
 import {
     StatusBadge,
     paymentTone,
     proofTone,
-} from '@/components/taptale/status-badge';
-import { TemplatePreview } from '@/components/taptale/template-preview';
-import { Button } from '@/components/ui/button';
+} from "@/components/taptale/status-badge";
+import { TemplatePreview } from "@/components/taptale/template-preview";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
     Dialog,
     DialogClose,
@@ -48,20 +50,20 @@ import {
     DialogDescription,
     DialogFooter,
     DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { useClipboard } from '@/hooks/use-clipboard';
-import { useMoney } from '@/hooks/use-money';
-import { formatDate, formatFileSize, toPesoInput } from '@/lib/money';
-import { cn } from '@/lib/utils';
-import { edit as editExperience } from '@/routes/account/experiences';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useClipboard } from "@/hooks/use-clipboard";
+import { useMoney } from "@/hooks/use-money";
+import { formatDate, formatFileSize, toPesoInput } from "@/lib/money";
+import { cn } from "@/lib/utils";
+import { edit as editExperience } from "@/routes/account/experiences";
 import {
     index as ordersIndex,
     show as orderShow,
-} from '@/routes/account/orders';
-import type { DesignProof, Order, PaymentMethod } from '@/types';
+} from "@/routes/account/orders";
+import type { DesignProof, Order, PaymentMethod } from "@/types";
 
 type Props = {
     order: Order;
@@ -76,7 +78,7 @@ export default function OrderShow({
 }: Props) {
     setLayoutProps({
         breadcrumbs: [
-            { title: 'My orders', href: ordersIndex() },
+            { title: "My orders", href: ordersIndex() },
             { title: order.reference, href: orderShow(order.reference) },
         ],
     });
@@ -85,22 +87,22 @@ export default function OrderShow({
     const [confirmCancel, setConfirmCancel] = useState(false);
     const latestProof = order.proofs?.[0] ?? null;
     const awaitingProof =
-        latestProof?.status === 'awaiting_response' ? latestProof : null;
+        latestProof?.status === "awaiting_response" ? latestProof : null;
     const pendingPayment = order.payments?.find(
         (payment) =>
-            payment.kind === 'payment' && payment.status === 'submitted',
+            payment.kind === "payment" && payment.status === "submitted",
     );
     const needsPayment =
         order.accepts_payment &&
         (order.balance_due ?? 0) > 0 &&
         !pendingPayment;
     const paysOnDelivery =
-        order.payment_method?.driver === 'cod' &&
+        order.payment_method?.driver === "cod" &&
         !order.accepts_payment &&
-        order.status !== 'cancelled' &&
+        order.status !== "cancelled" &&
         (order.balance_due ?? 0) > 0;
     const designPhoto = order.files?.find(
-        (file) => file.kind === 'photo' && file.is_image,
+        (file) => file.kind === "photo" && file.is_image,
     );
 
     return (
@@ -150,7 +152,7 @@ export default function OrderShow({
                         <Banknote className="size-5 shrink-0 text-rose" />
                         <div className="text-sm">
                             <p className="font-medium">
-                                Cash on delivery ·{' '}
+                                Cash on delivery ·{" "}
                                 {money(order.balance_due ?? order.total)}
                             </p>
                             <p className="mt-0.5 text-muted-foreground">
@@ -166,7 +168,7 @@ export default function OrderShow({
                         <Loader2 className="size-5 shrink-0 animate-spin" />
                         <div className="text-sm">
                             <p className="font-medium">
-                                We're verifying your payment of{' '}
+                                We're verifying your payment of{" "}
                                 {money(pendingPayment.amount)}
                             </p>
                             <p className="mt-0.5 opacity-80">
@@ -176,6 +178,13 @@ export default function OrderShow({
                             </p>
                         </div>
                     </div>
+                )}
+
+                {order.is_design_editable && (
+                    <OrderDesignEditor
+                        order={order}
+                        maxUploadKilobytes={maxUploadKilobytes}
+                    />
                 )}
 
                 {awaitingProof && (
@@ -213,7 +222,7 @@ export default function OrderShow({
                                                     ?.filter(
                                                         (file) =>
                                                             file.kind ===
-                                                                'photo' &&
+                                                                "photo" &&
                                                             file.is_image,
                                                     )
                                                     .map((file) => file.url)}
@@ -249,8 +258,10 @@ export default function OrderShow({
                                         {latestProof
                                             ? `Design v${latestProof.version} · ${latestProof.status_label}`
                                             : order.preview_approved_at
-                                              ? `Preview approved ${formatDate(order.preview_approved_at)}`
-                                              : 'Awaiting design'}
+                                              ? `Approved ${formatDate(order.preview_approved_at)} · final`
+                                              : order.design_submitted_at
+                                                ? `Sent to our designers ${formatDate(order.design_submitted_at)}`
+                                                : "Awaiting your design"}
                                     </p>
                                 </div>
                                 <PersonalizationDetails order={order} />
@@ -338,7 +349,7 @@ export default function OrderShow({
                                                     )}
                                                 </div>
                                                 <p className="mt-1 truncate text-[11px] text-muted-foreground">
-                                                    {file.kind_label} ·{' '}
+                                                    {file.kind_label} ·{" "}
                                                     {formatFileSize(file.size)}
                                                 </p>
                                             </a>
@@ -350,8 +361,9 @@ export default function OrderShow({
                                     No files uploaded yet.
                                 </p>
                             )}
-                            {order.status !== 'completed' &&
-                                order.status !== 'cancelled' && (
+                            {order.status !== "completed" &&
+                                order.status !== "cancelled" &&
+                                !order.is_design_approved && (
                                     <UploadFiles
                                         order={order}
                                         maxUploadKilobytes={maxUploadKilobytes}
@@ -388,10 +400,10 @@ export default function OrderShow({
                                         >
                                             <div className="flex items-center justify-between gap-2">
                                                 <span className="font-medium">
-                                                    {payment.kind === 'refund'
-                                                        ? 'Refund'
+                                                    {payment.kind === "refund"
+                                                        ? "Refund"
                                                         : (payment.method ??
-                                                          'Payment')}{' '}
+                                                          "Payment")}{" "}
                                                     · {money(payment.amount)}
                                                 </span>
                                                 <StatusBadge
@@ -407,7 +419,7 @@ export default function OrderShow({
                                                 {payment.reference_number &&
                                                     ` · Ref ${payment.reference_number}`}
                                             </p>
-                                            {payment.status === 'rejected' &&
+                                            {payment.status === "rejected" &&
                                                 payment.review_notes && (
                                                     <p className="mt-2 text-xs text-rose">
                                                         {payment.review_notes}
@@ -427,7 +439,7 @@ export default function OrderShow({
                                 <br />
                                 {order.address_line}
                                 <br />
-                                {order.city}, {order.province}{' '}
+                                {order.city}, {order.province}{" "}
                                 {order.postal_code}
                                 <br />
                                 {order.customer_phone}
@@ -438,11 +450,11 @@ export default function OrderShow({
                                         <Truck className="size-5 shrink-0 text-rose" />
                                         <div className="min-w-0">
                                             <p className="font-medium">
-                                                {order.courier ?? 'Courier'}
+                                                {order.courier ?? "Courier"}
                                             </p>
                                             {order.tracking_number && (
                                                 <p className="text-muted-foreground">
-                                                    Tracking no.{' '}
+                                                    Tracking no.{" "}
                                                     <span className="font-mono">
                                                         {order.tracking_number}
                                                     </span>
@@ -461,7 +473,7 @@ export default function OrderShow({
                                                 target="_blank"
                                                 rel="noreferrer noopener"
                                             >
-                                                <ExternalLink className="size-4" />{' '}
+                                                <ExternalLink className="size-4" />{" "}
                                                 Track my package
                                             </a>
                                         </Button>
@@ -535,17 +547,17 @@ function PaymentForm({ order, paymentMethods, maxUploadKilobytes }: Props) {
         payment_method_id:
             order.payment_method?.id ?? paymentMethods[0]?.id ?? null,
         amount: toPesoInput(order.balance_due ?? order.total),
-        reference_number: '',
+        reference_number: "",
         proof: null,
-        notes: '',
+        notes: "",
     });
     const method = paymentMethods.find(
         (item) => item.id === form.data.payment_method_id,
     );
     const isOnline =
-        method?.driver === 'paymongo' || method?.driver === 'paymongo_qrph';
+        method?.driver === "paymongo" || method?.driver === "paymongo_qrph";
     const hasOpenCheckout =
-        order.payments?.some((payment) => payment.status === 'pending') ??
+        order.payments?.some((payment) => payment.status === "pending") ??
         false;
     const [, copy] = useClipboard();
 
@@ -554,7 +566,7 @@ function PaymentForm({ order, paymentMethods, maxUploadKilobytes }: Props) {
             <div className="bg-blush-light/60 px-5 py-4 dark:bg-rose/10">
                 <h2 className="font-display text-xl">Complete your payment</h2>
                 <p className="text-sm text-muted-foreground">
-                    Balance due:{' '}
+                    Balance due:{" "}
                     <span className="font-semibold text-plum dark:text-blush">
                         {money(order.balance_due ?? order.total)}
                     </span>
@@ -582,15 +594,15 @@ function PaymentForm({ order, paymentMethods, maxUploadKilobytes }: Props) {
                                     type="button"
                                     onClick={() =>
                                         form.setData(
-                                            'payment_method_id',
+                                            "payment_method_id",
                                             item.id,
                                         )
                                     }
                                     className={cn(
-                                        'rounded-full border-2 px-4 py-1.5 text-sm transition',
+                                        "rounded-full border-2 px-4 py-1.5 text-sm transition",
                                         form.data.payment_method_id === item.id
-                                            ? 'border-rose bg-blush-light/50 dark:bg-rose/10'
-                                            : 'border-border',
+                                            ? "border-rose bg-blush-light/50 dark:bg-rose/10"
+                                            : "border-border",
                                     )}
                                 >
                                     {item.name}
@@ -603,7 +615,7 @@ function PaymentForm({ order, paymentMethods, maxUploadKilobytes }: Props) {
                         <div className="rounded-xl bg-muted/60 p-4 text-sm">
                             {method.account_name && (
                                 <p className="text-muted-foreground">
-                                    Account name:{' '}
+                                    Account name:{" "}
                                     <span className="font-medium text-foreground">
                                         {method.account_name}
                                     </span>
@@ -611,14 +623,14 @@ function PaymentForm({ order, paymentMethods, maxUploadKilobytes }: Props) {
                             )}
                             {method.account_number && (
                                 <p className="mt-1 flex items-center gap-2 text-muted-foreground">
-                                    Account no.:{' '}
+                                    Account no.:{" "}
                                     <span className="font-mono font-medium text-foreground">
                                         {method.account_number}
                                     </span>
                                     <button
                                         type="button"
                                         onClick={() =>
-                                            copy(method.account_number ?? '')
+                                            copy(method.account_number ?? "")
                                         }
                                         className="rounded p-1 hover:bg-background"
                                         aria-label="Copy account number"
@@ -640,7 +652,7 @@ function PaymentForm({ order, paymentMethods, maxUploadKilobytes }: Props) {
                         key={method.id}
                         order={order}
                         paymentMethodId={method.id}
-                        isTaptaleQr={method.driver === 'paymongo_qrph'}
+                        isTaptaleQr={method.driver === "paymongo_qrph"}
                         hasOpenCheckout={hasOpenCheckout}
                     />
                 ) : (
@@ -657,7 +669,7 @@ function PaymentForm({ order, paymentMethods, maxUploadKilobytes }: Props) {
                                     value={form.data.amount}
                                     onChange={(event) =>
                                         form.setData(
-                                            'amount',
+                                            "amount",
                                             event.target.value,
                                         )
                                     }
@@ -673,7 +685,7 @@ function PaymentForm({ order, paymentMethods, maxUploadKilobytes }: Props) {
                                     value={form.data.reference_number}
                                     onChange={(event) =>
                                         form.setData(
-                                            'reference_number',
+                                            "reference_number",
                                             event.target.value,
                                         )
                                     }
@@ -690,7 +702,7 @@ function PaymentForm({ order, paymentMethods, maxUploadKilobytes }: Props) {
                                 id="proof"
                                 files={form.data.proof ? [form.data.proof] : []}
                                 onChange={(files) =>
-                                    form.setData('proof', files[0] ?? null)
+                                    form.setData("proof", files[0] ?? null)
                                 }
                                 maxFiles={1}
                                 maxKilobytes={maxUploadKilobytes}
@@ -744,12 +756,12 @@ function OnlineCheckout({
                 <div>
                     <p className="font-medium text-foreground">
                         {isTaptaleQr
-                            ? 'Scan a QR Ph code — secured by PayMongo'
-                            : 'Secure checkout by PayMongo'}
+                            ? "Scan a QR Ph code — secured by PayMongo"
+                            : "Secure checkout by PayMongo"}
                     </p>
                     <p className="mt-1 text-muted-foreground">
                         {isTaptaleQr
-                            ? 'Scan with GCash, Maya or any bank app. Your order updates automatically once the payment goes through.'
+                            ? "Scan with GCash, Maya or any bank app. Your order updates automatically once the payment goes through."
                             : "You'll pay on PayMongo's encrypted page — we never see your card or wallet details. Your order updates automatically once the payment goes through."}
                     </p>
                 </div>
@@ -777,13 +789,13 @@ function OnlineCheckout({
                 ) : (
                     <Lock className="size-4" />
                 )}
-                {isTaptaleQr ? 'Show QR code for' : 'Pay'}{' '}
+                {isTaptaleQr ? "Show QR code for" : "Pay"}{" "}
                 {money(order.balance_due ?? order.total)}
-                {isTaptaleQr ? '' : ' securely'}
+                {isTaptaleQr ? "" : " securely"}
             </Button>
             {hasOpenCheckout && !isTaptaleQr && (
                 <p className="text-center text-sm text-muted-foreground">
-                    Already paid?{' '}
+                    Already paid?{" "}
                     <Link
                         href={OnlinePaymentController.complete(order.reference)}
                         className="font-medium text-foreground underline underline-offset-4"
@@ -797,8 +809,10 @@ function OnlineCheckout({
 }
 
 function ProofApproval({ order, proof }: { order: Order; proof: DesignProof }) {
-    const [mode, setMode] = useState<'idle' | 'revise'>('idle');
-    const form = useForm({ comment: '' });
+    const [mode, setMode] = useState<"idle" | "revise">("idle");
+    const [confirmApprove, setConfirmApprove] = useState(false);
+    const [understandsFinal, setUnderstandsFinal] = useState(false);
+    const form = useForm({ comment: "" });
     const routeArgs = { order: order.reference, proof: proof.id };
 
     return (
@@ -833,10 +847,14 @@ function ProofApproval({ order, proof }: { order: Order; proof: DesignProof }) {
                     )}
                     <p className="mt-4 text-sm text-muted-foreground">
                         Please check names, dates, spelling and photo placement.
-                        Production starts once you approve.
+                        Production starts once you approve, and{" "}
+                        <span className="font-medium text-foreground">
+                            approval is final
+                        </span>{" "}
+                        — the design can't be changed after that.
                     </p>
 
-                    {mode === 'revise' ? (
+                    {mode === "revise" ? (
                         <form
                             className="mt-5 space-y-3"
                             onSubmit={(event) => {
@@ -856,7 +874,7 @@ function ProofApproval({ order, proof }: { order: Order; proof: DesignProof }) {
                                 id="revision-comment"
                                 value={form.data.comment}
                                 onChange={(event) =>
-                                    form.setData('comment', event.target.value)
+                                    form.setData("comment", event.target.value)
                                 }
                                 rows={4}
                                 placeholder="e.g. Please make the names bigger and use the second photo."
@@ -880,7 +898,7 @@ function ProofApproval({ order, proof }: { order: Order; proof: DesignProof }) {
                                 <Button
                                     type="button"
                                     variant="ghost"
-                                    onClick={() => setMode('idle')}
+                                    onClick={() => setMode("idle")}
                                     className="rounded-full"
                                 >
                                     Back
@@ -891,21 +909,17 @@ function ProofApproval({ order, proof }: { order: Order; proof: DesignProof }) {
                         <div className="mt-auto grid gap-2 pt-6 sm:grid-cols-2">
                             <Button
                                 disabled={form.processing}
-                                onClick={() =>
-                                    form.post(
-                                        DesignProofController.approve.url(
-                                            routeArgs,
-                                        ),
-                                        { preserveScroll: true },
-                                    )
-                                }
+                                onClick={() => {
+                                    setUnderstandsFinal(false);
+                                    setConfirmApprove(true);
+                                }}
                                 className="h-11 rounded-full bg-plum text-white hover:bg-plum-dark dark:bg-blush dark:text-plum-dark"
                             >
                                 <BadgeCheck className="size-4" /> Approve design
                             </Button>
                             <Button
                                 variant="outline"
-                                onClick={() => setMode('revise')}
+                                onClick={() => setMode("revise")}
                                 className="h-11 rounded-full"
                             >
                                 Request changes
@@ -921,6 +935,55 @@ function ProofApproval({ order, proof }: { order: Order; proof: DesignProof }) {
                     )}
                 </div>
             </div>
+
+            <Dialog open={confirmApprove} onOpenChange={setConfirmApprove}>
+                <DialogContent>
+                    <DialogTitle>
+                        Approve design v{proof.version} as final?
+                    </DialogTitle>
+                    <DialogDescription>
+                        We make your gift exactly as this design shows. After
+                        you approve, it can't be changed, and mistakes in an
+                        approved design can't be returned or refunded.
+                    </DialogDescription>
+                    <label className="flex cursor-pointer items-start gap-3 text-sm">
+                        <Checkbox
+                            checked={understandsFinal}
+                            onCheckedChange={(checked) =>
+                                setUnderstandsFinal(checked === true)
+                            }
+                            className="mt-0.5"
+                        />
+                        <span>
+                            I've checked the names, dates, spelling and photos,
+                            and I understand my approved design is final.
+                        </span>
+                    </label>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button variant="outline">Not yet</Button>
+                        </DialogClose>
+                        <Button
+                            disabled={!understandsFinal || form.processing}
+                            onClick={() =>
+                                form.post(
+                                    DesignProofController.approve.url(
+                                        routeArgs,
+                                    ),
+                                    {
+                                        preserveScroll: true,
+                                        onFinish: () =>
+                                            setConfirmApprove(false),
+                                    },
+                                )
+                            }
+                            className="bg-plum text-white hover:bg-plum-dark dark:bg-blush dark:text-plum-dark"
+                        >
+                            <Lock className="size-4" /> Approve — it's final
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </section>
     );
 }
@@ -935,10 +998,10 @@ function UploadFiles({
     const [open, setOpen] = useState(false);
     const form = useForm<{ files: File[]; note: string }>({
         files: [],
-        note: '',
+        note: "",
     });
     const fileError = Object.entries(form.errors).find(([key]) =>
-        key.startsWith('files'),
+        key.startsWith("files"),
     )?.[1];
 
     if (!open) {
@@ -971,7 +1034,7 @@ function UploadFiles({
             <FileDropzone
                 id="additional-files"
                 files={form.data.files}
-                onChange={(files) => form.setData('files', files)}
+                onChange={(files) => form.setData("files", files)}
                 maxFiles={5}
                 maxKilobytes={maxUploadKilobytes}
                 accept="image/jpeg,image/png,image/webp,application/pdf"
@@ -980,7 +1043,7 @@ function UploadFiles({
             />
             <Textarea
                 value={form.data.note}
-                onChange={(event) => form.setData('note', event.target.value)}
+                onChange={(event) => form.setData("note", event.target.value)}
                 placeholder="Add a note for our designers (optional)"
                 rows={2}
             />
@@ -992,7 +1055,7 @@ function UploadFiles({
                 >
                     {form.processing && (
                         <Loader2 className="size-4 animate-spin" />
-                    )}{' '}
+                    )}{" "}
                     Upload
                 </Button>
                 <Button
@@ -1024,7 +1087,7 @@ function ExperienceCard({ order }: { order: Order }) {
             <p className="text-sm text-white/70">
                 {experience.is_published
                     ? `Live · ${experience.view_count ?? 0} opens`
-                    : 'Not published yet — add your photos and message.'}
+                    : "Not published yet — add your photos and message."}
             </p>
             <div className="mt-4 flex items-center gap-4">
                 <img
@@ -1035,13 +1098,13 @@ function ExperienceCard({ order }: { order: Order }) {
                 <div className="min-w-0 space-y-2 text-sm">
                     <button
                         type="button"
-                        onClick={() => copy(experience.public_url ?? '')}
+                        onClick={() => copy(experience.public_url ?? "")}
                         title="Anyone with this private link can open your page, just like tapping the tag."
                         className="flex max-w-full items-center gap-1.5 truncate text-white/80 hover:text-white"
                     >
                         <Copy className="size-3.5 shrink-0" />
                         <span className="truncate">
-                            {copied ? 'Link copied!' : 'Copy private link'}
+                            {copied ? "Link copied!" : "Copy private link"}
                         </span>
                     </button>
                     <a
@@ -1069,8 +1132,8 @@ function ExperienceCard({ order }: { order: Order }) {
 function ReviewPanel({ order }: { order: Order }) {
     const form = useForm({
         rating: 5,
-        quote: '',
-        author_name: order.customer_name.split(' ')[0] ?? '',
+        quote: "",
+        author_name: order.customer_name.split(" ")[0] ?? "",
     });
     const review = order.review;
 
@@ -1083,10 +1146,10 @@ function ReviewPanel({ order }: { order: Order }) {
                         “{review.quote}”
                     </p>
                     <p className="mt-2 text-xs text-muted-foreground">
-                        — {review.author_name} ·{' '}
+                        — {review.author_name} ·{" "}
                         {review.is_published
-                            ? 'Shown on our website. Thank you!'
-                            : 'Thank you! We show reviews after a quick check.'}
+                            ? "Shown on our website. Thank you!"
+                            : "Thank you! We show reviews after a quick check."}
                     </p>
                 </div>
             </Panel>
@@ -1119,14 +1182,14 @@ function ReviewPanel({ order }: { order: Order }) {
                             type="button"
                             role="radio"
                             aria-checked={form.data.rating === value}
-                            aria-label={`${value} star${value > 1 ? 's' : ''}`}
-                            onClick={() => form.setData('rating', value)}
+                            aria-label={`${value} star${value > 1 ? "s" : ""}`}
+                            onClick={() => form.setData("rating", value)}
                             className="text-amber-400 transition hover:scale-110"
                         >
                             <Star
                                 className={cn(
-                                    'size-7',
-                                    value <= form.data.rating && 'fill-current',
+                                    "size-7",
+                                    value <= form.data.rating && "fill-current",
                                 )}
                             />
                         </button>
@@ -1139,7 +1202,7 @@ function ReviewPanel({ order }: { order: Order }) {
                         id="review-quote"
                         value={form.data.quote}
                         onChange={(event) =>
-                            form.setData('quote', event.target.value)
+                            form.setData("quote", event.target.value)
                         }
                         rows={4}
                         maxLength={1000}
@@ -1153,7 +1216,7 @@ function ReviewPanel({ order }: { order: Order }) {
                         id="review-name"
                         value={form.data.author_name}
                         onChange={(event) =>
-                            form.setData('author_name', event.target.value)
+                            form.setData("author_name", event.target.value)
                         }
                         maxLength={80}
                     />
@@ -1172,7 +1235,7 @@ function ReviewPanel({ order }: { order: Order }) {
                 >
                     {form.processing && (
                         <Loader2 className="size-4 animate-spin" />
-                    )}{' '}
+                    )}{" "}
                     Send review
                 </Button>
             </form>
@@ -1189,7 +1252,7 @@ function Stars({ rating }: { rating: number }) {
             {[1, 2, 3, 4, 5].map((value) => (
                 <Star
                     key={value}
-                    className={cn('size-5', value <= rating && 'fill-current')}
+                    className={cn("size-5", value <= rating && "fill-current")}
                 />
             ))}
         </div>

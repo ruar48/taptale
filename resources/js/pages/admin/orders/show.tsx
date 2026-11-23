@@ -1,4 +1,4 @@
-import { Head, Link, router, setLayoutProps, useForm } from '@inertiajs/react';
+import { Head, Link, router, setLayoutProps, useForm } from "@inertiajs/react";
 import {
     AlertTriangle,
     BadgeCheck,
@@ -13,51 +13,51 @@ import {
     Printer,
     Send,
     ShieldAlert,
-} from 'lucide-react';
-import { useState } from 'react';
-import DesignProofController from '@/actions/App/Http/Controllers/Admin/DesignProofController';
-import ExperienceController from '@/actions/App/Http/Controllers/Admin/ExperienceController';
-import OrderController from '@/actions/App/Http/Controllers/Admin/OrderController';
-import PaymentController from '@/actions/App/Http/Controllers/Admin/PaymentController';
-import InputError from '@/components/input-error';
-import { AdminPage, FormField } from '@/components/taptale/admin-ui';
-import { FileDropzone } from '@/components/taptale/file-dropzone';
+} from "lucide-react";
+import { useState } from "react";
+import DesignProofController from "@/actions/App/Http/Controllers/Admin/DesignProofController";
+import ExperienceController from "@/actions/App/Http/Controllers/Admin/ExperienceController";
+import OrderController from "@/actions/App/Http/Controllers/Admin/OrderController";
+import PaymentController from "@/actions/App/Http/Controllers/Admin/PaymentController";
+import InputError from "@/components/input-error";
+import { AdminPage, FormField } from "@/components/taptale/admin-ui";
+import { FileDropzone } from "@/components/taptale/file-dropzone";
 import {
     OrderPriceBreakdown,
     OrderSpecs,
     OrderTimeline,
     Panel,
     PersonalizationDetails,
-} from '@/components/taptale/order-parts';
+} from "@/components/taptale/order-parts";
 import {
     StatusBadge,
     paymentTone,
     proofTone,
-} from '@/components/taptale/status-badge';
-import { TemplatePreview } from '@/components/taptale/template-preview';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
+} from "@/components/taptale/status-badge";
+import { TemplatePreview } from "@/components/taptale/template-preview";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { useMoney } from '@/hooks/use-money';
-import { formatDate, formatFileSize, toPesoInput } from '@/lib/money';
-import { show as customerShow } from '@/routes/admin/customers';
-import { index as ordersIndex, show as orderShow } from '@/routes/admin/orders';
-import { index as reviewsIndex } from '@/routes/admin/reviews';
-import type { Order, StatusOption } from '@/types';
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useMoney } from "@/hooks/use-money";
+import { formatDate, formatFileSize, toPesoInput } from "@/lib/money";
+import { show as customerShow } from "@/routes/admin/customers";
+import { index as ordersIndex, show as orderShow } from "@/routes/admin/orders";
+import { index as reviewsIndex } from "@/routes/admin/reviews";
+import type { Order, StatusOption } from "@/types";
 
 const PRODUCTION_STATUSES = [
-    'in_production',
-    'ready_for_shipment',
-    'shipped',
-    'completed',
+    "in_production",
+    "ready_for_shipment",
+    "shipped",
+    "completed",
 ];
 
 export default function AdminOrderShow({
@@ -69,14 +69,14 @@ export default function AdminOrderShow({
 }) {
     setLayoutProps({
         breadcrumbs: [
-            { title: 'Orders', href: ordersIndex() },
+            { title: "Orders", href: ordersIndex() },
             { title: order.reference, href: orderShow(order.reference) },
         ],
     });
 
     const money = useMoney();
     const designPhoto = order.files?.find(
-        (file) => file.kind === 'photo' && file.is_image,
+        (file) => file.kind === "photo" && file.is_image,
     );
 
     return (
@@ -96,7 +96,7 @@ export default function AdminOrderShow({
                                 {order.status_label}
                             </StatusBadge>
                             <span className="text-sm text-muted-foreground">
-                                {order.product_name} · {order.quantity} pcs ·{' '}
+                                {order.product_name} · {order.quantity} pcs ·{" "}
                                 {money(order.total)}
                             </span>
                         </div>
@@ -116,12 +116,19 @@ export default function AdminOrderShow({
                         <div className="flex items-center gap-2 rounded-xl border bg-card px-3 py-2 text-sm">
                             {order.is_design_approved ? (
                                 <>
-                                    <BadgeCheck className="size-4 text-emerald-600" />{' '}
+                                    <BadgeCheck className="size-4 text-emerald-600" />{" "}
                                     Design approved — ready for production
+                                </>
+                            ) : order.design_submitted_at &&
+                              (order.proofs?.length ?? 0) === 0 ? (
+                                <>
+                                    <ShieldAlert className="size-4 text-sky-600" />{" "}
+                                    Customer sent photos & details — ready to
+                                    design
                                 </>
                             ) : (
                                 <>
-                                    <ShieldAlert className="size-4 text-amber-600" />{' '}
+                                    <ShieldAlert className="size-4 text-amber-600" />{" "}
                                     Awaiting design approval
                                 </>
                             )}
@@ -147,7 +154,7 @@ export default function AdminOrderShow({
                                                     ?.filter(
                                                         (file) =>
                                                             file.kind ===
-                                                                'photo' &&
+                                                                "photo" &&
                                                             file.is_image,
                                                     )
                                                     .map((file) => file.url)}
@@ -224,7 +231,7 @@ export default function AdminOrderShow({
                                                     {file.original_name}
                                                 </p>
                                                 <p className="text-[10px] text-muted-foreground">
-                                                    {file.kind_label} ·{' '}
+                                                    {file.kind_label} ·{" "}
                                                     {formatFileSize(file.size)}
                                                 </p>
                                             </a>
@@ -266,17 +273,17 @@ export default function AdminOrderShow({
                                     {order.customer_name}
                                 </p>
                                 <p className="flex items-center gap-2 text-muted-foreground">
-                                    <Mail className="size-3.5" />{' '}
+                                    <Mail className="size-3.5" />{" "}
                                     {order.customer_email}
                                 </p>
                                 <p className="flex items-center gap-2 text-muted-foreground">
-                                    <Phone className="size-3.5" />{' '}
+                                    <Phone className="size-3.5" />{" "}
                                     {order.customer_phone}
                                 </p>
                                 <address className="pt-2 not-italic">
                                     {order.address_line}
                                     <br />
-                                    {order.city}, {order.province}{' '}
+                                    {order.city}, {order.province}{" "}
                                     {order.postal_code}
                                 </address>
                                 {order.user && (
@@ -291,7 +298,7 @@ export default function AdminOrderShow({
                             {order.is_gift && (
                                 <div className="mt-4 rounded-xl bg-blush-light/50 p-3 text-sm dark:bg-rose/10">
                                     <p className="flex items-center gap-1.5 font-medium">
-                                        <Gift className="size-4 text-rose" />{' '}
+                                        <Gift className="size-4 text-rose" />{" "}
                                         Gift order — leave prices out
                                     </p>
                                     {order.gift_message && (
@@ -307,20 +314,20 @@ export default function AdminOrderShow({
                         {order.review && (
                             <Panel title="Customer review">
                                 <p className="text-sm text-amber-500">
-                                    {'★'.repeat(order.review.rating)}
+                                    {"★".repeat(order.review.rating)}
                                     <span className="text-muted-foreground/40">
-                                        {'★'.repeat(5 - order.review.rating)}
+                                        {"★".repeat(5 - order.review.rating)}
                                     </span>
                                 </p>
                                 <p className="mt-1 text-sm whitespace-pre-line">
                                     “{order.review.quote}”
                                 </p>
                                 <p className="mt-1 text-xs text-muted-foreground">
-                                    — {order.review.author_name} ·{' '}
+                                    — {order.review.author_name} ·{" "}
                                     {order.review.is_published
-                                        ? 'Published'
-                                        : 'Waiting for approval'}{' '}
-                                    ·{' '}
+                                        ? "Published"
+                                        : "Waiting for approval"}{" "}
+                                    ·{" "}
                                     <Link
                                         href={reviewsIndex()}
                                         className="font-medium text-plum hover:underline dark:text-blush"
@@ -344,7 +351,7 @@ function StatusPanel({
     order: Order;
     statuses: StatusOption[];
 }) {
-    const form = useForm({ status: order.status, note: '' });
+    const form = useForm({ status: order.status, note: "" });
     const blocked =
         PRODUCTION_STATUSES.includes(form.data.status) &&
         !order.is_design_approved;
@@ -359,14 +366,14 @@ function StatusPanel({
                         OrderController.updateStatus.url(order.reference),
                         {
                             preserveScroll: true,
-                            onSuccess: () => form.setData('note', ''),
+                            onSuccess: () => form.setData("note", ""),
                         },
                     );
                 }}
             >
                 <Select
                     value={form.data.status}
-                    onValueChange={(value) => form.setData('status', value)}
+                    onValueChange={(value) => form.setData("status", value)}
                 >
                     <SelectTrigger>
                         <SelectValue />
@@ -398,7 +405,7 @@ function StatusPanel({
                 <Textarea
                     value={form.data.note}
                     onChange={(event) =>
-                        form.setData('note', event.target.value)
+                        form.setData("note", event.target.value)
                     }
                     placeholder="Note for the customer (optional, shown on their timeline)"
                     rows={2}
@@ -415,7 +422,7 @@ function StatusPanel({
                 >
                     {form.processing && (
                         <Loader2 className="size-4 animate-spin" />
-                    )}{' '}
+                    )}{" "}
                     Update status
                 </Button>
             </form>
@@ -426,18 +433,18 @@ function StatusPanel({
 function ProofsPanel({ order }: { order: Order }) {
     const form = useForm<{ proof: File | null; designer_notes: string }>({
         proof: null,
-        designer_notes: '',
+        designer_notes: "",
     });
     const latest = order.proofs?.[0];
     const isClosed =
-        order.status === 'completed' || order.status === 'cancelled';
+        order.status === "completed" || order.status === "cancelled";
 
     return (
         <Panel
             title="Design proofs"
             description="Upload the prepared design and send it to the customer for approval."
         >
-            {latest?.status === 'revision_requested' && (
+            {latest?.status === "revision_requested" && (
                 <div className="mb-4 rounded-xl border border-rose/30 bg-blush-light/50 p-4 text-sm dark:bg-rose/10">
                     <p className="font-medium text-plum dark:text-blush">
                         Revision requested on v{latest.version}
@@ -508,13 +515,13 @@ function ProofsPanel({ order }: { order: Order }) {
                     <p className="text-sm font-medium">
                         {latest
                             ? `Send revised design (v${(latest.version ?? 0) + 1})`
-                            : 'Send first design (v1)'}
+                            : "Send first design (v1)"}
                     </p>
                     <FileDropzone
                         id="proof"
                         files={form.data.proof ? [form.data.proof] : []}
                         onChange={(files) =>
-                            form.setData('proof', files[0] ?? null)
+                            form.setData("proof", files[0] ?? null)
                         }
                         maxFiles={1}
                         maxKilobytes={10240}
@@ -524,7 +531,7 @@ function ProofsPanel({ order }: { order: Order }) {
                     <Textarea
                         value={form.data.designer_notes}
                         onChange={(event) =>
-                            form.setData('designer_notes', event.target.value)
+                            form.setData("designer_notes", event.target.value)
                         }
                         placeholder="Message to the customer about this design"
                         rows={2}
@@ -537,7 +544,7 @@ function ProofsPanel({ order }: { order: Order }) {
                             <Loader2 className="size-4 animate-spin" />
                         ) : (
                             <Send className="size-4" />
-                        )}{' '}
+                        )}{" "}
                         Send for approval
                     </Button>
                 </form>
@@ -549,17 +556,17 @@ function ProofsPanel({ order }: { order: Order }) {
 function PaymentsPanel({ order }: { order: Order }) {
     const money = useMoney();
     const [rejecting, setRejecting] = useState<number | null>(null);
-    const rejectForm = useForm({ review_notes: '' });
+    const rejectForm = useForm({ review_notes: "" });
     const [refunding, setRefunding] = useState(false);
-    const refundForm = useForm({ amount: '', reference_number: '', notes: '' });
+    const refundForm = useForm({ amount: "", reference_number: "", notes: "" });
     const [recording, setRecording] = useState(false);
     const recordForm = useForm({
         amount: toPesoInput(order.balance_due ?? 0),
-        reference_number: '',
-        notes: '',
+        reference_number: "",
+        notes: "",
     });
     const canRecordPayment =
-        (order.balance_due ?? 0) > 0 && order.status !== 'cancelled';
+        (order.balance_due ?? 0) > 0 && order.status !== "cancelled";
 
     return (
         <Panel
@@ -583,9 +590,9 @@ function PaymentsPanel({ order }: { order: Order }) {
                         >
                             <div className="flex items-center justify-between gap-2">
                                 <span className="font-medium">
-                                    {payment.kind === 'refund'
-                                        ? 'Refund'
-                                        : (payment.method ?? 'Payment')}{' '}
+                                    {payment.kind === "refund"
+                                        ? "Refund"
+                                        : (payment.method ?? "Payment")}{" "}
                                     · {money(payment.amount)}
                                 </span>
                                 <StatusBadge tone={paymentTone(payment.status)}>
@@ -616,8 +623,8 @@ function PaymentsPanel({ order }: { order: Order }) {
                                     receipt
                                 </a>
                             )}
-                            {payment.status === 'submitted' &&
-                                payment.kind === 'payment' &&
+                            {payment.status === "submitted" &&
+                                payment.kind === "payment" &&
                                 (rejecting === payment.id ? (
                                     <form
                                         className="mt-3 space-y-2"
@@ -641,7 +648,7 @@ function PaymentsPanel({ order }: { order: Order }) {
                                             value={rejectForm.data.review_notes}
                                             onChange={(event) =>
                                                 rejectForm.setData(
-                                                    'review_notes',
+                                                    "review_notes",
                                                     event.target.value,
                                                 )
                                             }
@@ -688,7 +695,7 @@ function PaymentsPanel({ order }: { order: Order }) {
                                                 )
                                             }
                                         >
-                                            <BadgeCheck className="size-4" />{' '}
+                                            <BadgeCheck className="size-4" />{" "}
                                             Verify
                                         </Button>
                                         <Button
@@ -738,7 +745,7 @@ function PaymentsPanel({ order }: { order: Order }) {
                                 value={recordForm.data.amount}
                                 onChange={(event) =>
                                     recordForm.setData(
-                                        'amount',
+                                        "amount",
                                         event.target.value,
                                     )
                                 }
@@ -748,7 +755,7 @@ function PaymentsPanel({ order }: { order: Order }) {
                                 value={recordForm.data.reference_number}
                                 onChange={(event) =>
                                     recordForm.setData(
-                                        'reference_number',
+                                        "reference_number",
                                         event.target.value,
                                     )
                                 }
@@ -759,7 +766,7 @@ function PaymentsPanel({ order }: { order: Order }) {
                             placeholder="Notes, e.g. collected by J&T on delivery"
                             value={recordForm.data.notes}
                             onChange={(event) =>
-                                recordForm.setData('notes', event.target.value)
+                                recordForm.setData("notes", event.target.value)
                             }
                             rows={2}
                         />
@@ -785,7 +792,7 @@ function PaymentsPanel({ order }: { order: Order }) {
                         className="mt-3 mr-2"
                         onClick={() => {
                             recordForm.setData(
-                                'amount',
+                                "amount",
                                 toPesoInput(order.balance_due ?? 0),
                             );
                             setRecording(true);
@@ -823,7 +830,7 @@ function PaymentsPanel({ order }: { order: Order }) {
                                 value={refundForm.data.amount}
                                 onChange={(event) =>
                                     refundForm.setData(
-                                        'amount',
+                                        "amount",
                                         event.target.value,
                                     )
                                 }
@@ -833,7 +840,7 @@ function PaymentsPanel({ order }: { order: Order }) {
                                 value={refundForm.data.reference_number}
                                 onChange={(event) =>
                                     refundForm.setData(
-                                        'reference_number',
+                                        "reference_number",
                                         event.target.value,
                                     )
                                 }
@@ -844,7 +851,7 @@ function PaymentsPanel({ order }: { order: Order }) {
                             placeholder="Reason for the refund"
                             value={refundForm.data.notes}
                             onChange={(event) =>
-                                refundForm.setData('notes', event.target.value)
+                                refundForm.setData("notes", event.target.value)
                             }
                             rows={2}
                         />
@@ -881,7 +888,7 @@ function AdjustmentForm({ order }: { order: Order }) {
     const [open, setOpen] = useState(false);
     const form = useForm({
         adjustment: toPesoInput(order.adjustment),
-        adjustment_note: order.adjustment_note ?? '',
+        adjustment_note: order.adjustment_note ?? "",
     });
 
     if (!open) {
@@ -918,7 +925,7 @@ function AdjustmentForm({ order }: { order: Order }) {
                     step="0.01"
                     value={form.data.adjustment}
                     onChange={(event) =>
-                        form.setData('adjustment', event.target.value)
+                        form.setData("adjustment", event.target.value)
                     }
                 />
             </FormField>
@@ -926,7 +933,7 @@ function AdjustmentForm({ order }: { order: Order }) {
                 <Input
                     value={form.data.adjustment_note}
                     onChange={(event) =>
-                        form.setData('adjustment_note', event.target.value)
+                        form.setData("adjustment_note", event.target.value)
                     }
                     placeholder="e.g. Loyalty discount"
                 />
@@ -950,9 +957,9 @@ function AdjustmentForm({ order }: { order: Order }) {
 
 function ShippingForm({ order }: { order: Order }) {
     const form = useForm({
-        courier: order.courier ?? '',
-        tracking_number: order.tracking_number ?? '',
-        tracking_url: order.tracking_url ?? '',
+        courier: order.courier ?? "",
+        tracking_number: order.tracking_number ?? "",
+        tracking_url: order.tracking_url ?? "",
     });
 
     return (
@@ -970,14 +977,14 @@ function ShippingForm({ order }: { order: Order }) {
                 <Input
                     value={form.data.courier}
                     onChange={(event) =>
-                        form.setData('courier', event.target.value)
+                        form.setData("courier", event.target.value)
                     }
                     placeholder="Courier (e.g. J&T)"
                 />
                 <Input
                     value={form.data.tracking_number}
                     onChange={(event) =>
-                        form.setData('tracking_number', event.target.value)
+                        form.setData("tracking_number", event.target.value)
                     }
                     placeholder="Tracking no."
                 />
@@ -986,7 +993,7 @@ function ShippingForm({ order }: { order: Order }) {
                 type="url"
                 value={form.data.tracking_url}
                 onChange={(event) =>
-                    form.setData('tracking_url', event.target.value)
+                    form.setData("tracking_url", event.target.value)
                 }
                 placeholder="Tracking link (customer gets a “Track my package” button)"
             />
@@ -1009,7 +1016,7 @@ function ShippingForm({ order }: { order: Order }) {
 }
 
 function NoteForm({ order }: { order: Order }) {
-    const form = useForm({ body: '', is_internal: true });
+    const form = useForm({ body: "", is_internal: true });
 
     return (
         <form
@@ -1024,7 +1031,7 @@ function NoteForm({ order }: { order: Order }) {
         >
             <Textarea
                 value={form.data.body}
-                onChange={(event) => form.setData('body', event.target.value)}
+                onChange={(event) => form.setData("body", event.target.value)}
                 placeholder="Add a note…"
                 rows={2}
             />
@@ -1034,7 +1041,7 @@ function NoteForm({ order }: { order: Order }) {
                     <Checkbox
                         checked={!form.data.is_internal}
                         onCheckedChange={(value) =>
-                            form.setData('is_internal', value !== true)
+                            form.setData("is_internal", value !== true)
                         }
                     />
                     Visible to customer
@@ -1052,7 +1059,7 @@ function NoteForm({ order }: { order: Order }) {
 
 function ExperiencePanel({ order }: { order: Order }) {
     const experience = order.experience!;
-    const form = useForm({ nfc_tag_uid: experience.nfc_tag_uid ?? '' });
+    const form = useForm({ nfc_tag_uid: experience.nfc_tag_uid ?? "" });
 
     return (
         <Panel title="NFC & QR">
@@ -1064,13 +1071,13 @@ function ExperiencePanel({ order }: { order: Order }) {
                 />
                 <div className="min-w-0 space-y-1 text-sm">
                     <p className="flex items-center gap-1.5 font-medium">
-                        <Nfc className="size-4 text-rose" />{' '}
+                        <Nfc className="size-4 text-rose" />{" "}
                         {experience.is_published
-                            ? 'Published'
-                            : 'Not published yet'}
+                            ? "Published"
+                            : "Not published yet"}
                     </p>
                     <p className="text-xs break-all text-muted-foreground">
-                        Program tags with:{' '}
+                        Program tags with:{" "}
                         <span className="font-mono text-foreground">
                             {experience.public_url}
                         </span>
@@ -1110,7 +1117,7 @@ function ExperiencePanel({ order }: { order: Order }) {
                     <Input
                         value={form.data.nfc_tag_uid}
                         onChange={(event) =>
-                            form.setData('nfc_tag_uid', event.target.value)
+                            form.setData("nfc_tag_uid", event.target.value)
                         }
                         placeholder="04:A2:3B:1C:5D:80"
                         className="font-mono"

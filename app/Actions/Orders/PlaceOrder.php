@@ -103,7 +103,8 @@ class PlaceOrder
             $order->recordActivity(
                 ActivityType::Placed,
                 match (true) {
-                    $personalizeLater => 'Order placed. Add your photos and details from this page whenever you are ready — we will send your design for approval before anything is made.',
+                    $personalizeLater && $designMode === DesignMode::SelfCustomized => 'Order placed. Finish your design from this page: customize it yourself with the live preview, or send us your photos and details and we will put it together for you. Nothing is made until you approve it.',
+                    $personalizeLater => 'Order placed. Send us your photos and a short description from this page — we will design it and send it to you for approval before anything is made.',
                     $designMode === DesignMode::SelfCustomized => 'Order placed. You approved your live design preview at checkout.',
                     $isCashOnDelivery => 'Order placed. Our designers will prepare your design and send it to you for approval.',
                     default => 'Order placed. Our designers will prepare your design for approval after payment is verified.',

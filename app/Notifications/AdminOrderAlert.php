@@ -47,6 +47,7 @@ class AdminOrderAlert extends Notification implements ShouldQueue
             ActivityType::PaymentSubmitted,
             ActivityType::RevisionRequested,
             ActivityType::DesignApproved,
+            ActivityType::DesignSubmitted,
             ActivityType::ReviewSubmitted => true,
             default => false,
         };
@@ -75,6 +76,7 @@ class AdminOrderAlert extends Notification implements ShouldQueue
             ActivityType::PaymentSubmitted => "Payment to verify on {$reference}",
             ActivityType::RevisionRequested => "Revision requested on {$reference}",
             ActivityType::DesignApproved => "Design approved on {$reference}",
+            ActivityType::DesignSubmitted => "Photos and details ready to design on {$reference}",
             ActivityType::ReviewSubmitted => "New review to approve ({$reference})",
             default => "Update on {$reference}",
         };

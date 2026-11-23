@@ -403,12 +403,15 @@ export type Order = {
     product_name: string;
     product_slug?: string | null;
     product_art_style?: ArtStyle | null;
+    product_max_photos?: number | null;
     category_name?: string | null;
     template_name: string | null;
     template?: Template | null;
     selected_options: SelectedOption[];
     personalization: Personalization;
     preview_approved_at: string | null;
+    design_submitted_at: string | null;
+    is_design_editable?: boolean;
     quantity: number;
     unit_price: number;
     subtotal: number;
