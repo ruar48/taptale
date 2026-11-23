@@ -109,6 +109,7 @@ class OrderWizardController extends Controller
             array_values($request->file('photos', [])),
             array_values($request->file('page_photos', [])),
             array_values($request->file('page_rain_photos', [])),
+            $request->file('page_video'),
         );
 
         $method = $order->paymentMethod;

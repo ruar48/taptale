@@ -50,6 +50,7 @@ class HandleInertiaRequests extends Middleware
                 'deliveryFee' => (int) config('taptale.delivery_fee'),
                 'freeDeliveryThreshold' => (int) config('taptale.free_delivery_threshold'),
                 'business' => config('taptale.business'),
+                'maxVideoKilobytes' => (int) config('taptale.max_video_kilobytes'),
                 'policiesUpdatedOn' => config('taptale.policies_updated_on'),
             ],
             'navCategories' => Inertia::once(fn () => Category::active()->get(['id', 'name', 'slug', 'accent_color'])),

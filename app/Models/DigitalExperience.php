@@ -37,6 +37,7 @@ use Illuminate\Support\Str;
  * @property PhotoRainLayer $photo_rain_layer
  * @property string|null $event_date
  * @property string|null $video_url
+ * @property string|null $video_path A short video file uploaded to the page
  * @property string|null $music_url
  * @property string|null $song_title
  * @property string|null $song_artist
@@ -60,7 +61,7 @@ use Illuminate\Support\Str;
 #[RouteKey('code')]
 #[Fillable([
     'template', 'title', 'subtitle', 'recipient_name', 'sender_name', 'message', 'quote', 'flowers_note', 'flower_style', 'flower_rain', 'flower_addon',
-    'photo_rain_layer', 'event_date', 'video_url', 'music_url', 'song_title', 'song_artist', 'song_ornament', 'song_background', 'photos', 'rain_photos', 'moments', 'custom_sections', 'theme',
+    'photo_rain_layer', 'event_date', 'video_url', 'video_path', 'music_url', 'song_title', 'song_artist', 'song_ornament', 'song_background', 'photos', 'rain_photos', 'moments', 'custom_sections', 'theme',
     'nfc_tag_uid', 'is_published', 'unlocks_at',
 ])]
 class DigitalExperience extends Model

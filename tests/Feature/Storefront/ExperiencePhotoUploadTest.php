@@ -143,6 +143,101 @@ test('raining photos open only for those who can see the page', function () {
     $this->get(route('experiences.rain-photo', [$experience, 1]))->assertNotFound();
 });
 
+test('the owner uploads a short video, replaces it and removes it', function () {
+    $experience = DigitalExperience::factory()->create();
+
+    $this->actingAs($experience->user)
+        ->post(route('account.experiences.video.store', $experience), [
+            'video' => UploadedFile::fake()->create('first.mp4', 500, 'video/mp4'),
+        ])
+        ->assertSessionHasNoErrors();
+
+    $first = $experience->fresh()->video_path;
+    Storage::disk('local')->assertExists($first);
+
+    $this->actingAs($experience->user)
+        ->post(route('account.experiences.video.store', $experience), [
+            'video' => UploadedFile::fake()->create('second.mov', 500, 'video/quicktime'),
+        ])
+        ->assertSessionHasNoErrors();
+
+    $second = $experience->fresh()->video_path;
+    Storage::disk('local')->assertMissing($first);
+    Storage::disk('local')->assertExists($second);
+
+    $this->actingAs($experience->user)
+        ->delete(route('account.experiences.video.destroy', $experience))
+        ->assertSessionHasNoErrors();
+
+    expect($experience->fresh()->video_path)->toBeNull();
+    Storage::disk('local')->assertMissing($second);
+});
+
+test('a video over the size limit is turned away with a way to reach the shop', function () {
+    config(['taptale.max_video_kilobytes' => 1024]);
+    $experience = DigitalExperience::factory()->create();
+
+    $this->actingAs($experience->user)
+        ->post(route('account.experiences.video.store', $experience), [
+            'video' => UploadedFile::fake()->create('wedding.mp4', 2048, 'video/mp4'),
+        ])
+        ->assertSessionHasErrors(['video' => 'Videos up to 1 MB can be uploaded. For a bigger video, message us and we will help you add it, or add it as a YouTube link.']);
+
+    $this->actingAs($experience->user)
+        ->post(route('account.experiences.video.store', $experience), [
+            'video' => UploadedFile::fake()->create('virus.exe', 10, 'application/x-msdownload'),
+        ])
+        ->assertSessionHasErrors(['video' => 'Please choose an MP4, MOV or WebM video.']);
+
+    expect($experience->fresh()->video_path)->toBeNull();
+});
+
+test('another customer cannot change the video on someone else\'s page', function () {
+    $experience = DigitalExperience::factory()->create();
+    $intruder = User::factory()->create();
+
+    $this->actingAs($intruder)
+        ->post(route('account.experiences.video.store', $experience), [
+            'video' => UploadedFile::fake()->create('intruder.mp4', 100, 'video/mp4'),
+        ])
+        ->assertForbidden();
+
+    $this->actingAs($intruder)
+        ->delete(route('account.experiences.video.destroy', $experience))
+        ->assertForbidden();
+
+    expect($experience->fresh()->video_path)->toBeNull();
+});
+
+test('the video plays only for those who can see the page, and can be skipped through', function () {
+    Storage::disk('local')->put('experiences/1/video/clip.mp4', str_repeat('v', 100));
+    $experience = DigitalExperience::factory()->create();
+    $experience->forceFill(['video_path' => 'experiences/1/video/clip.mp4'])->save();
+
+    $this->get(route('experiences.video', $experience))->assertNotFound();
+
+    tapTag($experience);
+
+    $this->get(route('experiences.video', $experience))->assertOk();
+    $this->withHeaders(['Range' => 'bytes=0-9'])
+        ->get(route('experiences.video', $experience))
+        ->assertStatus(206);
+});
+
+test('the owner adds a video link on the page, and only safe links are kept', function () {
+    $experience = DigitalExperience::factory()->create();
+
+    $this->actingAs($experience->user)
+        ->patch(route('account.experiences.content', $experience), ['field' => 'video_url', 'value' => 'https://youtu.be/abc123'])
+        ->assertSessionHasNoErrors();
+
+    $this->actingAs($experience->user)
+        ->patch(route('account.experiences.content', $experience), ['field' => 'video_url', 'value' => 'javascript:alert(1)'])
+        ->assertSessionHasErrors('value');
+
+    expect($experience->fresh()->video_url)->toBe('https://youtu.be/abc123');
+});
+
 test('another customer cannot add photos to someone else\'s page', function () {
     $experience = DigitalExperience::factory()->create(['photos' => []]);
 

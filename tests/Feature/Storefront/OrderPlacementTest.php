@@ -419,9 +419,12 @@ test('extra sections and raining photos made on a demo come with the order', fun
         ],
         'page_photos' => [UploadedFile::fake()->image('first.jpg'), UploadedFile::fake()->image('second.jpg')],
         'page_rain_photos' => [UploadedFile::fake()->image('rain-1.jpg'), UploadedFile::fake()->image('rain-2.jpg')],
+        'page_video' => UploadedFile::fake()->create('us.mp4', 500, 'video/mp4'),
     ]))->assertSessionHasNoErrors();
 
     $experience = Order::sole()->experience;
+
+    Storage::disk('local')->assertExists($experience->video_path);
 
     expect($experience->photos)->toHaveCount(2)
         ->and($experience->rain_photos)->toHaveCount(2)

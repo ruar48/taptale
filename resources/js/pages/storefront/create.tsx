@@ -53,10 +53,12 @@ import {
     clearPageDraft,
     loadPageDraft,
     loadPagePhotos,
+    loadPageVideo,
     loadRainPhotos,
     MAX_RAIN_PHOTOS,
     savePageDraft,
     savePagePhotos,
+    savePageVideo,
     saveRainPhotos,
 } from '@/lib/page-draft';
 import type { PageDraft } from '@/lib/page-draft';
@@ -295,6 +297,7 @@ export default function CreateGift({
     const [pageDraft, setPageDraft] = useState<PageDraft | null>(null);
     const [pagePhotos, setPagePhotos] = useState<File[]>([]);
     const [pageRainPhotos, setPageRainPhotos] = useState<File[]>([]);
+    const [pageVideo, setPageVideo] = useState<File | null>(null);
     const [isPageDraftSetAside, setIsPageDraftSetAside] = useState(false);
     const attachedPage = isPageDraftSetAside ? null : pageDraft;
 
@@ -304,6 +307,7 @@ export default function CreateGift({
         setPageDraft(found);
         setPagePhotos([]);
         setPageRainPhotos([]);
+        setPageVideo(null);
         setIsPageDraftSetAside(false);
 
         if (!found) {
@@ -318,10 +322,12 @@ export default function CreateGift({
         void Promise.all([
             loadPagePhotos(found.template),
             loadRainPhotos(found.template),
-        ]).then(([photos, rainPhotos]) => {
+            loadPageVideo(found.template),
+        ]).then(([photos, rainPhotos, video]) => {
             if (isCurrent) {
                 setPagePhotos(photos.slice(0, maxPagePhotos));
                 setPageRainPhotos(rainPhotos.slice(0, MAX_RAIN_PHOTOS));
+                setPageVideo(video);
             }
         });
 
@@ -769,6 +775,7 @@ export default function CreateGift({
                       page: orderedPage.content,
                       page_photos: pagePhotos,
                       page_rain_photos: pageRainPhotos,
+                      ...(pageVideo ? { page_video: pageVideo } : {}),
                   }
                 : {}),
         }));
@@ -791,6 +798,7 @@ export default function CreateGift({
                     savePageDraft(orderedPage.template, orderedPage.content);
                     void savePagePhotos(orderedPage.template, pagePhotos);
                     void saveRainPhotos(orderedPage.template, pageRainPhotos);
+                    void savePageVideo(orderedPage.template, pageVideo);
                 }
 
                 // Problems with the order as a whole (e.g. too many unpaid
@@ -1048,6 +1056,7 @@ export default function CreateGift({
                                                     : `${pagePhotos.length} photos`}
                                                 {pageRainPhotos.length > 0 &&
                                                     ` · ${pageRainPhotos.length} raining`}
+                                                {pageVideo && ' · a video'}
                                                 {(attachedPage.content
                                                     .custom_sections?.length ??
                                                     0) > 0 &&

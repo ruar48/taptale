@@ -18,6 +18,7 @@ import type {
 const DRAFT_PREFIX = 'taptale:page-draft:';
 const PHOTOS_PREFIX = 'page-photos:';
 const RAIN_PHOTOS_PREFIX = 'page-rain-photos:';
+const VIDEO_PREFIX = 'page-video:';
 const DRAFT_VERSION = 1;
 const DRAFT_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -80,6 +81,7 @@ export type PageDraftContent = {
     song_title: string | null;
     song_artist: string | null;
     music_url: string | null;
+    video_url: string | null;
     flower_style: FlowerStyle;
     flower_rain: FlowerRain;
     /** Flowers added to a design without them, charged at checkout. */
@@ -110,6 +112,7 @@ export const PAGE_TEXT_LIMITS = {
     event_date: 60,
     song_title: 120,
     song_artist: 120,
+    video_url: 500,
 } as const;
 
 export const MOMENT_TEXT_LIMITS = {
@@ -159,6 +162,7 @@ export function pageContentFrom(
         song_title: experience.song_title,
         song_artist: experience.song_artist,
         music_url: experience.music_url,
+        video_url: experience.video_url,
         flower_style: experience.flower_style,
         flower_rain: experience.flower_rain,
         flower_addon: experience.flower_addon,
@@ -244,6 +248,7 @@ export function clearPageDraft(template: string): void {
 
     void savePagePhotos(template, []);
     void saveRainPhotos(template, []);
+    void savePageVideo(template, null);
 }
 
 export function savePagePhotos(
@@ -329,4 +334,16 @@ export async function shrinkPhoto(file: File): Promise<File> {
     } catch {
         return file;
     }
+}
+
+/** A short video added to the page, kept like the photos until ordering. */
+export function savePageVideo(
+    template: string,
+    video: File | null,
+): Promise<void> {
+    return savePhotoList(VIDEO_PREFIX + template, video ? [video] : []);
+}
+
+export async function loadPageVideo(template: string): Promise<File | null> {
+    return (await loadPhotoList(VIDEO_PREFIX + template))[0] ?? null;
 }

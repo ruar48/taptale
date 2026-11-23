@@ -21,6 +21,7 @@ import { FlowerPicker } from '@/components/taptale/experience/flower-picker';
 import { FlowerScene } from '@/components/taptale/experience/flower-scenes';
 import { NightGarden } from '@/components/taptale/experience/night-garden';
 import { SongPlayer } from '@/components/taptale/experience/song-player';
+import { VideoEditor } from '@/components/taptale/experience/video-editor';
 import {
     HEARTS_BACKDROP_STYLE,
     HeartFlourish,
@@ -1250,17 +1251,28 @@ function Gallery() {
 }
 
 function VideoSection() {
-    const { experience } = useExperience();
+    const { experience, editable } = useExperience();
     const embed = embedFor(experience.video_url);
 
-    if (!experience.video_url) {
+    if (!experience.video_url && !experience.video_file_url && !editable) {
         return null;
     }
 
     return (
         <SectionShell surface>
             <Reveal>
-                {embed ? (
+                {experience.video_file_url ? (
+                    <div className="mx-auto max-w-3xl overflow-hidden rounded-3xl bg-black shadow-2xl">
+                        <video
+                            key={experience.video_file_url}
+                            src={experience.video_file_url}
+                            controls
+                            playsInline
+                            preload="metadata"
+                            className="aspect-video w-full"
+                        />
+                    </div>
+                ) : !experience.video_url ? null : embed ? (
                     <div className="mx-auto aspect-video max-w-3xl overflow-hidden rounded-3xl shadow-2xl">
                         <iframe
                             src={embed.src}
@@ -1281,6 +1293,7 @@ function VideoSection() {
                         <Play className="size-6" /> Watch our video
                     </a>
                 )}
+                {editable && <VideoEditor />}
             </Reveal>
         </SectionShell>
     );

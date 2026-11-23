@@ -61,6 +61,7 @@ Route::post('t/{experience}/replies', [Storefront\ExperienceReactionController::
     ->middleware(['throttle:15,1,memory-page-replies', PreventDuplicateSubmissions::class])
     ->name('experiences.replies.store');
 Route::get('t/{experience}/audio', [Storefront\ExperienceController::class, 'audio'])->name('experiences.audio');
+Route::get('t/{experience}/video', [Storefront\ExperienceController::class, 'video'])->name('experiences.video');
 Route::get('t/{experience}/qr', [Storefront\ExperienceController::class, 'qr'])->name('experiences.qr');
 Route::get('t/{experience}/photos/{index}', [Storefront\ExperienceController::class, 'photo'])
     ->whereNumber('index')
@@ -155,6 +156,12 @@ Route::middleware('auth')->group(function () {
         Route::post('experiences/{experience}/photos', [Account\ExperiencePhotoController::class, 'store'])
             ->middleware('throttle:30,1,memory-page-photo-uploads')
             ->name('experiences.photos.store');
+        Route::post('experiences/{experience}/video', [Account\ExperienceVideoController::class, 'store'])
+            ->middleware('throttle:10,1,memory-page-video-uploads')
+            ->name('experiences.video.store');
+        Route::delete('experiences/{experience}/video', [Account\ExperienceVideoController::class, 'destroy'])
+            ->middleware('throttle:30,1,memory-page-video-removals')
+            ->name('experiences.video.destroy');
         Route::post('experiences/{experience}/rain-photos', [Account\ExperienceRainPhotoController::class, 'store'])
             ->middleware('throttle:30,1,memory-page-rain-photo-uploads')
             ->name('experiences.rain-photos.store');

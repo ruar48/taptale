@@ -196,6 +196,30 @@ class ExperienceController extends Controller
     }
 
     /**
+     * Stream the uploaded page video. Local files are sent as a file
+     * response, which answers the range requests browsers make to seek and
+     * play video; object storage gets a short-lived signed URL as usual.
+     */
+    public function video(Request $request, DigitalExperience $experience): SymfonyResponse
+    {
+        abort_unless(static::canSee($request, $experience), 404);
+
+        abort_if($experience->video_path === null, 404);
+
+        $diskName = (string) config('taptale.uploads_disk');
+
+        if (config("filesystems.disks.{$diskName}.driver") === 's3') {
+            return $this->serveUpload($experience->video_path, []);
+        }
+
+        abort_unless(Storage::disk($diskName)->exists($experience->video_path), 404);
+
+        return response()->file(Storage::disk($diskName)->path($experience->video_path), [
+            'Cache-Control' => 'private, max-age=3600',
+        ]);
+    }
+
+    /**
      * Stream the uploaded background song.
      */
     public function audio(Request $request, DigitalExperience $experience): SymfonyResponse

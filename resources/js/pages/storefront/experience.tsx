@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import ExperienceContentController from "@/actions/App/Http/Controllers/Account/ExperienceContentController";
 import ExperiencePhotoController from "@/actions/App/Http/Controllers/Account/ExperiencePhotoController";
 import ExperienceRainPhotoController from "@/actions/App/Http/Controllers/Account/ExperienceRainPhotoController";
+import ExperienceVideoController from "@/actions/App/Http/Controllers/Account/ExperienceVideoController";
 import {
     presetFor,
     themeFor,
@@ -310,6 +311,61 @@ export default function Experience({
         );
     };
 
+    /*
+     * The page video: kept in the browser on a demo, uploaded straight away
+     * (within the size limit) on the owner's page.
+     */
+    const addVideo = (file: File) => {
+        if (isDemo) {
+            draft.addVideo(file);
+
+            return;
+        }
+
+        if (!canEdit || uploading) {
+            return;
+        }
+
+        router.post(
+            ExperienceVideoController.store.url(experience.code),
+            { video: file },
+            {
+                forceFormData: true,
+                preserveScroll: true,
+                preserveState: true,
+                onStart: () => setUploading(true),
+                onFinish: () => setUploading(false),
+                onError: (errors) => {
+                    toast.error(
+                        Object.values(errors)[0] ??
+                            "The video could not be uploaded. Please try again.",
+                    );
+                },
+            },
+        );
+    };
+
+    const removeVideo = () => {
+        if (!window.confirm("Remove the video from your page?")) {
+            return;
+        }
+
+        if (isDemo) {
+            draft.removeVideo();
+
+            return;
+        }
+
+        if (!canEdit) {
+            return;
+        }
+
+        router.delete(ExperienceVideoController.destroy.url(experience.code), {
+            preserveScroll: true,
+            preserveState: true,
+        });
+    };
+
     return (
         <ExperienceContext.Provider
             value={{
@@ -328,6 +384,8 @@ export default function Experience({
                 sectionActions: isDemo ? draft.sectionActions : undefined,
                 addRainPhotos,
                 removeRainPhoto,
+                addVideo,
+                removeVideo,
                 opened,
             }}
         >

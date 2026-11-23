@@ -316,6 +316,8 @@ export type DigitalExperience = {
     photo_rain_layer: PhotoRainLayer;
     event_date: string | null;
     video_url: string | null;
+    /** A short video file uploaded to the page (or kept in a demo draft). */
+    video_file_url: string | null;
     music_url: string | null;
     song_title: string | null;
     song_artist: string | null;

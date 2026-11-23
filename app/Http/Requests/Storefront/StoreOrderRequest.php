@@ -9,6 +9,7 @@ use App\Enums\FlowerStyle;
 use App\Enums\OrderStatus;
 use App\Enums\PhotoRainLayer;
 use App\Http\Controllers\Account\ExperienceSectionController;
+use App\Http\Controllers\Account\ExperienceVideoController;
 use App\Models\Category;
 use App\Models\DigitalExperience;
 use App\Models\Product;
@@ -76,6 +77,7 @@ class StoreOrderRequest extends FormRequest
             'page.song_title' => ['nullable', 'string', 'max:120'],
             'page.song_artist' => ['nullable', 'string', 'max:120'],
             'page.music_url' => ['nullable', 'url:https', 'max:500'],
+            'page.video_url' => ['nullable', 'url:https', 'max:500'],
             'page.flower_style' => ['nullable', Rule::enum(FlowerStyle::class)],
             'page.flower_rain' => ['nullable', Rule::enum(FlowerRain::class)],
             'page.photo_rain_layer' => ['nullable', Rule::enum(PhotoRainLayer::class)],
@@ -100,6 +102,7 @@ class StoreOrderRequest extends FormRequest
             'page_photos.*' => [File::image()->types(['jpg', 'jpeg', 'png', 'webp'])->max((int) config('taptale.max_upload_kilobytes'))],
             'page_rain_photos' => ['array', 'max:'.DigitalExperience::MAX_RAIN_PHOTOS],
             'page_rain_photos.*' => [File::image()->types(['jpg', 'jpeg', 'png', 'webp'])->max((int) config('taptale.max_upload_kilobytes'))],
+            'page_video' => ExperienceVideoController::rules(required: false),
 
             'customer_name' => ['required', 'string', 'max:120'],
             'customer_email' => ['required', 'email', 'max:255'],
@@ -201,6 +204,7 @@ class StoreOrderRequest extends FormRequest
             'page_rain_photos.max' => 'Up to :max photos can rain down on your page.',
             'page.custom_sections.max' => 'Your page can have at most :max extra sections.',
             'customer_phone.regex' => 'Please enter a valid contact number.',
+            ...ExperienceVideoController::messages('page_video'),
         ];
     }
 

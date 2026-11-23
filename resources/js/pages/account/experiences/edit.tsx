@@ -1,4 +1,11 @@
-import { Head, Link, router, setLayoutProps, useForm } from '@inertiajs/react';
+import {
+    Head,
+    Link,
+    router,
+    setLayoutProps,
+    useForm,
+    usePage,
+} from '@inertiajs/react';
 import {
     Check,
     Download,
@@ -16,8 +23,10 @@ import {
     Undo2,
     X,
 } from 'lucide-react';
+import { useState } from 'react';
 import ExperienceController from '@/actions/App/Http/Controllers/Account/ExperienceController';
 import ExperienceRainPhotoController from '@/actions/App/Http/Controllers/Account/ExperienceRainPhotoController';
+import ExperienceVideoController from '@/actions/App/Http/Controllers/Account/ExperienceVideoController';
 import InputError from '@/components/input-error';
 import {
     EXPERIENCE_THEMES,
@@ -27,6 +36,7 @@ import {
     themeFor,
     themeStyle,
 } from '@/components/taptale/experience/config';
+import { contactFor } from '@/components/taptale/experience/video-editor';
 import { FileDropzone } from '@/components/taptale/file-dropzone';
 import { Panel } from '@/components/taptale/order-parts';
 import { Button } from '@/components/ui/button';
@@ -207,6 +217,35 @@ export default function EditExperience({
         data.template === 'digital_bouquet' || experience.flower_addon;
     const hasPhotoRain =
         data.flower_rain === 'photos' || data.flower_rain === 'both';
+
+    /*
+     * Videos fill storage fast: a file over the limit is stopped before it
+     * uploads, and the customer is pointed to the shop for help.
+     */
+    const { storefront } = usePage().props;
+    const maxVideoBytes = (storefront?.maxVideoKilobytes ?? 51200) * 1024;
+    const maxVideoMegabytes = Math.round(maxVideoBytes / 1024 / 1024);
+    const videoContact = contactFor(storefront?.business);
+    const [videoTooBig, setVideoTooBig] = useState<number | null>(null);
+
+    const uploadVideo = (file: File | undefined) => {
+        if (!file) {
+            return;
+        }
+
+        if (file.size > maxVideoBytes) {
+            setVideoTooBig(Math.ceil(file.size / 1024 / 1024));
+
+            return;
+        }
+
+        setVideoTooBig(null);
+        router.post(
+            ExperienceVideoController.store.url(experience.code),
+            { video: file },
+            { forceFormData: true, preserveScroll: true, preserveState: true },
+        );
+    };
     const keptPhotos = experience.photos.filter(
         (photo) => !data.remove_photos.includes(photo.index),
     );
@@ -1105,6 +1144,90 @@ export default function EditExperience({
                                         placeholder="https://youtu.be/…"
                                     />
                                 </Field>
+                                <div className="sm:col-span-2">
+                                    <Label className="mb-1 block">
+                                        Or upload a short video
+                                    </Label>
+                                    <p className="text-xs text-muted-foreground">
+                                        Up to {maxVideoMegabytes} MB. It plays
+                                        on your page instead of the link.
+                                    </p>
+                                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                                        {experience.video_file_url && (
+                                            <span className="text-sm text-emerald-700 dark:text-emerald-400">
+                                                Your video is on the page.
+                                            </span>
+                                        )}
+                                        <Button
+                                            asChild
+                                            variant="outline"
+                                            className="rounded-full"
+                                        >
+                                            <label className="cursor-pointer">
+                                                <input
+                                                    type="file"
+                                                    accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.m4v,.webm"
+                                                    className="sr-only"
+                                                    onChange={(event) => {
+                                                        uploadVideo(
+                                                            event.target
+                                                                .files?.[0],
+                                                        );
+                                                        event.target.value = '';
+                                                    }}
+                                                />
+                                                {experience.video_file_url
+                                                    ? 'Replace video'
+                                                    : 'Upload a video'}
+                                            </label>
+                                        </Button>
+                                        {experience.video_file_url && (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                className="rounded-full text-destructive"
+                                                onClick={() =>
+                                                    window.confirm(
+                                                        'Remove the video from your page?',
+                                                    ) &&
+                                                    router.delete(
+                                                        ExperienceVideoController.destroy.url(
+                                                            experience.code,
+                                                        ),
+                                                        {
+                                                            preserveScroll: true,
+                                                            preserveState: true,
+                                                        },
+                                                    )
+                                                }
+                                            >
+                                                Remove video
+                                            </Button>
+                                        )}
+                                    </div>
+                                    {videoTooBig !== null && (
+                                        <p className="mt-2 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">
+                                            This video is {videoTooBig} MB, more
+                                            than the {maxVideoMegabytes} MB we
+                                            can keep for each page.{' '}
+                                            {videoContact ? (
+                                                <a
+                                                    href={videoContact.href}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="font-semibold underline underline-offset-2"
+                                                >
+                                                    {videoContact.label}
+                                                </a>
+                                            ) : (
+                                                'Message us'
+                                            )}{' '}
+                                            and we will help you add it, or put
+                                            it on YouTube and paste the link
+                                            above.
+                                        </p>
+                                    )}
+                                </div>
                             </div>
                         </Panel>
                     </div>

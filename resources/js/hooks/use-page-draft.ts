@@ -8,6 +8,7 @@ import {
     clearPageDraft,
     loadPageDraft,
     loadPagePhotos,
+    loadPageVideo,
     loadRainPhotos,
     MAX_CUSTOM_SECTIONS,
     MAX_RAIN_PHOTOS,
@@ -16,6 +17,7 @@ import {
     PAGE_CHOICES,
     PAGE_TEXT_LIMITS,
     pageContentFrom,
+    savePageVideo,
     saveRainPhotos,
     savePageDraft,
     savePagePhotos,
@@ -87,6 +89,7 @@ export function usePageDraft(
     const [content, setContent] = useState<PageDraftContent | null>(null);
     const [photoFiles, setPhotoFiles] = useState<File[]>([]);
     const [rainFiles, setRainFiles] = useState<File[]>([]);
+    const [videoFile, setVideoFile] = useState<File | null>(null);
     const [processing, setProcessing] = useState(false);
 
     useEffect(() => {
@@ -100,6 +103,7 @@ export function usePageDraft(
         void loadPagePhotos(template).then((files) =>
             setPhotoFiles(files.slice(0, maxPhotos)),
         );
+        void loadPageVideo(template).then(setVideoFile);
         void loadRainPhotos(template).then((files) =>
             setRainFiles(files.slice(0, MAX_RAIN_PHOTOS)),
         );
@@ -107,6 +111,11 @@ export function usePageDraft(
 
     const photoUrls = useObjectUrls(photoFiles);
     const rainUrls = useObjectUrls(rainFiles);
+    const videoFiles = useMemo(
+        () => (videoFile ? [videoFile] : []),
+        [videoFile],
+    );
+    const [videoUrl = null] = useObjectUrls(videoFiles);
 
     const current = useMemo(
         () => content ?? pageContentFrom(demo),
@@ -127,6 +136,7 @@ export function usePageDraft(
             song_details: sameSong ? demo.song_details : null,
             photos: photoUrls.map((url, index) => ({ index, url })),
             rain_photos: rainUrls.map((url, index) => ({ index, url })),
+            video_file_url: videoUrl,
             moments: moments.map((moment) => ({
                 ...moment,
                 photo_url: urlOf(moment.photo),
@@ -139,7 +149,7 @@ export function usePageDraft(
                 })),
             })),
         };
-    }, [current, demo, photoUrls, rainUrls]);
+    }, [current, demo, photoUrls, rainUrls, videoUrl]);
 
     const store = useCallback(
         (next: PageDraftContent) => {
@@ -279,6 +289,16 @@ export function usePageDraft(
             return false;
         }
 
+        if (
+            field === 'video_url' &&
+            text !== null &&
+            !/^https:\/\/\S+$/i.test(text)
+        ) {
+            toast.error('Please paste a link that starts with https://');
+
+            return false;
+        }
+
         if (tooLong(text, PAGE_TEXT_LIMITS[field as TextField])) {
             return false;
         }
@@ -388,6 +408,17 @@ export function usePageDraft(
 
     const removeRainPhoto = (index: number) =>
         storeRainPhotos(rainFiles.filter((_, position) => position !== index));
+
+    /** The page video stays on this device and uploads with the order. */
+    const addVideo = (file: File) => {
+        setVideoFile(file);
+        void savePageVideo(template, file);
+    };
+
+    const removeVideo = () => {
+        setVideoFile(null);
+        void savePageVideo(template, null);
+    };
 
     const sectionActions: SectionActions = {
         add: (type, position) => {
@@ -516,6 +547,7 @@ export function usePageDraft(
         setContent(null);
         setPhotoFiles([]);
         setRainFiles([]);
+        setVideoFile(null);
     };
 
     return {
@@ -525,12 +557,17 @@ export function usePageDraft(
         replacePhoto,
         addRainPhotos,
         removeRainPhoto,
+        addVideo,
+        removeVideo,
         sectionActions,
         setFlowerAddon,
         keep,
         reset,
         processing,
         hasChanges:
-            content !== null || photoFiles.length > 0 || rainFiles.length > 0,
+            content !== null ||
+            photoFiles.length > 0 ||
+            rainFiles.length > 0 ||
+            videoFile !== null,
     };
 }

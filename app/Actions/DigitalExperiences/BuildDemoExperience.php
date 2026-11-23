@@ -50,6 +50,7 @@ class BuildDemoExperience
             'photo_rain_layer' => 'front',
             'event_date' => $copy['date'],
             'video_url' => null,
+            'video_file_url' => null,
             'music_url' => 'https://www.youtube.com/watch?v=iKzRIweSBLA',
             'song_title' => 'Perfect',
             'song_artist' => 'Ed Sheeran',

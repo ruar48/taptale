@@ -1,13 +1,13 @@
-import type { Auth } from "@/types/auth";
-import type { CategorySummary } from "@/types/taptale";
+import type { Auth } from '@/types/auth';
+import type { CategorySummary } from '@/types/taptale';
 
-declare module "react" {
+declare module 'react' {
     interface InputHTMLAttributes<T> {
         passwordrules?: string;
     }
 }
 
-declare module "@inertiajs/core" {
+declare module '@inertiajs/core' {
     export interface InertiaConfig {
         sharedPageProps: {
             name: string;
@@ -27,6 +27,8 @@ declare module "@inertiajs/core" {
                     instagram_url: string | null;
                 };
                 policiesUpdatedOn: string;
+                /** Largest video file a customer can upload to their page. */
+                maxVideoKilobytes: number;
             };
             navCategories: CategorySummary[];
             [key: string]: unknown;

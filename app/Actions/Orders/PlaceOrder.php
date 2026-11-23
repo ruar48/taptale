@@ -35,8 +35,9 @@ class PlaceOrder
      * @param  list<UploadedFile>  $photos
      * @param  list<UploadedFile>  $pagePhotos  Photos of the memory page designed on a demo
      * @param  list<UploadedFile>  $pageRainPhotos  Photos chosen on the demo to rain over the flowers
+     * @param  UploadedFile|null  $pageVideo  A short video added to the page on the demo
      */
-    public function handle(User $customer, array $data, array $photos, array $pagePhotos = [], array $pageRainPhotos = []): Order
+    public function handle(User $customer, array $data, array $photos, array $pagePhotos = [], array $pageRainPhotos = [], ?UploadedFile $pageVideo = null): Order
     {
         $product = Product::query()->whereKey($data['product_id'])->firstOrFail();
         $category = isset($data['category_id'])
@@ -150,6 +151,7 @@ class PlaceOrder
         }
 
         $this->addPhotosToExperience($order, $pagePhotos, $photos, $pageRainPhotos);
+        $this->addVideoToExperience($order, $pageVideo);
 
         return $order;
     }
@@ -168,7 +170,7 @@ class PlaceOrder
             return [];
         }
 
-        $textFields = ['title', 'subtitle', 'recipient_name', 'sender_name', 'message', 'quote', 'flowers_note', 'event_date', 'song_title', 'song_artist', 'music_url'];
+        $textFields = ['title', 'subtitle', 'recipient_name', 'sender_name', 'message', 'quote', 'flowers_note', 'event_date', 'song_title', 'song_artist', 'music_url', 'video_url'];
         $choiceFields = ['flower_style', 'flower_rain', 'photo_rain_layer', 'song_ornament', 'song_background'];
         $clean = fn (mixed $value): ?string => trim((string) $value) === '' ? null : trim((string) $value);
 
@@ -261,6 +263,24 @@ class PlaceOrder
         }
 
         $locked->increment('uses');
+    }
+
+    /**
+     * Keep the short video added to the page on the demo.
+     */
+    private function addVideoToExperience(Order $order, ?UploadedFile $video): void
+    {
+        $experience = $order->experience;
+
+        if ($experience === null || $video === null) {
+            return;
+        }
+
+        $path = $video->store("experiences/{$experience->id}/video", (string) config('taptale.uploads_disk'));
+
+        if ($path !== false) {
+            $experience->update(['video_path' => $path]);
+        }
     }
 
     /**

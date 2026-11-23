@@ -62,6 +62,14 @@ return [
     'max_upload_kilobytes' => (int) env('TAPTALE_MAX_UPLOAD_KB', 10240),
 
     /*
+     * Largest video file (kilobytes) a customer can upload to their memory
+     * page. Videos fill storage fast, so bigger ones are added by the team on
+     * request, or linked from YouTube. The web server's own upload limits
+     * (PHP upload_max_filesize and post_max_size) must allow this size.
+     */
+    'max_video_kilobytes' => (int) env('TAPTALE_MAX_VIDEO_KB', 51200),
+
+    /*
     |--------------------------------------------------------------------------
     | Order abuse limits
     |--------------------------------------------------------------------------

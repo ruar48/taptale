@@ -55,6 +55,9 @@ export type ExperienceContextValue = {
     /** Add photos that rain down over the flowers. */
     addRainPhotos?: (files: File[]) => void;
     removeRainPhoto?: (index: number) => void;
+    /** Upload or remove the page's short video file. */
+    addVideo?: (file: File) => void;
+    removeVideo?: () => void;
     /** False while the opening gate still covers the page. */
     opened: boolean;
 };
