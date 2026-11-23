@@ -4,9 +4,7 @@ namespace App\Http\Controllers\Storefront;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
-use App\Http\Resources\TemplateResource;
 use App\Models\Product;
-use App\Models\Template;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -16,7 +14,7 @@ use Inertia\Response;
 class ProductController extends Controller
 {
     /**
-     * Show a product's details, options and matching templates.
+     * Show a product's details, options and related gifts.
      */
     public function show(Request $request, Product $product): Response
     {
@@ -32,15 +30,6 @@ class ProductController extends Controller
 
         $selectedCategory = $product->categories->firstWhere('slug', $request->query('category'))
             ?? $product->categories->first();
-
-        $templates = Template::active()
-            ->whereHas('categories', fn (Builder $query) => $query->whereKey($categoryIds))
-            ->where(fn (Builder $query) => $query
-                ->whereDoesntHave('products')
-                ->orWhereHas('products', fn (Builder $products) => $products->whereKey($product->id)))
-            ->limit(8)
-            ->get();
-
         $related = Product::active()
             ->whereKeyNot($product->id)
             ->whereHas('categories', fn (Builder $query) => $query->whereKey($categoryIds))
@@ -51,7 +40,6 @@ class ProductController extends Controller
         return Inertia::render('storefront/products/show', [
             'product' => new ProductResource($product),
             'selectedCategorySlug' => $selectedCategory?->slug,
-            'templates' => TemplateResource::collection($templates),
             'relatedProducts' => ProductResource::collection($related),
             'seo' => $this->seo($product),
         ]);

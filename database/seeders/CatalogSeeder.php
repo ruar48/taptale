@@ -3,11 +3,9 @@
 namespace Database\Seeders;
 
 use App\Enums\OptionGroup;
-use App\Enums\TemplateLayout;
 use App\Models\Category;
 use App\Models\PaymentMethod;
 use App\Models\Product;
-use App\Models\Template;
 use App\Models\Testimonial;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -26,7 +24,6 @@ class CatalogSeeder extends Seeder
         $categories = $this->seedCategories();
         $products = $this->seedProducts();
         $this->assignProducts($categories, $products);
-        $this->seedTemplates($categories, $products);
         $this->seedPaymentMethods();
         $this->seedTestimonials();
     }
@@ -407,78 +404,6 @@ class CatalogSeeder extends Seeder
                 ->map(fn (Model $record): int => $record->getKey())
                 ->all()
         );
-    }
-
-    /**
-     * Every template is limited to the products whose physical form it fits,
-     * so a mini CD layout is never offered for a wooden keychain.
-     *
-     * @param  array<string, Category>  $categories
-     * @param  array<string, Product>  $products
-     */
-    private function seedTemplates(array $categories, array $products): void
-    {
-        $classic = [
-            'personalized-acrylic-keychain', 'nfc-memory-keychain', 'personalized-qr-keepsake', 'acrylic-photo-souvenir',
-            'matching-couple-keychains', 'event-souvenir-keychains', 'teacher-appreciation-plaque',
-        ];
-
-        $everyOccasion = ['Couple Gifts', 'Anniversary Gifts', 'Birthday Gifts', 'Friendship Gifts', 'Graduation Gifts', 'Family Keepsakes', "Teacher's Day Gifts", 'Wedding Souvenirs', 'Other Personalized Gifts'];
-
-        $productTemplates = [
-            ['Album Era', TemplateLayout::MiniCd, ['#1A1A1F', '#F8F3ED', '#E9C9C9'], $everyOccasion, true, ['mini-cd-album-keychain']],
-            ['Pastel Single', TemplateLayout::MiniCd, ['#F6DDE3', '#5A2E3E', '#B86F83'], $everyOccasion, true, ['mini-cd-album-keychain']],
-            ['Midnight Record', TemplateLayout::MiniCd, ['#22304A', '#F3EDE8', '#D4AF37'], $everyOccasion, false, ['mini-cd-album-keychain']],
-            ['Now Playing · Light', TemplateLayout::MusicPlayer, ['#FFFFFF', '#1F1D22', '#B86F83'], $everyOccasion, true, ['music-player-acrylic-keychain']],
-            ['Now Playing · Dark', TemplateLayout::MusicPlayer, ['#121214', '#F5F5F5', '#E9C9C9'], $everyOccasion, true, ['music-player-acrylic-keychain']],
-            ['Our Song · Blush', TemplateLayout::MusicPlayer, ['#F7E4E6', '#5A2E3E', '#B86F83'], $everyOccasion, false, ['music-player-acrylic-keychain']],
-            ['Photobooth Classic', TemplateLayout::PhotoStrip, ['#FFFFFF', '#343039', '#B86F83'], $everyOccasion, true, ['photobooth-strip-keychain']],
-            ['Film Booth', TemplateLayout::PhotoStrip, ['#141416', '#F5F5F5', '#E3A587'], $everyOccasion, false, ['photobooth-strip-keychain']],
-            ['Pastel Booth', TemplateLayout::PhotoStrip, ['#F4E3EC', '#5A2E3E', '#B86F83'], $everyOccasion, false, ['photobooth-strip-keychain']],
-            ['Tap to Connect', TemplateLayout::TapTag, ['#1F1D22', '#FFFFFF', '#B86F83'], $everyOccasion, true, ['nfc-social-tap-tag']],
-            ['Social Pop', TemplateLayout::TapTag, ['#B86F83', '#FFFFFF', '#713D50'], $everyOccasion, false, ['nfc-social-tap-tag']],
-            ['Drive Safe', TemplateLayout::Engraved, ['#C79B6D', '#4A2C17', '#7A4B2A'], $everyOccasion, true, ['engraved-wooden-keychain']],
-            ['Home Sweet Home', TemplateLayout::Engraved, ['#E2C49A', '#5B3A1E', '#8A5A32'], $everyOccasion, false, ['engraved-wooden-keychain']],
-            ['Sticker Pop', TemplateLayout::DieCut, ['#FDF1F4', '#5A2E3E', '#B86F83'], $everyOccasion, true, ['die-cut-photo-keychain']],
-            ['Cutie Cutout', TemplateLayout::DieCut, ['#EEF6FF', '#1E3A5F', '#5B8DEF'], $everyOccasion, false, ['die-cut-photo-keychain']],
-            ['Pinoy Calendar', TemplateLayout::Calendar, ['#F4F1EA', '#1E3A5F', '#D7263D'], $everyOccasion, true, ['pinoy-calendar-keychain']],
-            ['Blush Calendar', TemplateLayout::Calendar, ['#FBEFF1', '#5A2E3E', '#B86F83'], $everyOccasion, false, ['pinoy-calendar-keychain']],
-            ['Midnight Calendar', TemplateLayout::Calendar, ['#15171C', '#F5F5F5', '#E3A587'], $everyOccasion, false, ['pinoy-calendar-keychain']],
-        ];
-
-        $definitions = [
-            ['Golden Hour Polaroid', TemplateLayout::Polaroid, ['#FFFDF9', '#343039', '#B86F83'], ['Couple Gifts', 'Anniversary Gifts', 'Friendship Gifts', 'Birthday Gifts', 'Family Keepsakes', 'Other Personalized Gifts'], true],
-            ['Forever Heart', TemplateLayout::HeartFrame, ['#F8E6E8', '#713D50', '#B86F83'], ['Couple Gifts', 'Anniversary Gifts', 'Wedding Souvenirs', 'Other Personalized Gifts'], true],
-            ['Sacred Arch', TemplateLayout::Arch, ['#F8F3ED', '#5A4A42', '#C9A66B'], ['Wedding Souvenirs', 'Baptism Souvenirs', 'Family Keepsakes', 'Other Personalized Gifts'], true],
-            ['Under the Same Stars', TemplateLayout::Celestial, ['#1F1B2E', '#F8F3ED', '#E9C9C9'], ['Couple Gifts', 'Anniversary Gifts', 'Friendship Gifts', 'Other Personalized Gifts'], true],
-            ['Garden Blessing', TemplateLayout::Floral, ['#FBF7F2', '#4F5D4A', '#E9C9C9'], ['Baptism Souvenirs', 'Wedding Souvenirs', 'Birthday Gifts', "Teacher's Day Gifts", 'Other Personalized Gifts'], true],
-            ['Clean & Simple', TemplateLayout::Minimal, ['#FFFFFF', '#343039', '#713D50'], ['Graduation Gifts', "Teacher's Day Gifts", 'Birthday Gifts', 'Family Keepsakes', 'Other Personalized Gifts'], false],
-            ['Little Angel', TemplateLayout::Arch, ['#EEF3F7', '#3E5266', '#9DB4C0'], ['Baptism Souvenirs', 'Other Personalized Gifts'], false],
-            ['Cap & Gown', TemplateLayout::Minimal, ['#1E2A44', '#F8F3ED', '#D4AF37'], ['Graduation Gifts', 'Other Personalized Gifts'], true],
-            ['Birthday Bloom', TemplateLayout::Floral, ['#FFF4EC', '#7A3E2E', '#E3A587'], ['Birthday Gifts', 'Friendship Gifts', 'Other Personalized Gifts'], false],
-            ['Thank You, Teacher', TemplateLayout::Polaroid, ['#F4F7EF', '#2F3B2A', '#7C9473'], ["Teacher's Day Gifts", 'Other Personalized Gifts'], false],
-        ];
-
-        $definitions = [
-            ...array_map(fn (array $definition): array => [...$definition, $classic], $definitions),
-            ...$productTemplates,
-        ];
-
-        foreach ($definitions as $index => [$name, $layout, [$background, $ink, $accent], $categoryNames, $featured, $productSlugs]) {
-            $template = Template::firstOrCreate(['slug' => Str::slug($name)], [
-                'name' => $name,
-                'description' => $layout->label().' layout in a '.Str::lower($name).' mood.',
-                'layout' => $layout,
-                'palette' => ['background' => $background, 'ink' => $ink, 'accent' => $accent],
-                'is_active' => true,
-                'is_featured' => $featured,
-                'sort_order' => $index,
-            ]);
-
-            $this->linkNewRecords($template, $template->categories(), collect($categoryNames)->map(fn (string $categoryName): Category => $categories[$categoryName])->all());
-
-            $this->linkNewRecords($template, $template->products(), collect($productSlugs)->map(fn (string $slug): Product => $products[$slug])->all());
-        }
     }
 
     /**

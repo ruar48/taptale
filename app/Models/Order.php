@@ -29,9 +29,8 @@ use Illuminate\Validation\ValidationException;
  * @property OrderStatus $status
  * @property int|null $category_id
  * @property int|null $product_id
- * @property int|null $template_id
  * @property string $product_name
- * @property string|null $template_name
+ * @property string|null $template_name Design picked on older orders, before each product became its own design
  * @property list<array{id: int, group: string, group_label: string, name: string, price_modifier: int}> $selected_options
  * @property DesignMode $design_mode
  * @property array<string, mixed> $personalization
@@ -69,7 +68,7 @@ use Illuminate\Validation\ValidationException;
  */
 #[RouteKey('reference')]
 #[Fillable([
-    'status', 'category_id', 'product_id', 'template_id', 'product_name', 'template_name',
+    'status', 'category_id', 'product_id', 'product_name', 'template_name',
     'selected_options', 'design_mode', 'personalization', 'preview_approved_at', 'design_submitted_at',
     'quantity', 'unit_price', 'subtotal', 'customization_fee', 'flowers_fee', 'delivery_fee', 'adjustment', 'adjustment_note', 'promo_code_id', 'promo_code', 'promo_identity', 'discount', 'total',
     'customer_name', 'customer_email', 'customer_phone', 'address_line', 'city', 'province', 'postal_code', 'customer_notes', 'is_gift', 'gift_message',
@@ -188,14 +187,6 @@ class Order extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
-    }
-
-    /**
-     * @return BelongsTo<Template, $this>
-     */
-    public function template(): BelongsTo
-    {
-        return $this->belongsTo(Template::class);
     }
 
     /**

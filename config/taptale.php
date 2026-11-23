@@ -90,6 +90,11 @@ return [
     // Unpaid orders older than this are cancelled and their uploads deleted.
     'abandoned_order_days' => (int) env('TAPTALE_ABANDONED_ORDER_DAYS', 14),
 
+    // A design proof the customer neither approves nor asks to change within
+    // this many hours is approved automatically (0 turns this off). Keep the
+    // Terms of service in step when changing it.
+    'proof_auto_approve_hours' => (int) env('TAPTALE_PROOF_AUTO_APPROVE_HOURS', 24),
+
     'promo_hold_hours' => (int) env('TAPTALE_PROMO_HOLD_HOURS', 48),
 
     /*

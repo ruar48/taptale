@@ -13,7 +13,6 @@ use App\Http\Controllers\Account\ExperienceVideoController;
 use App\Models\Category;
 use App\Models\DigitalExperience;
 use App\Models\Product;
-use App\Models\Template;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -38,7 +37,6 @@ class StoreOrderRequest extends FormRequest
         return [
             'category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')->where('is_active', true)],
             'product_id' => ['required', 'integer', Rule::exists('products', 'id')->where('is_active', true)],
-            'template_id' => [Rule::requiredIf($isSelf && ! $later), 'nullable', 'integer', Rule::exists('templates', 'id')->where('is_active', true)],
             'design_mode' => ['required', Rule::enum(DesignMode::class)],
             'option_ids' => ['array'],
             'option_ids.*' => ['integer'],
@@ -158,7 +156,7 @@ class StoreOrderRequest extends FormRequest
                 }
             },
             function (Validator $validator): void {
-                if ($validator->errors()->hasAny(['category_id', 'product_id', 'template_id'])) {
+                if ($validator->errors()->hasAny(['category_id', 'product_id'])) {
                     return;
                 }
 
@@ -171,19 +169,6 @@ class StoreOrderRequest extends FormRequest
 
                 if ($category !== null && ! $product->categories()->whereKey($category->id)->exists()) {
                     $validator->errors()->add('product_id', 'This product is not available in the selected category.');
-
-                    return;
-                }
-
-                if ($this->filled('template_id')) {
-                    $isAvailable = Template::active()
-                        ->availableFor($category, $product)
-                        ->whereKey($this->integer('template_id'))
-                        ->exists();
-
-                    if (! $isAvailable) {
-                        $validator->errors()->add('template_id', 'This template is not available for the selected product.');
-                    }
                 }
             },
         ];
@@ -197,7 +182,6 @@ class StoreOrderRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'template_id.required' => 'Please choose a template for your design.',
             'personalization.names.required' => 'Please enter the names to feature on your design.',
             'personalization.design_brief.required' => 'Please describe the design you would like us to create.',
             'approve_preview.accepted' => 'Please approve your design preview before placing the order.',

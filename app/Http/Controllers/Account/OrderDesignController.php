@@ -55,7 +55,7 @@ class OrderDesignController extends Controller
     {
         $this->ensureEditable($order);
 
-        if ($order->design_mode !== DesignMode::SelfCustomized || $order->template === null) {
+        if ($order->design_mode !== DesignMode::SelfCustomized) {
             throw ValidationException::withMessages([
                 'design' => 'Our designers are making this design. Send us your photos and details, and we will send the design to you for approval.',
             ]);
@@ -169,7 +169,7 @@ class OrderDesignController extends Controller
     }
 
     /**
-     * Make sure the design has everything the chosen template needs.
+     * Make sure the design has everything the product's design needs.
      *
      * @throws ValidationException
      */
@@ -191,7 +191,7 @@ class OrderDesignController extends Controller
                 $missing['photos'] = 'Please add at least one photo for your design.';
             }
 
-            if ($order->template?->layout->usesMusicDetails() === true) {
+            if ($order->product?->designLayout()->usesMusicDetails() === true) {
                 if (blank($details['song_title'] ?? null)) {
                     $missing['personalization.song_title'] = 'Please enter the song or album title for your design.';
                 }

@@ -55,6 +55,10 @@ import {
     index as ordersIndex,
     show as orderShow,
 } from '@/routes/account/orders';
+import {
+    index as adminOrdersIndex,
+    show as adminOrderShow,
+} from '@/routes/admin/orders';
 import { demo } from '@/routes/experiences';
 import type {
     DigitalExperience,
@@ -70,6 +74,8 @@ import type {
 type Props = {
     experience: DigitalExperience;
     order: { reference: string; product_name: string };
+    /** Set when an administrator is designing a customer's page. */
+    adminEditing: { customer_name: string } | null;
     templates: ExperienceTemplateOption[];
     themes: string[];
     maxPhotos: number;
@@ -152,6 +158,7 @@ type ExperienceForm = {
 export default function EditExperience({
     experience,
     order,
+    adminEditing,
     templates,
     themes,
     maxPhotos,
@@ -162,11 +169,20 @@ export default function EditExperience({
     replies,
 }: Props) {
     setLayoutProps({
-        breadcrumbs: [
-            { title: 'My orders', href: ordersIndex() },
-            { title: order.reference, href: orderShow(order.reference) },
-            { title: 'Memory page', href: edit(experience.code) },
-        ],
+        breadcrumbs: adminEditing
+            ? [
+                  { title: 'Orders', href: adminOrdersIndex() },
+                  {
+                      title: order.reference,
+                      href: adminOrderShow(order.reference),
+                  },
+                  { title: 'Memory page', href: edit(experience.code) },
+              ]
+            : [
+                  { title: 'My orders', href: ordersIndex() },
+                  { title: order.reference, href: orderShow(order.reference) },
+                  { title: 'Memory page', href: edit(experience.code) },
+              ],
     });
 
     const form = useForm<ExperienceForm>({
@@ -317,18 +333,31 @@ export default function EditExperience({
 
     return (
         <>
-            <Head title="My Memory Page" />
+            <Head title={adminEditing ? 'Memory Page' : 'My Memory Page'} />
             <form
                 className="mx-auto w-full max-w-6xl space-y-6 p-4 sm:p-6"
                 onSubmit={submit}
             >
+                {adminEditing && (
+                    <p className="rounded-xl border border-rose/40 bg-rose/5 px-4 py-3 text-sm">
+                        You are designing{' '}
+                        <span className="font-medium">
+                            {adminEditing.customer_name}
+                        </span>
+                        &apos;s memory page for order {order.reference}. Your
+                        changes are saved to their page and recorded in the
+                        audit log.
+                    </p>
+                )}
                 <header className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                         <p className="flex items-center gap-2 text-sm text-rose">
                             <Nfc className="size-4" /> {order.product_name}
                         </p>
                         <h1 className="mt-1 font-display text-3xl font-medium">
-                            Your memory page
+                            {adminEditing
+                                ? `${adminEditing.customer_name}'s memory page`
+                                : 'Your memory page'}
                         </h1>
                         <p className="mt-1 text-sm text-muted-foreground">
                             This little website opens when someone taps your

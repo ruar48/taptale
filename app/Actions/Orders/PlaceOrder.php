@@ -15,7 +15,6 @@ use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\PromoCode;
-use App\Models\Template;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -44,7 +43,6 @@ class PlaceOrder
         $category = isset($data['category_id'])
             ? Category::query()->whereKey($data['category_id'])->firstOrFail()
             : $product->categories()->where('is_active', true)->orderBy('sort_order')->first();
-        $template = isset($data['template_id']) ? Template::query()->whereKey($data['template_id'])->first() : null;
         $designMode = DesignMode::from($data['design_mode']);
         $personalizeLater = ! empty($data['personalize_later']);
         $quantity = (int) $data['quantity'];
@@ -60,7 +58,7 @@ class PlaceOrder
         $promoCode = $this->resolvePromoCode($data['promo_code'] ?? null);
         $pricing = $this->priceOrder->handle($product, $data['option_ids'] ?? [], $quantity, $designMode, $promoCode, $customer, $data['customer_phone'], $withFlowers);
 
-        $order = DB::transaction(function () use ($customer, $data, $category, $product, $template, $designMode, $personalizeLater, $quantity, $isCashOnDelivery, $pricing, $promoCode, $pageTemplate, $withFlowers): Order {
+        $order = DB::transaction(function () use ($customer, $data, $category, $product, $designMode, $personalizeLater, $quantity, $isCashOnDelivery, $pricing, $promoCode, $pageTemplate, $withFlowers): Order {
             if ($promoCode !== null) {
                 $this->redeem($promoCode, $customer, $data['customer_phone'], $pricing['subtotal']);
             }
@@ -69,9 +67,7 @@ class PlaceOrder
                 'status' => OrderStatus::AwaitingPayment,
                 'category_id' => $category?->id,
                 'product_id' => $product->id,
-                'template_id' => $template?->id,
                 'product_name' => $product->name,
-                'template_name' => $template?->name,
                 'selected_options' => $pricing['selected_options'],
                 'design_mode' => $designMode,
                 'personalization' => $this->personalization($data['personalization'] ?? []),

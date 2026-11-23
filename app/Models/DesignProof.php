@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ProofStatus;
+use Carbon\CarbonInterface;
 use Database\Factories\DesignProofFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -66,5 +67,20 @@ class DesignProof extends Model
     public function isAwaitingResponse(): bool
     {
         return $this->status === ProofStatus::AwaitingResponse;
+    }
+
+    /**
+     * When this proof is approved automatically if the customer has not
+     * replied, or null when it is not waiting or auto-approval is off.
+     */
+    public function autoApprovesAt(): ?CarbonInterface
+    {
+        $hours = (int) config('taptale.proof_auto_approve_hours');
+
+        if ($hours <= 0 || ! $this->isAwaitingResponse() || $this->created_at === null) {
+            return null;
+        }
+
+        return $this->created_at->copy()->addHours($hours);
     }
 }

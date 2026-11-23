@@ -127,7 +127,7 @@ class UpdateOrderDesignRequest extends FormRequest
      */
     public function order(): Order
     {
-        return $this->route('order')->loadMissing(['product', 'template', 'latestProof']);
+        return $this->route('order')->loadMissing(['product', 'latestProof']);
     }
 
     /**

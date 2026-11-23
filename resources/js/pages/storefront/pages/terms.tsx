@@ -231,6 +231,21 @@ export default function Terms() {
                                     for it.
                                 </li>
                                 <li>
+                                    <strong>
+                                        Please reply to a design proof within 24
+                                        hours.
+                                    </strong>{" "}
+                                    If you neither approve it nor ask for
+                                    changes within 24 hours of us sending it,
+                                    the design is approved automatically and
+                                    goes into production. An automatic approval
+                                    is final, just like one you give yourself.
+                                    Each new proof we send after your changes
+                                    gets its own 24 hours. Your order page shows
+                                    the exact deadline, and we email you when a
+                                    proof is ready.
+                                </li>
+                                <li>
                                     Please check names, dates, spelling and
                                     photos carefully before you approve.
                                     Mistakes in a design you approved are not

@@ -51,6 +51,8 @@ class OrderUpdated extends Notification implements ShouldQueue
             ActivityType::PaymentRejected,
             ActivityType::ProofSent,
             ActivityType::Note => true,
+            // Approved automatically after the customer did not reply.
+            ActivityType::DesignApproved => $activity->user_id === null,
             ActivityType::StatusChanged => in_array($activity->status, [OrderStatus::Shipped, OrderStatus::Completed, OrderStatus::Cancelled], true),
             default => false,
         };
@@ -99,8 +101,14 @@ class OrderUpdated extends Notification implements ShouldQueue
             $this->activity->type === ActivityType::ProofSent => $mail
                 ->subject("Your design for {$reference} is ready")
                 ->line('Your design proof is ready. Please take a look and approve it, or tell us what to change.')
-                ->line('Nothing goes into production until you approve it.')
+                ->line($this->autoApprovalNotice())
                 ->action('Review your design', $orderUrl),
+
+            $this->activity->type === ActivityType::DesignApproved => $mail
+                ->subject("Your design for {$reference} has been approved")
+                ->line((string) $this->activity->body)
+                ->line('We will start making your gift soon.')
+                ->action('View your order', $orderUrl),
 
             $this->activity->type === ActivityType::Note => $mail
                 ->subject("A message about your order {$reference}")
@@ -145,5 +153,17 @@ class OrderUpdated extends Notification implements ShouldQueue
     private function money(int $centavos): string
     {
         return config('taptale.currency_symbol').number_format($centavos / 100, 2);
+    }
+
+    /**
+     * What happens if the customer does not reply to a design proof.
+     */
+    private function autoApprovalNotice(): string
+    {
+        $hours = (int) config('taptale.proof_auto_approve_hours');
+
+        return $hours > 0
+            ? "Please reply within {$hours} hours. If we don't hear from you by then, the design is approved automatically and goes into production, and that approval is final."
+            : 'Nothing goes into production until you approve it.';
     }
 }

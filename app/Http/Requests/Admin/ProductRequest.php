@@ -53,8 +53,6 @@ class ProductRequest extends FormRequest
             'sort_order' => ['required', 'integer', 'min:0', 'max:10000'],
             'category_ids' => ['required', 'array', 'min:1'],
             'category_ids.*' => ['integer', 'exists:categories,id'],
-            'template_ids' => ['array'],
-            'template_ids.*' => ['integer', 'exists:templates,id'],
         ];
     }
 
@@ -77,7 +75,7 @@ class ProductRequest extends FormRequest
      */
     public function productData(): array
     {
-        $data = $this->safe()->except(['category_ids', 'template_ids']);
+        $data = $this->safe()->except(['category_ids']);
         $data['base_price'] = $this->toCentavos($data['base_price']);
         $data['design_fee'] = $this->toCentavos($data['design_fee']);
 

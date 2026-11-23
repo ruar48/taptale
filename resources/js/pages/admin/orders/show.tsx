@@ -48,6 +48,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useMoney } from "@/hooks/use-money";
 import { formatDate, formatFileSize, toPesoInput } from "@/lib/money";
+import { edit as experienceEdit } from "@/routes/account/experiences";
 import { show as customerShow } from "@/routes/admin/customers";
 import { index as ordersIndex, show as orderShow } from "@/routes/admin/orders";
 import { index as reviewsIndex } from "@/routes/admin/reviews";
@@ -1083,6 +1084,12 @@ function ExperiencePanel({ order }: { order: Order }) {
                         </span>
                     </p>
                     <div className="flex gap-3 pt-1 text-xs">
+                        <Link
+                            href={experienceEdit(experience.code)}
+                            className="font-medium text-plum hover:underline dark:text-blush"
+                        >
+                            Edit page
+                        </Link>
                         <a
                             href={experience.public_url ?? undefined}
                             target="_blank"

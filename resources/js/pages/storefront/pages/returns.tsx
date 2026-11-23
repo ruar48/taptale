@@ -57,9 +57,11 @@ export default function Returns() {
                                 <li>
                                     mistakes in a design you approved, whether
                                     you customized it yourself with the live
-                                    preview or approved a proof from us, such as
-                                    a misspelled name, a wrong date or a photo
-                                    you chose. Approved designs are final;
+                                    preview, approved a proof from us, or let a
+                                    proof be approved automatically by not
+                                    replying within 24 hours. This includes a
+                                    misspelled name, a wrong date or a photo you
+                                    chose. Approved designs are final;
                                 </li>
                                 <li>
                                     small differences in color between your

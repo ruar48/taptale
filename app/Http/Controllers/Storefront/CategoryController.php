@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Storefront;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\ProductResource;
-use App\Http\Resources\TemplateResource;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
@@ -31,7 +30,7 @@ class CategoryController extends Controller
     }
 
     /**
-     * Show a category with its products and templates.
+     * Show a category with its products.
      */
     public function show(Category $category): Response
     {
@@ -42,7 +41,6 @@ class CategoryController extends Controller
             'products' => ProductResource::collection(
                 $category->products()->active()->with('images')->get()
             ),
-            'templates' => TemplateResource::collection($category->templates()->active()->get()),
             'otherCategories' => CategoryResource::collection(
                 Category::active()->whereKeyNot($category->id)->limit(6)->get()
             ),

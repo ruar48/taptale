@@ -26,6 +26,7 @@ class DesignProofResource extends JsonResource
             'designer_notes' => $this->designer_notes,
             'customer_comment' => $this->customer_comment,
             'responded_at' => $this->responded_at?->toIso8601String(),
+            'auto_approves_at' => $this->autoApprovesAt()?->toIso8601String(),
             'image_url' => route('files.proof', $this->resource),
             'created_at' => $this->created_at?->toIso8601String(),
         ];

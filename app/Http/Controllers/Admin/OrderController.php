@@ -51,7 +51,6 @@ class OrderController extends Controller
             'user:id,name,email',
             'product:id,slug,art_style',
             'category:id,name',
-            'template',
             'paymentMethod',
             'files',
             'proofs',

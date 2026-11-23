@@ -12,7 +12,9 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Records every successful change made in the admin dashboard: who, what,
  * on which record, with which values, and from where. Running on the whole
- * admin route group means new admin actions are covered automatically.
+ * admin route group means new admin actions are covered automatically. It
+ * also runs on customer pages administrators can edit (memory pages), where
+ * only the administrators' changes are recorded.
  */
 class RecordAdminAudit
 {
@@ -35,7 +37,7 @@ class RecordAdminAudit
         $isFailure = $response->getStatusCode() >= 400
             || ($request->hasSession() && $request->session()->has('errors'));
 
-        if ($request->isMethodSafe() || $request->user() === null || $isFailure) {
+        if ($request->isMethodSafe() || $request->user()?->isAdmin() !== true || $isFailure) {
             return $response;
         }
 

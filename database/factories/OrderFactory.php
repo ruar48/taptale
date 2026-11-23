@@ -6,7 +6,6 @@ use App\Enums\DesignMode;
 use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\Product;
-use App\Models\Template;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -58,16 +57,13 @@ class OrderFactory extends Factory
     }
 
     /**
-     * A self-customized order on a template whose design the customer has not
-     * finished yet.
+     * A self-customized order whose design the customer has not finished yet.
      */
     public function selfCustomized(): static
     {
         return $this->state(fn (array $attributes) => [
             'design_mode' => DesignMode::SelfCustomized,
             'customization_fee' => 0,
-            'template_id' => Template::factory(),
-            'template_name' => 'Golden Hour Polaroid',
             'personalization' => [],
         ]);
     }

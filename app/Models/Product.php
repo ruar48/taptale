@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TemplateLayout;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
@@ -77,19 +78,30 @@ class Product extends Model
     }
 
     /**
+     * The design the product is made in. The product itself is the design,
+     * so its art style decides how the customer's photos and words are laid
+     * out on it.
+     */
+    public function designLayout(): TemplateLayout
+    {
+        return match ($this->art_style) {
+            'cd' => TemplateLayout::MiniCd,
+            'music' => TemplateLayout::MusicPlayer,
+            'strip' => TemplateLayout::PhotoStrip,
+            'tag' => TemplateLayout::TapTag,
+            'wood' => TemplateLayout::Engraved,
+            'diecut' => TemplateLayout::DieCut,
+            'calendar' => TemplateLayout::Calendar,
+            default => TemplateLayout::Polaroid,
+        };
+    }
+
+    /**
      * @return BelongsToMany<Category, $this>
      */
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class);
-    }
-
-    /**
-     * @return BelongsToMany<Template, $this>
-     */
-    public function templates(): BelongsToMany
-    {
-        return $this->belongsToMany(Template::class);
     }
 
     /**

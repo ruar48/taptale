@@ -58,14 +58,6 @@ class Category extends Model
     }
 
     /**
-     * @return BelongsToMany<Template, $this>
-     */
-    public function templates(): BelongsToMany
-    {
-        return $this->belongsToMany(Template::class);
-    }
-
-    /**
      * Only categories visible on the storefront, in display order.
      *
      * @param  Builder<self>  $query

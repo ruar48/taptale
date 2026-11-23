@@ -18,7 +18,6 @@ class SitemapController extends Controller
         $urls = [
             ['loc' => route('home'), 'priority' => '1.0'],
             ['loc' => route('categories.index'), 'priority' => '0.9'],
-            ['loc' => route('templates.index'), 'priority' => '0.8'],
             ['loc' => route('experiences.templates'), 'priority' => '0.8'],
             ['loc' => route('orders.create'), 'priority' => '0.7'],
             ...Category::active()->get(['slug', 'updated_at'])->map(fn (Category $category): array => [

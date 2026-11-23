@@ -173,6 +173,54 @@ test('another customer cannot edit an experience', function () {
         ->assertForbidden();
 });
 
+test('an admin designs a customer\'s memory page and the change is audited', function () {
+    $admin = User::factory()->admin()->create();
+    $experience = DigitalExperience::factory()->create(['title' => 'Us']);
+
+    $this->actingAs($admin)
+        ->get(route('account.experiences.edit', $experience))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('account/experiences/edit')
+            ->where('adminEditing.customer_name', $experience->order->customer_name));
+
+    $this->actingAs($admin)
+        ->put(route('account.experiences.update', $experience), ['template' => 'love_story', 'title' => 'Five years of us', 'theme' => 'midnight'])
+        ->assertSessionHasNoErrors();
+
+    expect($experience->fresh())
+        ->title->toBe('Five years of us')
+        ->user_id->toBe($experience->user_id);
+
+    $this->assertDatabaseHas('audit_logs', [
+        'user_id' => $admin->id,
+        'action' => 'account.experiences.update',
+    ]);
+});
+
+test('the owner editing their memory page is not shown as an admin edit or audited', function () {
+    $experience = DigitalExperience::factory()->create();
+
+    $this->actingAs($experience->user)
+        ->get(route('account.experiences.edit', $experience))
+        ->assertInertia(fn (Assert $page) => $page->where('adminEditing', null));
+
+    $this->actingAs($experience->user)
+        ->put(route('account.experiences.update', $experience), ['template' => 'classic', 'title' => 'Us', 'theme' => 'blush'])
+        ->assertSessionHasNoErrors();
+
+    $this->assertDatabaseCount('audit_logs', 0);
+});
+
+test('an admin without two-factor authentication cannot design a customer\'s memory page', function () {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $experience = DigitalExperience::factory()->create();
+
+    $this->actingAs($admin)
+        ->get(route('account.experiences.edit', $experience))
+        ->assertForbidden();
+});
+
 test('an admin links an NFC tag to an experience', function () {
     $admin = User::factory()->admin()->create();
     $experience = DigitalExperience::factory()->create();

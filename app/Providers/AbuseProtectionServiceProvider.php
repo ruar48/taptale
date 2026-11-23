@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Actions\Maintenance\DeleteExpiredCacheEntries;
+use App\Actions\Orders\AutoApproveDesignProofs;
 use App\Actions\Orders\CancelAbandonedOrders;
 use App\Http\Middleware\ThrottleRequestsByNetwork;
 use Illuminate\Routing\Middleware\ThrottleRequests;
@@ -54,6 +55,7 @@ class AbuseProtectionServiceProvider extends ServiceProvider
                         // so cancellation emails go out right here.
                         config(['taptale.notifications_connection' => 'sync']);
                         app(CancelAbandonedOrders::class)->handle(batchSize: 5);
+                        app(AutoApproveDesignProofs::class)->handle(batchSize: 5);
                     } catch (Throwable $exception) {
                         report($exception);
                     }

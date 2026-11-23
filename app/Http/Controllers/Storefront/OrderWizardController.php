@@ -11,12 +11,10 @@ use App\Http\Requests\Storefront\StoreOrderRequest;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\PaymentMethodResource;
 use App\Http\Resources\ProductResource;
-use App\Http\Resources\TemplateResource;
 use App\Models\Category;
 use App\Models\DigitalExperience;
 use App\Models\PaymentMethod;
 use App\Models\Product;
-use App\Models\Template;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
@@ -63,11 +61,7 @@ class OrderWizardController extends Controller
             'selectedCategory' => $category ? new CategoryResource($category) : null,
             'products' => ProductResource::collection($products->with('images')->get()),
             'selectedProduct' => $product ? new ProductResource($product) : null,
-            'templates' => $product
-                ? TemplateResource::collection(Template::active()->availableFor($category, $product)->get())
-                : [],
             'experienceTemplates' => ExperienceTemplate::options(),
-            'initialTemplate' => $this->queryText($request, 'template'),
             'initialPage' => ExperienceTemplate::tryFrom((string) $this->queryText($request, 'page'))?->value,
             'maxPagePhotos' => DigitalExperience::MAX_PHOTOS,
             'paymentMethods' => PaymentMethodResource::collection(PaymentMethod::active()->get()),

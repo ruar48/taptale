@@ -16,10 +16,17 @@ class DigitalExperiencePolicy
     }
 
     /**
-     * Only the owner may edit the content of their digital experience.
+     * The owner may edit their digital experience, and administrators may
+     * design it for them. Administrators need the same two-factor
+     * authentication the admin dashboard requires.
      */
     public function update(User $user, DigitalExperience $experience): bool
     {
-        return $experience->user_id === $user->id;
+        if ($experience->user_id === $user->id) {
+            return true;
+        }
+
+        return $user->isAdmin()
+            && (! config('taptale.admin_requires_two_factor') || $user->hasEnabledTwoFactorAuthentication());
     }
 }

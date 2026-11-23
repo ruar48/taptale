@@ -52,14 +52,16 @@ class ExperienceController extends Controller
     /**
      * Show the editor for a customer's NFC / QR digital experience.
      */
-    public function edit(DigitalExperience $experience): Response
+    public function edit(Request $request, DigitalExperience $experience): Response
     {
         Gate::authorize('update', $experience);
 
         $experience->load([
-            'order:id,reference,product_name,status',
+            'order:id,reference,product_name,status,customer_name',
             'replies' => fn (HasMany $query) => $query->limit(50),
         ]);
+
+        $isAdminEditing = $experience->user_id !== $request->user()->id;
 
         return Inertia::render('account/experiences/edit', [
             'experience' => new DigitalExperienceResource($experience),
@@ -67,6 +69,7 @@ class ExperienceController extends Controller
                 'reference' => $experience->order->reference,
                 'product_name' => $experience->order->product_name,
             ],
+            'adminEditing' => $isAdminEditing ? ['customer_name' => $experience->order->customer_name] : null,
             'stats' => [
                 'views' => $experience->view_count,
                 'hearts' => $experience->heart_count,

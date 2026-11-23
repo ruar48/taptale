@@ -42,7 +42,6 @@ class OrderController extends Controller
         $order->load([
             'product:id,slug,art_style,max_photos',
             'category:id,name',
-            'template',
             'paymentMethod',
             'files',
             'proofs',

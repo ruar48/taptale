@@ -5,7 +5,6 @@ namespace App\Http\Resources;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
-use App\Models\Template;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -53,7 +52,7 @@ class ProductResource extends JsonResource
                 'name' => $category->name,
                 'slug' => $category->slug,
             ])->all()),
-            'template_ids' => $this->whenLoaded('templates', fn (): array => $this->templates->map(fn (Template $template): int => $template->id)->all()),
+            'design_layout' => $this->designLayout()->value,
             'orders_count' => $this->whenCounted('orders'),
         ];
     }

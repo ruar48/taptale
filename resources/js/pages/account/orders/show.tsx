@@ -2,6 +2,7 @@ import { Head, Link, router, setLayoutProps, useForm } from "@inertiajs/react";
 import {
     BadgeCheck,
     Banknote,
+    Clock,
     Copy,
     ExternalLink,
     FileText,
@@ -853,6 +854,20 @@ function ProofApproval({ order, proof }: { order: Order; proof: DesignProof }) {
                         </span>{" "}
                         — the design can't be changed after that.
                     </p>
+                    {proof.auto_approves_at && (
+                        <p className="mt-3 flex gap-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
+                            <Clock className="mt-0.5 size-4 shrink-0" />
+                            <span>
+                                Please reply by{' '}
+                                <span className="font-semibold">
+                                    {formatDate(proof.auto_approves_at, true)}
+                                </span>
+                                . If we don't hear from you by then, this design
+                                is approved automatically and goes into
+                                production.
+                            </span>
+                        </p>
+                    )}
 
                     {mode === "revise" ? (
                         <form

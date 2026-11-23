@@ -78,7 +78,7 @@ export type Product = {
     images?: { id: number; url: string; alt: string | null }[];
     options?: ProductOption[];
     categories?: { id: number; name: string; slug: string }[];
-    template_ids?: number[];
+    design_layout: TemplateLayout;
     orders_count?: number;
 };
 
@@ -101,23 +101,6 @@ export type Palette = {
     background: string;
     ink: string;
     accent: string;
-};
-
-export type Template = {
-    id: number;
-    name: string;
-    slug: string;
-    description: string | null;
-    layout: TemplateLayout;
-    layout_label: string;
-    palette: Palette;
-    preview_url: string | null;
-    mockup_url: string | null;
-    is_active: boolean;
-    is_featured: boolean;
-    sort_order: number;
-    categories?: { id: number; name: string; slug: string }[];
-    product_ids?: number[];
 };
 
 export type PaymentMethod = {
@@ -160,6 +143,7 @@ export type DesignProof = {
     designer_notes: string | null;
     customer_comment: string | null;
     responded_at: string | null;
+    auto_approves_at: string | null;
     image_url: string;
     created_at: string;
 };
@@ -406,7 +390,7 @@ export type Order = {
     product_max_photos?: number | null;
     category_name?: string | null;
     template_name: string | null;
-    template?: Template | null;
+    design_layout?: TemplateLayout | null;
     selected_options: SelectedOption[];
     personalization: Personalization;
     preview_approved_at: string | null;

@@ -4,7 +4,6 @@ import {
     FolderHeart,
     Hammer,
     LayoutGrid,
-    LayoutTemplate,
     Package,
     PiggyBank,
     ReceiptText,
@@ -46,7 +45,6 @@ import { index as paymentsIndex } from '@/routes/admin/payments';
 import { index as productsIndex } from '@/routes/admin/products';
 import { index as promoCodesIndex } from '@/routes/admin/promo-codes';
 import { index as reviewsIndex } from '@/routes/admin/reviews';
-import { index as templatesIndex } from '@/routes/admin/templates';
 import { create as startOrder } from '@/routes/orders';
 import type { NavItem } from '@/types';
 
@@ -69,7 +67,6 @@ const adminOperationsItems: NavItem[] = [
 const adminCatalogItems: NavItem[] = [
     { title: 'Products', href: productsIndex(), icon: FolderHeart },
     { title: 'Categories', href: categoriesIndex(), icon: Tags },
-    { title: 'Templates', href: templatesIndex(), icon: LayoutTemplate },
     { title: 'Promo codes', href: promoCodesIndex(), icon: TicketPercent },
     { title: 'Payment methods', href: paymentMethodsIndex(), icon: CreditCard },
     { title: 'Audit log', href: adminAuditLog(), icon: ScrollText },

@@ -8,7 +8,6 @@ use App\Http\Requests\Admin\ProductRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Category;
 use App\Models\Product;
-use App\Models\Template;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -60,7 +59,6 @@ class ProductController extends Controller
         $product = DB::transaction(function () use ($request): Product {
             $product = Product::create($request->productData());
             $product->categories()->sync($request->validated('category_ids'));
-            $product->templates()->sync($request->validated('template_ids', []));
 
             return $product;
         });
@@ -75,7 +73,7 @@ class ProductController extends Controller
      */
     public function edit(Product $product): Response
     {
-        $product->load(['images', 'options', 'categories:id,name,slug', 'templates:id']);
+        $product->load(['images', 'options', 'categories:id,name,slug']);
 
         return Inertia::render('admin/products/form', [
             'product' => new ProductResource($product),
@@ -91,7 +89,6 @@ class ProductController extends Controller
         DB::transaction(function () use ($request, $product): void {
             $product->update($request->productData());
             $product->categories()->sync($request->validated('category_ids'));
-            $product->templates()->sync($request->validated('template_ids', []));
         });
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Product saved.')]);
@@ -126,7 +123,6 @@ class ProductController extends Controller
     {
         return [
             'categories' => Category::query()->orderBy('sort_order')->get(['id', 'name']),
-            'templates' => Template::query()->orderBy('sort_order')->get(['id', 'name', 'layout']),
             'optionGroups' => OptionGroup::options(),
             'artStyles' => Product::ART_STYLES,
         ];
