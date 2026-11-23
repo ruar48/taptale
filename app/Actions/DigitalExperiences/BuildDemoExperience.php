@@ -71,6 +71,8 @@ class BuildDemoExperience
             'heart_count' => 0,
             'public_url' => route('experiences.demo', $template->value),
             'qr_url' => null,
+            'tag_url' => null,
+            'is_tag_check_active' => false,
         ];
     }
 

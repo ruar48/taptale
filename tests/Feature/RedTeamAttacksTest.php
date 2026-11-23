@@ -12,7 +12,6 @@ use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\ProductOption;
 use App\Models\PromoCode;
-use App\Models\Template;
 use App\Models\User;
 use App\Notifications\AdminOrderAlert;
 use Illuminate\Cache\RateLimiter as CacheRateLimiter;
@@ -45,13 +44,10 @@ function redTeamCheckout(array $overrides = []): array
     $product = Product::factory()->create(['base_price' => 50000, 'design_fee' => 0, 'min_quantity' => 1, 'max_photos' => 3]);
     $category->products()->attach($product);
     $size = ProductOption::factory()->for($product)->group(OptionGroup::Size)->create();
-    $template = Template::factory()->create();
-    $template->categories()->attach($category);
 
     return array_replace([
         'category_id' => $category->id,
         'product_id' => $product->id,
-        'template_id' => $template->id,
         'design_mode' => DesignMode::SelfCustomized->value,
         'option_ids' => [$size->id],
         'quantity' => 1,

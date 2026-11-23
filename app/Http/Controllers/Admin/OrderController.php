@@ -2,12 +2,19 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Orders\CreateManualOrder;
 use App\Concerns\ConvertsPesos;
 use App\Enums\ActivityType;
+use App\Enums\OrderChannel;
 use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreManualOrderRequest;
 use App\Http\Resources\OrderResource;
+use App\Http\Resources\PaymentMethodResource;
+use App\Http\Resources\ProductResource;
 use App\Models\Order;
+use App\Models\PaymentMethod;
+use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -64,7 +71,67 @@ class OrderController extends Controller
         return Inertia::render('admin/orders/show', [
             'order' => new OrderResource($order),
             'statuses' => OrderStatus::options(),
+            'approvalUrl' => $order->approvalUrl(),
         ]);
+    }
+
+    /**
+     * The form for an order taken outside the online shop: a walk-in, or a
+     * customer who ordered over Messenger.
+     */
+    public function create(): Response
+    {
+        return Inertia::render('admin/orders/create', [
+            'channels' => OrderChannel::manualOptions(),
+            'products' => ProductResource::collection(
+                Product::query()
+                    ->with(['options' => fn ($query) => $query->where('is_active', true)])
+                    ->orderByDesc('is_active')
+                    ->orderBy('sort_order')
+                    ->orderBy('name')
+                    ->get(),
+            ),
+            'paymentMethods' => PaymentMethodResource::collection(PaymentMethod::active()->get()),
+            'defaultDeliveryFee' => (int) config('taptale.delivery_fee'),
+        ]);
+    }
+
+    /**
+     * Save a walk-in or chat order. It comes with an approval link the
+     * studio can send the customer once a design is ready.
+     */
+    public function store(StoreManualOrderRequest $request, CreateManualOrder $createManualOrder): RedirectResponse
+    {
+        $order = $createManualOrder->handle($request->user(), $request->validated());
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Order :reference created. Upload a design, then send the customer the approval link.', ['reference' => $order->reference])]);
+
+        return to_route('admin.orders.show', $order);
+    }
+
+    /**
+     * Create a new approval link for the customer. A link sent before stops
+     * working.
+     */
+    public function issueApprovalLink(Order $order): RedirectResponse
+    {
+        $order->issueApprovalToken();
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('New approval link ready to share.')]);
+
+        return back();
+    }
+
+    /**
+     * Turn the approval link off.
+     */
+    public function revokeApprovalLink(Order $order): RedirectResponse
+    {
+        $order->revokeApprovalToken();
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Approval link turned off.')]);
+
+        return back();
     }
 
     /**

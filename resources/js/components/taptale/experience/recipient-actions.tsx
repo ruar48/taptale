@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import ExperienceReactionController from '@/actions/App/Http/Controllers/Storefront/ExperienceReactionController';
 import InputError from '@/components/input-error';
+import { SharePageButton } from '@/components/taptale/experience/share-page-button';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -17,16 +18,24 @@ import { cn } from '@/lib/utils';
 
 /**
  * Lets the person who tapped the keepsake send a heart or a private note
- * back to the sender. Sits bottom-left, opposite the music button.
+ * back to the sender, or share the page with family and friends. Sits
+ * bottom-left, opposite the music button.
  */
 export function RecipientActions({
     code,
     senderName,
     hasHearted,
+    title,
+    canShare = false,
+    shareLinkDays = [],
 }: {
     code: string;
     senderName: string | null;
     hasHearted: boolean;
+    title: string;
+    /** Only someone who tapped the genuine tag can make share links. */
+    canShare?: boolean;
+    shareLinkDays?: number[];
 }) {
     const [hearted, setHearted] = useState(hasHearted);
     const [writing, setWriting] = useState(false);
@@ -73,6 +82,13 @@ export function RecipientActions({
                 >
                     <MessageCircleHeart className="size-5" /> Write back
                 </button>
+                {canShare && shareLinkDays.length > 0 && (
+                    <SharePageButton
+                        code={code}
+                        title={title}
+                        days={shareLinkDays}
+                    />
+                )}
             </div>
 
             <Dialog open={writing} onOpenChange={setWriting}>

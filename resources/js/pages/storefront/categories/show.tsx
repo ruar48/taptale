@@ -3,23 +3,20 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 import { CategoryIcon } from '@/components/taptale/category-icon';
 import { ProductCard } from '@/components/taptale/product-card';
 import { SectionHeading } from '@/components/taptale/section-heading';
-import { TemplatePreview } from '@/components/taptale/template-preview';
 import { Button } from '@/components/ui/button';
 import { show as categoryShow } from '@/routes/categories';
 import { create as startOrder } from '@/routes/orders';
-import type { Category, Product, Template } from '@/types';
+import type { Category, Product } from '@/types';
 
 type Props = {
     category: Category;
     products: Product[];
-    templates: Template[];
     otherCategories: Category[];
 };
 
 export default function CategoryShow({
     category,
     products,
-    templates,
     otherCategories,
 }: Props) {
     return (
@@ -91,37 +88,6 @@ export default function CategoryShow({
                     </div>
                 )}
             </section>
-
-            {templates.length > 0 && (
-                <section className="bg-blush-light/50 py-16 dark:bg-muted/30">
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                        <SectionHeading
-                            eyebrow="Keychain designs"
-                            title="Designs made for this moment"
-                            description="Pick one when you personalize your gift — you'll see a live preview with your own photos."
-                        />
-                        <div className="mt-10 grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">
-                            {templates.map((template) => (
-                                <div key={template.id}>
-                                    <div className="overflow-hidden rounded-2xl shadow-[0_16px_32px_-20px_rgb(113_61_80/0.5)]">
-                                        <TemplatePreview
-                                            layout={template.layout}
-                                            palette={template.palette}
-                                            imageUrl={template.preview_url}
-                                        />
-                                    </div>
-                                    <p className="mt-3 font-display">
-                                        {template.name}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {template.layout_label}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-            )}
 
             {otherCategories.length > 0 && (
                 <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">

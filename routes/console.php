@@ -3,6 +3,7 @@
 use App\Actions\Maintenance\DeleteExpiredCacheEntries;
 use App\Actions\Orders\AutoApproveDesignProofs;
 use App\Actions\Orders\CancelAbandonedOrders;
+use App\Models\ExperienceShareLink;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -25,6 +26,11 @@ Schedule::call(fn () => app(DeleteExpiredCacheEntries::class)->handle())
 Schedule::call(fn () => app(CancelAbandonedOrders::class)->handle())
     ->name('cancel-abandoned-orders')
     ->hourly()
+    ->withoutOverlapping();
+
+Schedule::call(fn () => ExperienceShareLink::query()->where('expires_at', '<', now()->subDay())->delete())
+    ->name('prune-expired-share-links')
+    ->daily()
     ->withoutOverlapping();
 
 Schedule::call(fn () => app(AutoApproveDesignProofs::class)->handle())

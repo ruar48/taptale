@@ -3,11 +3,10 @@
 use App\Enums\ActivityType;
 use App\Enums\OrderFileKind;
 use App\Enums\OrderStatus;
-use App\Enums\TemplateLayout;
 use App\Models\DesignProof;
 use App\Models\Order;
 use App\Models\OrderFile;
-use App\Models\Template;
+use App\Models\Product;
 use App\Models\User;
 use App\Notifications\AdminOrderAlert;
 use Illuminate\Http\UploadedFile;
@@ -118,9 +117,9 @@ test('approving needs the customer to confirm the design is final', function () 
     expect($order->fresh()->preview_approved_at)->toBeNull();
 });
 
-test('a design cannot be approved or sent without what the template needs', function () {
-    $template = Template::factory()->create(['layout' => TemplateLayout::MiniCd]);
-    $order = Order::factory()->selfCustomized()->create(['template_id' => $template->id]);
+test('a design cannot be approved or sent without what the product needs', function () {
+    $miniCd = Product::factory()->create(['art_style' => 'cd']);
+    $order = Order::factory()->selfCustomized()->for($miniCd)->create();
 
     $this->actingAs($order->user)
         ->post(route('account.orders.design.approve', $order), ['confirm_final' => true])

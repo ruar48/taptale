@@ -67,7 +67,7 @@ class ExperienceReactionController extends Controller
 
         $reply = $experience->replies()->create($validated);
 
-        $experience->user->notify(new MemoryPageReplied($experience, $reply));
+        $experience->user?->notify(new MemoryPageReplied($experience, $reply));
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Your message was sent.')]);
 

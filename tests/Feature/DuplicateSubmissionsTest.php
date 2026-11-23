@@ -7,7 +7,6 @@ use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\ProductOption;
-use App\Models\Template;
 use App\Models\User;
 use Illuminate\Contracts\Cache\Lock;
 use Illuminate\Contracts\Cache\LockTimeoutException;
@@ -31,13 +30,10 @@ function repeatableCheckout(PaymentMethod $paymentMethod): array
     $product = Product::factory()->create(['base_price' => 15000, 'design_fee' => 0, 'min_quantity' => 1]);
     $category->products()->attach($product);
     $size = ProductOption::factory()->for($product)->group(OptionGroup::Size)->create();
-    $template = Template::factory()->create();
-    $template->categories()->attach($category);
 
     return [
         'category_id' => $category->id,
         'product_id' => $product->id,
-        'template_id' => $template->id,
         'design_mode' => DesignMode::SelfCustomized->value,
         'option_ids' => [$size->id],
         'quantity' => 1,

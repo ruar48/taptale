@@ -45,7 +45,6 @@ import {
 import { create as startOrder } from '@/routes/orders';
 import { cookies, privacy, terms } from '@/routes/pages';
 import { templates as memoryPages } from '@/routes/experiences';
-import { index as templatesIndex } from '@/routes/templates';
 
 export default function StorefrontLayout({
     children,
@@ -114,9 +113,6 @@ function SiteHeader() {
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                    <NavLink href={templatesIndex().url}>
-                        Keychain designs
-                    </NavLink>
                     <NavLink href={memoryPages().url}>Memory pages</NavLink>
                     <NavLink href={`${home().url}#how-it-works`}>
                         How it works
@@ -208,13 +204,6 @@ function SiteHeader() {
                                     </div>
                                 </div>
                                 <div className="grid gap-1 border-t border-plum/10 pt-4">
-                                    <Link
-                                        href={templatesIndex()}
-                                        onClick={() => setOpen(false)}
-                                        className="rounded-xl px-3 py-2.5 hover:bg-plum/5"
-                                    >
-                                        Keychain designs
-                                    </Link>
                                     <Link
                                         href={memoryPages()}
                                         onClick={() => setOpen(false)}
@@ -423,14 +412,6 @@ function SiteFooter() {
                                 className="hover:text-white"
                             >
                                 Start creating
-                            </Link>
-                        </li>
-                        <li>
-                            <Link
-                                href={templatesIndex()}
-                                className="hover:text-white"
-                            >
-                                Keychain designs
                             </Link>
                         </li>
                         <li>

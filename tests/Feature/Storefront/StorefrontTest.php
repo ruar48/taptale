@@ -48,6 +48,10 @@ test('hidden categories and products are not found', function () {
     $this->get(route('products.show', Product::factory()->inactive()->create()))->assertNotFound();
 });
 
+test('old links to the design templates gallery go to the gifts', function () {
+    $this->get('/templates')->assertStatus(301)->assertRedirect(route('categories.index'));
+});
+
 test('a product page shows its active options', function () {
     $product = Product::factory()->create();
     $product->options()->createMany([

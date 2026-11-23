@@ -9,42 +9,17 @@ import {
     MiniCdMockup,
     WoodenMockup,
 } from "@/components/taptale/product-mockups";
-import { TemplatePreview } from "@/components/taptale/template-preview";
-import type {
-    Palette,
-    Product,
-    ProductOption,
-    Template,
-    TemplateLayout,
-} from "@/types";
-
-const FALLBACK_PALETTE: Palette = {
-    background: "#F8F3ED",
-    ink: "#343039",
-    accent: "#B86F83",
-};
+import {
+    productPalette,
+    TemplatePreview,
+} from "@/components/taptale/template-preview";
+import type { Product, ProductOption } from "@/types";
 
 /**
  * Live preview of the customer's personalized design on the chosen product.
  */
-const DEFAULT_LAYOUTS: Partial<Record<Product["art_style"], TemplateLayout>> = {
-    cd: "mini_cd",
-    music: "music_player",
-    strip: "photo_strip",
-    tag: "tap_tag",
-    wood: "engraved",
-    diecut: "die_cut",
-    calendar: "calendar",
-};
-
-const WOOD_PALETTES = {
-    maple: { background: "#E2C49A", ink: "#5B3A1E", accent: "#8A5A32" },
-    walnut: { background: "#8A5A3A", ink: "#24140A", accent: "#5A3720" },
-};
-
 export function DesignPreview({
     product,
-    template,
     selectedOptions,
     photoUrl,
     photos,
@@ -58,7 +33,6 @@ export function DesignPreview({
     className,
 }: {
     product: Product;
-    template: Template | null;
     selectedOptions: ProductOption[];
     photoUrl: string | null;
     photos?: (string | null)[];
@@ -75,19 +49,14 @@ export function DesignPreview({
     const byGroup = (group: string) =>
         selectedOptions.find((option) => option.group === group);
 
-    const layout: TemplateLayout =
-        template?.layout ?? DEFAULT_LAYOUTS[product.art_style] ?? "polaroid";
-    let palette = template?.palette ?? FALLBACK_PALETTE;
+    const layout = product.design_layout;
+    const palette = productPalette(
+        product.art_style,
+        byGroup("material")?.name,
+    );
     const hasTap =
         product.has_digital_experience ||
         selectedOptions.some((option) => option.enables_digital_experience);
-    const material = byGroup("material")?.name.toLowerCase() ?? "";
-
-    if (product.art_style === "wood" && material) {
-        palette = material.includes("walnut")
-            ? WOOD_PALETTES.walnut
-            : (template?.palette ?? WOOD_PALETTES.maple);
-    }
 
     const content = {
         palette,

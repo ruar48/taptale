@@ -60,6 +60,34 @@ export const LAYOUT_RATIO: Record<TemplateLayout, number> = {
  */
 export const MUSIC_LAYOUTS: TemplateLayout[] = ["mini_cd", "music_player"];
 
+const DEFAULT_PALETTE: Palette = {
+    background: "#F8F3ED",
+    ink: "#343039",
+    accent: "#B86F83",
+};
+
+const WOOD_PALETTES = {
+    maple: { background: "#E2C49A", ink: "#5B3A1E", accent: "#8A5A32" },
+    walnut: { background: "#8A5A3A", ink: "#24140A", accent: "#5A3720" },
+};
+
+/**
+ * Colours a product's design is shown in. Wooden gifts show their wood;
+ * everything else uses the house colours.
+ */
+export function productPalette(
+    artStyle: string | null | undefined,
+    material = "",
+): Palette {
+    if (artStyle !== "wood") {
+        return DEFAULT_PALETTE;
+    }
+
+    return material.toLowerCase().includes("walnut")
+        ? WOOD_PALETTES.walnut
+        : WOOD_PALETTES.maple;
+}
+
 /**
  * Renders a design template as a live, resolution-independent preview.
  * Sizes use container query units so the same component works as a tiny

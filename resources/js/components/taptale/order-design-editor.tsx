@@ -15,6 +15,7 @@ import InputError from "@/components/input-error";
 import { FileDropzone } from "@/components/taptale/file-dropzone";
 import {
     MUSIC_LAYOUTS,
+    productPalette,
     TemplatePreview,
 } from "@/components/taptale/template-preview";
 import { Button } from "@/components/ui/button";
@@ -54,12 +55,14 @@ export function OrderDesignEditor({
     order: Order;
     maxUploadKilobytes: number;
 }) {
-    const template = order.template ?? null;
-    const canSelfDesign = order.design_mode === "self" && template !== null;
+    // The product is the design: its layout shows the customer's details.
+    const layout =
+        order.design_mode === "self" ? (order.design_layout ?? null) : null;
+    const palette = productPalette(order.product_art_style);
+    const canSelfDesign = layout !== null;
     const [path, setPath] = useState<Path>(canSelfDesign ? "self" : "send");
     const [confirming, setConfirming] = useState<Path | null>(null);
-    const needsMusic =
-        template !== null && MUSIC_LAYOUTS.includes(template.layout);
+    const needsMusic = layout !== null && MUSIC_LAYOUTS.includes(layout);
     const maxPhotos = Math.max(1, order.product_max_photos ?? 3);
 
     const form = useForm<DesignForm>({
@@ -165,7 +168,7 @@ export function OrderDesignEditor({
                             onSelect={() => setPath("send")}
                             icon={<Send className="size-5" />}
                             title="Send it to Taptale"
-                            description={`Just send your photos and details. We'll put them on ${template?.name ?? "your design"} and send it to you to approve.`}
+                            description={`Just send your photos and details. We'll put them on ${order.product_name} and send it to you to approve.`}
                         />
                     </div>
                 )}
@@ -173,15 +176,15 @@ export function OrderDesignEditor({
                 <div
                     className={cn(
                         "grid gap-6",
-                        template && "md:grid-cols-[240px_minmax(0,1fr)]",
+                        layout && "md:grid-cols-[240px_minmax(0,1fr)]",
                     )}
                 >
-                    {template && (
+                    {layout && (
                         <div className="md:sticky md:top-24 md:self-start">
                             <div className="overflow-hidden rounded-2xl shadow">
                                 <TemplatePreview
-                                    layout={template.layout}
-                                    palette={template.palette}
+                                    layout={layout}
+                                    palette={palette}
                                     photoUrl={previewPhotos[0]}
                                     photos={previewPhotos}
                                     names={details.names}
@@ -194,8 +197,8 @@ export function OrderDesignEditor({
                             </div>
                             <p className="mt-2 text-center text-xs text-muted-foreground">
                                 {path === "self"
-                                    ? `Live preview · ${template.name}`
-                                    : `${template.name} · our designers will fine-tune it`}
+                                    ? `Live preview · ${order.product_name}`
+                                    : `${order.product_name} · our designers will fine-tune it`}
                             </p>
                         </div>
                     )}
@@ -449,11 +452,11 @@ export function OrderDesignEditor({
                         This is the last step before we make your gift.
                     </DialogDescription>
                     <div className="grid gap-4 sm:grid-cols-[140px_1fr]">
-                        {template && (
+                        {layout && (
                             <div className="overflow-hidden rounded-xl shadow">
                                 <TemplatePreview
-                                    layout={template.layout}
-                                    palette={template.palette}
+                                    layout={layout}
+                                    palette={palette}
                                     photoUrl={previewPhotos[0]}
                                     photos={previewPhotos}
                                     names={details.names}

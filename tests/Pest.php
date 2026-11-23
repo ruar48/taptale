@@ -52,10 +52,16 @@ function something()
 }
 
 /**
- * Open a memory page the way its recipient does: by tapping the NFC tag (or
- * scanning the QR code), which unlocks the page for the rest of the session.
+ * Open a memory page the way its recipient does: by tapping the NFC tag,
+ * which unlocks the page for the rest of the session. Pass the mirror the
+ * tag adds ("{chip id}x{tap count}") to tap a tag with UID + counter
+ * mirroring; without it, the tap is from a tag programmed before mirroring.
  */
-function tapTag(DigitalExperience $experience): TestResponse
+function tapTag(DigitalExperience $experience, ?string $mirror = null): TestResponse
 {
-    return test()->get($experience->publicUrl());
+    return test()->get(route('experiences.show', array_filter([
+        'experience' => $experience,
+        'k' => $experience->access_key,
+        'm' => $mirror,
+    ])));
 }

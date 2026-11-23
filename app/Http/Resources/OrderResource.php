@@ -21,6 +21,8 @@ class OrderResource extends JsonResource
         return [
             'id' => $this->id,
             'reference' => $this->reference,
+            'channel' => $this->channel->value,
+            'channel_label' => $this->channel->label(),
             'status' => $this->status->value,
             'status_label' => $this->status->label(),
             'status_tone' => $this->status->tone(),
@@ -82,11 +84,11 @@ class OrderResource extends JsonResource
             'activities' => OrderActivityResource::collection($this->whenLoaded('activities')),
             'payments' => PaymentResource::collection($this->whenLoaded('payments')),
             'experience' => $this->whenLoaded('experience', fn (): ?DigitalExperienceResource => $this->experience ? new DigitalExperienceResource($this->experience) : null),
-            'user' => $this->whenLoaded('user', fn (): array => [
+            'user' => $this->whenLoaded('user', fn (): ?array => $this->user ? [
                 'id' => $this->user->id,
                 'name' => $this->user->name,
                 'email' => $this->user->email,
-            ]),
+            ] : null),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

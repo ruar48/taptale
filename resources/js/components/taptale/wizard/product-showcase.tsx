@@ -1,30 +1,26 @@
-import { Check, Clock, Nfc, Package, Wand2 } from 'lucide-react';
+import { Camera, Check, Clock, Nfc, Package, Wand2 } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { TemplatePreview } from '@/components/taptale/template-preview';
 import { useMoney } from '@/hooks/use-money';
 import { cn } from '@/lib/utils';
-import type { Product, Template } from '@/types';
+import type { Product } from '@/types';
 
 /**
  * Shopee-style product view: a big live sample on the left, and on the
- * right the price, key facts and the design "variations" as chips.
+ * right the price, key facts and how the design gets made: the gift as
+ * shown with the customer's photos, or a custom design by the studio.
  */
 export function ProductShowcase({
     product,
-    templates,
-    selectedTemplateId,
     customSelected,
-    onSelectTemplate,
+    onSelectAsShown,
     onSelectCustom,
     preview,
     hasTapPage,
     loading,
 }: {
     product: Product;
-    templates: Template[];
-    selectedTemplateId: number | null;
     customSelected: boolean;
-    onSelectTemplate: (id: number) => void;
+    onSelectAsShown: () => void;
     onSelectCustom: () => void;
     preview: ReactNode;
     hasTapPage: boolean;
@@ -91,50 +87,29 @@ export function ProductShowcase({
                 </dl>
 
                 <div className="mt-6">
-                    <p className="mb-2 flex items-baseline justify-between text-sm font-semibold">
-                        Design
-                        <span className="text-xs font-normal text-muted-foreground">
-                            {templates.length}{' '}
-                            {templates.length === 1 ? 'design' : 'designs'}
-                        </span>
-                    </p>
-                    <div className="flex max-h-72 flex-wrap gap-2 overflow-y-auto pr-1">
-                        {templates.map((item) => {
-                            const selected = selectedTemplateId === item.id;
-
-                            return (
-                                <button
-                                    key={item.id}
-                                    type="button"
-                                    onClick={() => onSelectTemplate(item.id)}
-                                    className={cn(
-                                        'relative inline-flex items-center gap-2 rounded-xl border-2 bg-background py-1 pr-3 pl-1 text-sm transition',
-                                        selected
-                                            ? 'border-rose text-plum dark:text-blush'
-                                            : 'border-border hover:border-rose/50',
-                                    )}
-                                    aria-pressed={selected}
-                                >
-                                    <span className="size-9 shrink-0 overflow-hidden rounded-lg">
-                                        <TemplatePreview
-                                            layout={item.layout}
-                                            palette={item.palette}
-                                            imageUrl={item.preview_url}
-                                            className="!aspect-square size-full"
-                                        />
-                                    </span>
-                                    {item.name}
-                                    {selected && (
-                                        <span className="absolute -right-1.5 -bottom-1.5 flex size-4 items-center justify-center rounded-full bg-rose text-white">
-                                            <Check
-                                                className="size-2.5"
-                                                strokeWidth={4}
-                                            />
-                                        </span>
-                                    )}
-                                </button>
-                            );
-                        })}
+                    <p className="mb-2 text-sm font-semibold">Design</p>
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            type="button"
+                            onClick={onSelectAsShown}
+                            className={cn(
+                                'relative inline-flex items-center gap-2 rounded-xl border-2 bg-background py-1 pr-3 pl-1 text-sm transition',
+                                customSelected
+                                    ? 'border-border hover:border-rose/50'
+                                    : 'border-rose text-plum dark:text-blush',
+                            )}
+                            aria-pressed={!customSelected}
+                        >
+                            <span className="flex size-9 items-center justify-center rounded-lg bg-blush-light text-rose dark:bg-rose/20">
+                                <Camera className="size-4" />
+                            </span>
+                            As shown, with my photos
+                            {!customSelected && (
+                                <span className="absolute -right-1.5 -bottom-1.5 flex size-4 items-center justify-center rounded-full bg-rose text-white">
+                                    <Check className="size-2.5" strokeWidth={4} />
+                                </span>
+                            )}
+                        </button>
                         <button
                             type="button"
                             onClick={onSelectCustom}
@@ -156,8 +131,8 @@ export function ProductShowcase({
                         </button>
                     </div>
                     <p className="mt-2 text-xs text-muted-foreground">
-                        Tap a design to see it on your gift. You can add your
-                        own photos and words next.
+                        Add your own photos and words next, or let our
+                        designers create something just for you.
                     </p>
                 </div>
             </div>

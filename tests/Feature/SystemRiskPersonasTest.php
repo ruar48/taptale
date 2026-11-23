@@ -28,7 +28,6 @@ use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\ProductOption;
 use App\Models\PromoCode;
-use App\Models\Template;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
@@ -80,14 +79,11 @@ describe('Bea, who stacks a 100% promo on a free-delivery order', function () {
         $product = Product::factory()->create(['base_price' => 100000, 'design_fee' => 0, 'min_quantity' => 1]);
         $category->products()->attach($product);
         $size = ProductOption::factory()->for($product)->group(OptionGroup::Size)->create();
-        $template = Template::factory()->create();
-        $template->categories()->attach($category);
         PromoCode::factory()->create(['code' => 'FREEBIE', 'discount_value' => 100]);
 
         $this->actingAs(User::factory()->create())->post(route('orders.store'), [
             'category_id' => $category->id,
             'product_id' => $product->id,
-            'template_id' => $template->id,
             'design_mode' => DesignMode::SelfCustomized->value,
             'option_ids' => [$size->id],
             'quantity' => 1,

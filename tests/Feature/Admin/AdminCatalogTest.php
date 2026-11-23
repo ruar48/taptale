@@ -4,7 +4,6 @@ use App\Enums\OptionGroup;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductOption;
-use App\Models\Template;
 use App\Models\User;
 
 beforeEach(function () {
@@ -94,24 +93,6 @@ test('an option cannot be edited through another product', function () {
         ->assertNotFound();
 
     expect($option->fresh())->not->toBeNull();
-});
-
-test('an admin creates a template assigned to categories', function () {
-    $category = Category::factory()->create();
-
-    $this->actingAs($this->admin)->post(route('admin.templates.store'), [
-        'name' => 'Golden Hour',
-        'layout' => 'polaroid',
-        'palette' => ['background' => '#FFFFFF', 'ink' => '#000000', 'accent' => '#B86F83'],
-        'is_active' => true,
-        'sort_order' => 0,
-        'category_ids' => [$category->id],
-    ])->assertSessionHasNoErrors();
-
-    $template = Template::sole();
-
-    expect($template->slug)->toBe('golden-hour')
-        ->and($template->categories->modelKeys())->toBe([$category->id]);
 });
 
 test('an admin creates and updates a category', function () {

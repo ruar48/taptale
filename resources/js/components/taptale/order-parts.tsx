@@ -280,10 +280,9 @@ export function OrderSpecs({ order }: { order: Order }) {
             {order.category_name && (
                 <Spec label="Occasion" value={order.category_name} />
             )}
-            <Spec
-                label="Template"
-                value={order.template_name ?? "Custom design"}
-            />
+            {order.template_name && (
+                <Spec label="Template" value={order.template_name} />
+            )}
             <Spec label="Design" value={order.design_mode_label} />
             <Spec label="Quantity" value={String(order.quantity)} />
             {order.selected_options.map((option) => (

@@ -51,7 +51,7 @@ export default function AdminCategories({
             <AdminPage>
                 <PageHeader
                     title="Categories"
-                    description="Occasions customers shop by. Each has its own products and templates."
+                    description="Occasions customers shop by. Each has its own products."
                     actions={
                         <Button onClick={() => setEditing(null)}>
                             <Plus className="size-4" /> New category

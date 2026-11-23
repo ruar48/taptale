@@ -1,12 +1,11 @@
 import { Truck } from 'lucide-react';
 import { useMoney } from '@/hooks/use-money';
 import type { PriceBreakdown, PricingConfig } from '@/lib/pricing';
-import type { Category, Product, Template } from '@/types';
+import type { Category, Product } from '@/types';
 
 export function OrderSummary({
     category,
     product,
-    template,
     quantity,
     price,
     pricing,
@@ -15,7 +14,6 @@ export function OrderSummary({
 }: {
     category: Category | null;
     product: Product | null;
-    template: Template | null;
     quantity: number;
     price: PriceBreakdown | null;
     pricing: PricingConfig;
@@ -32,13 +30,6 @@ export function OrderSummary({
             <dl className="mt-4 space-y-2.5 text-sm">
                 {category && <Row label="Occasion" value={category.name} />}
                 <Row label="Gift" value={product?.name} />
-                <Row
-                    label="Template"
-                    value={
-                        template?.name ??
-                        (product ? 'Custom design' : undefined)
-                    }
-                />
                 <Row label="Design" value={designModeLabel ?? undefined} />
             </dl>
 

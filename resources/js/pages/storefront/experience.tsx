@@ -54,6 +54,8 @@ export default function Experience({
     isDemo = false,
     canEdit = false,
     isRecipient = false,
+    canShare = false,
+    shareLinkDays = [],
     hasHearted = false,
     designOptions = null,
     orderProduct = null,
@@ -65,6 +67,10 @@ export default function Experience({
     isDemo?: boolean;
     canEdit?: boolean;
     isRecipient?: boolean;
+    /** Whether this visitor tapped the genuine tag, so they may make share links. */
+    canShare?: boolean;
+    /** How many days a share link can stay open. */
+    shareLinkDays?: number[];
     hasHearted?: boolean;
     designOptions?: DesignOptions | null;
     /** Demo only: the keychain the "order with this page" button opens. */
@@ -597,6 +603,9 @@ export default function Experience({
                             code={experience.code}
                             senderName={experience.sender_name}
                             hasHearted={hasHearted}
+                            title={experience.title}
+                            canShare={canShare}
+                            shareLinkDays={shareLinkDays}
                         />
                     )}
 

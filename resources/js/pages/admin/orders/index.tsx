@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { Download } from 'lucide-react';
+import { Download, Plus } from 'lucide-react';
 import {
     AdminPage,
     PageHeader,
@@ -13,6 +13,7 @@ import { formatDate } from '@/lib/money';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
+    create,
     exportMethod as exportOrders,
     index,
     show,
@@ -46,18 +47,25 @@ export default function AdminOrders({
                     title="Orders"
                     description="Every personalized order, from payment to delivery."
                     actions={
-                        <Button asChild variant="outline">
-                            <a
-                                href={exportOrders.url({
-                                    query: {
-                                        status: filters.status ?? undefined,
-                                        search: filters.search || undefined,
-                                    },
-                                })}
-                            >
-                                <Download className="size-4" /> Export CSV
-                            </a>
-                        </Button>
+                        <>
+                            <Button asChild variant="outline">
+                                <a
+                                    href={exportOrders.url({
+                                        query: {
+                                            status: filters.status ?? undefined,
+                                            search: filters.search || undefined,
+                                        },
+                                    })}
+                                >
+                                    <Download className="size-4" /> Export CSV
+                                </a>
+                            </Button>
+                            <Button asChild>
+                                <Link href={create()}>
+                                    <Plus className="size-4" /> New order
+                                </Link>
+                            </Button>
+                        </>
                     }
                 />
 
@@ -131,7 +139,9 @@ export default function AdminOrders({
                                 <td>
                                     <p>{order.customer_name}</p>
                                     <p className="text-xs text-muted-foreground">
-                                        {order.customer_email}
+                                        {order.channel === 'website'
+                                            ? order.customer_email
+                                            : `${order.channel_label} · ${order.customer_phone || order.customer_email}`}
                                     </p>
                                 </td>
                                 <td className="hidden lg:table-cell">

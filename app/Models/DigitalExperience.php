@@ -10,6 +10,7 @@ use App\Jobs\FetchSongDetails;
 use Database\Factories\DigitalExperienceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,9 +21,9 @@ use Illuminate\Support\Str;
 /**
  * @property int $id
  * @property int $order_id
- * @property int $user_id
+ * @property int|null $user_id Null for the page of a walk-in or chat order, which has no customer account
  * @property string $code
- * @property string $access_key Secret carried by the NFC tag and QR code; without it the page is a 404
+ * @property string $access_key Secret written into the NFC tag (and the QR code until the tag is live)
  * @property ExperienceTemplate $template
  * @property string $title
  * @property string|null $subtitle
@@ -52,7 +53,8 @@ use Illuminate\Support\Str;
  * @property list<array{date?: string|null, title?: string|null, caption?: string|null, photo?: int|null}>|null $moments
  * @property list<array{id: string, type: string, position: int, title: string|null, text?: string|null, background: string|null, slots: list<array{photo: int|null, caption: string|null}>}>|null $custom_sections
  * @property string $theme
- * @property string|null $nfc_tag_uid
+ * @property string|null $nfc_tag_uid Chip ID of the genuine tag, saved by an admin or on its first mirrored tap
+ * @property int|null $nfc_tap_counter Last tap count the genuine tag reported; once set, only that tag opens the page through the tag link
  * @property bool $is_published
  * @property Carbon|null $unlocks_at Before this moment visitors see a countdown instead of the page
  * @property int $view_count
@@ -118,6 +120,21 @@ class DigitalExperience extends Model
     public const THEMES = ['crimson', 'rose', 'blush', 'plum', 'midnight', 'cream', 'sunset', 'sage', 'moonlit'];
 
     /**
+     * Placeholder at the end of the tag link that the tag's UID + counter
+     * mirror overwrites on every tap: 14 hex digits of chip ID, "x", and a
+     * 6 hex digit tap count.
+     */
+    public const TAG_MIRROR_PLACEHOLDER = '00000000000000x000000';
+
+    /**
+     * How many days a share link can stay open. There is no lifetime link,
+     * so a lost keychain is replaced by ordering a new one.
+     *
+     * @var list<int>
+     */
+    public const SHARE_LINK_DAYS = [1, 3, 7, 14, 30];
+
+    /**
      * Default attribute values, mirroring the database defaults.
      *
      * @var array<string, mixed>
@@ -176,6 +193,7 @@ class DigitalExperience extends Model
             'song_details' => 'array',
             'is_published' => 'boolean',
             'unlocks_at' => 'datetime',
+            'nfc_tap_counter' => 'integer',
             'view_count' => 'integer',
             'heart_count' => 'integer',
         ];
@@ -218,6 +236,14 @@ class DigitalExperience extends Model
     }
 
     /**
+     * @return HasMany<ExperienceShareLink, $this>
+     */
+    public function shareLinks(): HasMany
+    {
+        return $this->hasMany(ExperienceShareLink::class);
+    }
+
+    /**
      * @return HasMany<ExperienceReply, $this>
      */
     public function replies(): HasMany
@@ -226,11 +252,86 @@ class DigitalExperience extends Model
     }
 
     /**
-     * Whether the given secret matches the one written into the tag / QR code.
+     * Whether the given secret matches the one written into the NFC tag.
      */
     public function hasAccessKey(string $key): bool
     {
         return $key !== '' && hash_equals((string) $this->access_key, $key);
+    }
+
+    /**
+     * The share link with the given token, while it still opens the page.
+     */
+    public function activeShareLink(string $token): ?ExperienceShareLink
+    {
+        if ($token === '') {
+            return null;
+        }
+
+        return $this->shareLinks()->active()->where('token', $token)->first();
+    }
+
+    /**
+     * Whether a tap with the tag link came from the genuine Taptale tag.
+     *
+     * Tags are programmed with NTAG 21x UID + counter mirroring, so every tap
+     * fills "m" with the chip ID and tap count. The tap is accepted when the
+     * chip ID matches the registered one (the first mirrored tap registers
+     * it) and the count went up since the last tap; a copied tag sends a
+     * different chip ID or replays an old count. Once the genuine tag has
+     * been tapped, a link without the mirror is refused as well, so writing
+     * the link onto another tag does not work. Tags programmed before
+     * mirroring keep working until then.
+     */
+    public function acceptsTap(mixed $mirror): bool
+    {
+        if ($mirror === null) {
+            return $this->nfc_tap_counter === null;
+        }
+
+        if (! is_string($mirror) || preg_match('/^([0-9A-F]{14})x([0-9A-F]{6})$/i', $mirror, $matches) !== 1) {
+            return false;
+        }
+
+        $chipId = Str::upper($matches[1]);
+        $tapCount = (int) hexdec($matches[2]);
+
+        if ($chipId === str_repeat('0', 14)) {
+            return false;
+        }
+
+        if (filled($this->nfc_tag_uid)) {
+            if (static::normalizeTagUid($this->nfc_tag_uid) !== $chipId) {
+                return false;
+            }
+
+            $tagUid = $this->nfc_tag_uid;
+        } else {
+            $tagUid = implode(':', str_split($chipId, 2));
+
+            if (static::query()->whereKeyNot($this->id)->where('nfc_tag_uid', $tagUid)->exists()) {
+                return false;
+            }
+        }
+
+        $accepted = static::query()
+            ->whereKey($this->id)
+            ->where(fn (Builder $query) => $query->whereNull('nfc_tap_counter')->orWhere('nfc_tap_counter', '<', $tapCount))
+            ->update(['nfc_tag_uid' => $tagUid, 'nfc_tap_counter' => $tapCount]) === 1;
+
+        if ($accepted) {
+            $this->forceFill(['nfc_tag_uid' => $tagUid, 'nfc_tap_counter' => $tapCount])->syncOriginal();
+        }
+
+        return $accepted;
+    }
+
+    /**
+     * A tag chip ID in bare uppercase hex, whatever separators it was typed with.
+     */
+    public static function normalizeTagUid(string $uid): string
+    {
+        return Str::upper((string) preg_replace('/[^0-9A-F]/i', '', $uid));
     }
 
     /**
@@ -259,11 +360,45 @@ class DigitalExperience extends Model
     }
 
     /**
-     * The URL encoded in the QR code and written to NFC tags. It carries the
-     * access key; the bare /t/{code} address alone opens nothing.
+     * The page address for the owner and admins, who can always open it.
+     * It opens nothing for anyone else.
      */
     public function publicUrl(): string
     {
+        return route('experiences.show', $this);
+    }
+
+    /**
+     * The link in the QR code. It carries the access key without the tag's
+     * mirror, so it opens the page only until the genuine tag is first
+     * tapped: forever on a QR keepsake, never once a keychain's tag is live
+     * (a printed QR code cannot replace a lost keychain).
+     */
+    public function qrCodeUrl(): string
+    {
         return route('experiences.show', ['experience' => $this, 'k' => $this->access_key]);
+    }
+
+    /**
+     * Whether the genuine tag has been tapped, so only it opens the page
+     * through the tag link and copies of it are refused.
+     */
+    public function isTagCheckActive(): bool
+    {
+        return $this->nfc_tap_counter !== null;
+    }
+
+    /**
+     * The link to program into the NFC tag. The mirror placeholder at its end
+     * is overwritten with the tag's chip ID and tap count on every tap, which
+     * proves the tap came from the genuine tag.
+     */
+    public function tagUrl(): string
+    {
+        return route('experiences.show', [
+            'experience' => $this,
+            'k' => $this->access_key,
+            'm' => self::TAG_MIRROR_PLACEHOLDER,
+        ]);
     }
 }

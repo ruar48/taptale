@@ -36,7 +36,6 @@ type GroupOption = { value: string; label: string; multiple: boolean };
 type Props = {
     product: Product | null;
     categories: { id: number; name: string }[];
-    templates: { id: number; name: string; layout: string }[];
     optionGroups: GroupOption[];
     artStyles: string[];
 };
@@ -44,7 +43,6 @@ type Props = {
 export default function ProductForm({
     product,
     categories,
-    templates,
     optionGroups,
     artStyles,
 }: Props) {
@@ -72,7 +70,6 @@ export default function ProductForm({
                 <DetailsForm
                     product={product}
                     categories={categories}
-                    templates={templates}
                     artStyles={artStyles}
                 />
                 {product && (
@@ -92,7 +89,6 @@ export default function ProductForm({
 function DetailsForm({
     product,
     categories,
-    templates,
     artStyles,
 }: Omit<Props, 'optionGroups'>) {
     const form = useForm({
@@ -116,11 +112,10 @@ function DetailsForm({
         category_ids:
             product?.categories?.map((category) => category.id) ??
             ([] as number[]),
-        template_ids: product?.template_ids ?? ([] as number[]),
     });
     const { data, setData, errors } = form;
 
-    const toggleId = (key: 'category_ids' | 'template_ids', id: number) =>
+    const toggleId = (key: 'category_ids', id: number) =>
         setData(
             key,
             data[key].includes(id)
@@ -410,7 +405,7 @@ function DetailsForm({
                 </div>
             </Panel>
 
-            <Panel title="Categories & templates">
+            <Panel title="Categories">
                 <p className="mb-2 text-sm font-medium">Categories</p>
                 <div className="flex flex-wrap gap-2">
                     {categories.map((category) => (
@@ -430,26 +425,6 @@ function DetailsForm({
                         {errors.category_ids}
                     </p>
                 )}
-                <p className="mt-6 mb-1 text-sm font-medium">
-                    Restrict templates to this product
-                </p>
-                <p className="mb-2 text-xs text-muted-foreground">
-                    Templates with no product restriction are available to every
-                    product in their categories.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                    {templates.map((template) => (
-                        <ChipToggle
-                            key={template.id}
-                            active={data.template_ids.includes(template.id)}
-                            onClick={() =>
-                                toggleId('template_ids', template.id)
-                            }
-                        >
-                            {template.name}
-                        </ChipToggle>
-                    ))}
-                </div>
             </Panel>
 
             <div className="flex justify-end">

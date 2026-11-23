@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ActivityType;
 use App\Enums\DesignMode;
+use App\Enums\OrderChannel;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentKind;
 use App\Enums\PaymentStatus;
@@ -25,7 +26,9 @@ use Illuminate\Validation\ValidationException;
 /**
  * @property int $id
  * @property string $reference
- * @property int $user_id
+ * @property int|null $user_id Null for walk-in and chat orders taken by the studio for a customer without an account
+ * @property OrderChannel $channel
+ * @property string|null $approval_token Secret in the approval link the studio shares with the customer
  * @property OrderStatus $status
  * @property int|null $category_id
  * @property int|null $product_id
@@ -68,7 +71,7 @@ use Illuminate\Validation\ValidationException;
  */
 #[RouteKey('reference')]
 #[Fillable([
-    'status', 'category_id', 'product_id', 'product_name', 'template_name',
+    'channel', 'status', 'category_id', 'product_id', 'product_name', 'template_name',
     'selected_options', 'design_mode', 'personalization', 'preview_approved_at', 'design_submitted_at',
     'quantity', 'unit_price', 'subtotal', 'customization_fee', 'flowers_fee', 'delivery_fee', 'adjustment', 'adjustment_note', 'promo_code_id', 'promo_code', 'promo_identity', 'discount', 'total',
     'customer_name', 'customer_email', 'customer_phone', 'address_line', 'city', 'province', 'postal_code', 'customer_notes', 'is_gift', 'gift_message',
@@ -78,6 +81,15 @@ class Order extends Model
 {
     /** @use HasFactory<OrderFactory> */
     use HasFactory;
+
+    /**
+     * The model's default values for attributes.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'channel' => 'website',
+    ];
 
     /**
      * Bootstrap the model and its traits.
@@ -117,6 +129,7 @@ class Order extends Model
     protected function casts(): array
     {
         return [
+            'channel' => OrderChannel::class,
             'status' => OrderStatus::class,
             'design_mode' => DesignMode::class,
             'selected_options' => 'array',
@@ -163,6 +176,44 @@ class Order extends Model
         } while (static::where('reference', $reference)->exists());
 
         return $reference;
+    }
+
+    /**
+     * The private link where the customer can view and approve their design
+     * without logging in, or null while the studio has not created one.
+     */
+    public function approvalUrl(): ?string
+    {
+        return $this->approval_token === null
+            ? null
+            : route('design-review.show', ['order' => $this, 'k' => $this->approval_token]);
+    }
+
+    /**
+     * Whether the given key opens this order's approval link.
+     */
+    public function hasApprovalToken(mixed $key): bool
+    {
+        return is_string($key)
+            && $key !== ''
+            && $this->approval_token !== null
+            && hash_equals($this->approval_token, $key);
+    }
+
+    /**
+     * Create a new approval link. Any link shared before stops working.
+     */
+    public function issueApprovalToken(): void
+    {
+        $this->forceFill(['approval_token' => Str::random(40)])->save();
+    }
+
+    /**
+     * Turn the approval link off.
+     */
+    public function revokeApprovalToken(): void
+    {
+        $this->forceFill(['approval_token' => null])->save();
     }
 
     /**

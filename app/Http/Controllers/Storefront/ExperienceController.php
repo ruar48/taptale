@@ -10,6 +10,7 @@ use App\Enums\FlowerStyle;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DigitalExperienceResource;
 use App\Models\DigitalExperience;
+use App\Models\ExperienceShareLink;
 use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,11 +25,17 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  * The NFC / QR destination page: taptale.com/t/{code}, plus the template
  * gallery and demos customers can explore before buying.
  *
- * A memory page only opens from its tag or QR code. Both carry a secret
- * "k" key; the first visit with it unlocks the page for that browser (its
- * session plus an encrypted device cookie) and redirects to the clean
- * address, so the URL a visitor sees (and might share) opens nothing on
- * another device.
+ * A memory page opens from its NFC tag, its QR code or a share link. The
+ * tag carries a secret "k" key plus the chip ID and tap count it mirrors on
+ * every tap, so only the genuine Taptale tag opens the page that way (see
+ * DigitalExperience::acceptsTap()). A tap unlocks the page for that browser
+ * (its session plus an encrypted device cookie) and redirects to the clean
+ * address, which opens nothing on another device.
+ *
+ * Whoever tapped the tag can share the page with a link that expires after
+ * the days they choose. It opens the page for that session only, and its
+ * visitors cannot make links of their own, so there is no lasting link to
+ * stand in for a lost keychain: the owner orders a replacement.
  */
 class ExperienceController extends Controller
 {
@@ -49,6 +56,12 @@ class ExperienceController extends Controller
      * How long, in minutes, the device remembers a tapped page.
      */
     private const ACCESS_COOKIE_MINUTES = 60 * 24 * 30;
+
+    /**
+     * Session key mapping the ids of pages opened through a share link to
+     * the moment that link expires.
+     */
+    private const SHARED_SESSION_KEY = 'experience_shared';
 
     /**
      * Session key holding the ids of pages whose view this session counted.
@@ -125,17 +138,28 @@ class ExperienceController extends Controller
         if ($request->query->has('k')) {
             $key = $request->query('k');
 
-            abort_unless(is_string($key) && $experience->hasAccessKey($key), 404);
+            abort_unless(is_string($key) && $experience->hasAccessKey($key) && $experience->acceptsTap($request->query('m')), 404);
 
-            $this->unlock($request, $experience, countView: ! $canPreview);
+            $this->unlock($request, $experience);
+            $this->countView($request, $experience, isVisitor: ! $canPreview);
 
             return redirect()->route('experiences.show', [
+                ...$request->except(['k', 'm']),
                 'experience' => $experience,
-                ...$request->except('k'),
             ]);
         }
 
-        abort_unless($canPreview || self::isUnlocked($request, $experience), 404);
+        if ($request->query->has('s')) {
+            $token = $request->query('s');
+            $shareLink = is_string($token) ? $experience->activeShareLink($token) : null;
+
+            abort_if($shareLink === null, 404);
+
+            $this->rememberShareLink($request, $experience, $shareLink);
+            $this->countView($request, $experience, isVisitor: ! $canPreview);
+        }
+
+        abort_unless($canPreview || self::isUnlocked($request, $experience) || self::isSharedWith($request, $experience), 404);
 
         if (! $canPreview && $experience->isLocked()) {
             return Inertia::render('storefront/experience-locked', [
@@ -154,6 +178,8 @@ class ExperienceController extends Controller
             'isDemo' => false,
             'canEdit' => $canEdit,
             'isRecipient' => ! $canPreview,
+            'canShare' => ! $canPreview && self::canShare($request, $experience),
+            'shareLinkDays' => DigitalExperience::SHARE_LINK_DAYS,
             'hasHearted' => in_array($experience->id, $request->session()->get(ExperienceReactionController::HEARTS_SESSION_KEY, []), true),
             'designOptions' => $canEdit ? [
                 'templates' => ExperienceTemplate::options(),
@@ -235,14 +261,15 @@ class ExperienceController extends Controller
     }
 
     /**
-     * The QR code (SVG) pointing to the experience. It encodes the access
-     * key, so only the owner and administrators may fetch it.
+     * The QR code (SVG) pointing to the experience, for the owner and
+     * administrators to print or download. It carries the access key, and
+     * stops opening the page once the genuine tag is live.
      */
     public function qr(Request $request, DigitalExperience $experience, RenderQrCode $renderQrCode): HttpResponse
     {
         abort_unless(self::canPreview($request, $experience), 404);
 
-        $svg = $renderQrCode->handle($experience->publicUrl());
+        $svg = $renderQrCode->handle($experience->qrCodeUrl());
 
         $headers = ['Content-Type' => 'image/svg+xml', 'Cache-Control' => 'private, max-age=3600'];
 
@@ -255,8 +282,9 @@ class ExperienceController extends Controller
 
     /**
      * Whether the current visitor may see the page content right now: the
-     * owner or an admin always, anyone else after unlocking it with the tag
-     * once it is published and past its scheduled opening time.
+     * owner or an admin always, anyone else after unlocking it with the tag,
+     * QR code or share link once it is published and past its scheduled
+     * opening time.
      */
     public static function canSee(Request $request, DigitalExperience $experience): bool
     {
@@ -266,7 +294,17 @@ class ExperienceController extends Controller
 
         return $experience->is_published
             && ! $experience->isLocked()
-            && self::isUnlocked($request, $experience);
+            && (self::isUnlocked($request, $experience) || self::isSharedWith($request, $experience));
+    }
+
+    /**
+     * Whether the current visitor may make share links: only someone who
+     * tapped the genuine tag (or scanned the QR code) on this device, never
+     * a visitor who arrived through a share link.
+     */
+    public static function canShare(Request $request, DigitalExperience $experience): bool
+    {
+        return $experience->is_published && self::isUnlocked($request, $experience);
     }
 
     /**
@@ -310,6 +348,10 @@ class ExperienceController extends Controller
         return $request->user()?->can('view', $experience) ?? false;
     }
 
+    /**
+     * Whether this browser tapped the genuine tag (or scanned the QR code)
+     * itself, rather than arriving through someone's share link.
+     */
     private static function isUnlocked(Request $request, DigitalExperience $experience): bool
     {
         return in_array($experience->id, self::unlockedPageIds($request), true);
@@ -333,11 +375,21 @@ class ExperienceController extends Controller
     }
 
     /**
-     * Remember that this browser tapped the tag, in the session and on the
-     * device. The first tap of a session counts as one view, so refreshing or
-     * tapping again does not inflate it.
+     * Whether this session opened the page through a share link that has
+     * not expired yet.
      */
-    private function unlock(Request $request, DigitalExperience $experience, bool $countView): void
+    private static function isSharedWith(Request $request, DigitalExperience $experience): bool
+    {
+        $expiresAt = $request->session()->get(self::SHARED_SESSION_KEY, [])[$experience->id] ?? null;
+
+        return is_int($expiresAt) && $expiresAt > now()->getTimestamp();
+    }
+
+    /**
+     * Remember that this browser tapped the tag (or scanned the QR code), in
+     * the session and on the device.
+     */
+    private function unlock(Request $request, DigitalExperience $experience): void
     {
         $unlocked = array_slice(
             array_values(array_unique([...self::unlockedPageIds($request), $experience->id])),
@@ -346,10 +398,33 @@ class ExperienceController extends Controller
 
         $request->session()->put(self::ACCESS_SESSION_KEY, $unlocked);
         Cookie::queue(self::ACCESS_COOKIE, implode(',', $unlocked), self::ACCESS_COOKIE_MINUTES);
+    }
 
+    /**
+     * Let this session see the page until the share link expires. Nothing is
+     * kept on the device, so the page closes with the link.
+     */
+    private function rememberShareLink(Request $request, DigitalExperience $experience, ExperienceShareLink $shareLink): void
+    {
+        $shared = array_filter(
+            $request->session()->get(self::SHARED_SESSION_KEY, []),
+            fn (mixed $expiresAt): bool => is_int($expiresAt) && $expiresAt > now()->getTimestamp(),
+        );
+
+        $shared[$experience->id] = $shareLink->expires_at->getTimestamp();
+
+        $request->session()->put(self::SHARED_SESSION_KEY, array_slice($shared, -self::MAX_REMEMBERED_PAGES, preserve_keys: true));
+    }
+
+    /**
+     * Count the first open of a session as one view, so refreshing or tapping
+     * again does not inflate it. The owner and admins are not counted.
+     */
+    private function countView(Request $request, DigitalExperience $experience, bool $isVisitor): void
+    {
         $counted = $request->session()->get(self::COUNTED_SESSION_KEY, []);
 
-        if (! $countView || in_array($experience->id, $counted, true)) {
+        if (! $isVisitor || in_array($experience->id, $counted, true)) {
             return;
         }
 

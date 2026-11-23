@@ -15,7 +15,7 @@ export default function CategoriesIndex({
                 <SectionHeading
                     eyebrow="Shop by occasion"
                     title="Who are you celebrating?"
-                    description="Every occasion comes with its own keepsakes, design templates and finishing options."
+                    description="Every occasion comes with its own keepsakes and finishing options."
                 />
                 <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {categories.map((category) => (

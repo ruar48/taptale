@@ -200,7 +200,7 @@ export default function Terms() {
                                 <li>
                                     <strong>Customize it yourself.</strong> Add
                                     your photos, names, date, song and message
-                                    to the template you chose, check the live
+                                    to your gift, check the live
                                     preview, and approve it. You can save and
                                     come back as often as you like before you
                                     approve.

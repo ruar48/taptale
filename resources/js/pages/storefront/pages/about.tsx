@@ -88,9 +88,8 @@ export default function About() {
                     content: (
                         <ol>
                             <li>
-                                <strong>Personalize.</strong> Choose a gift and
-                                a template, then add your photos, names and
-                                message. You can also ask our designers to do it
+                                <strong>Personalize.</strong> Choose a gift, then
+                                add your photos, names and message. You can also ask our designers to do it
                                 for you.
                             </li>
                             <li>

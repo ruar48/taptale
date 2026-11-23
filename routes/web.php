@@ -60,6 +60,9 @@ Route::post('t/{experience}/heart', [Storefront\ExperienceReactionController::cl
 Route::post('t/{experience}/replies', [Storefront\ExperienceReactionController::class, 'reply'])
     ->middleware(['throttle:15,1,memory-page-replies', PreventDuplicateSubmissions::class])
     ->name('experiences.replies.store');
+Route::post('t/{experience}/share-links', [Storefront\ExperienceShareLinkController::class, 'store'])
+    ->middleware('throttle:20,1,memory-page-shares')
+    ->name('experiences.share-links.store');
 Route::get('t/{experience}/audio', [Storefront\ExperienceController::class, 'audio'])->name('experiences.audio');
 Route::get('t/{experience}/video', [Storefront\ExperienceController::class, 'video'])->name('experiences.video');
 Route::get('t/{experience}/qr', [Storefront\ExperienceController::class, 'qr'])->name('experiences.qr');
@@ -79,6 +82,26 @@ Route::get('create', [Storefront\OrderWizardController::class, 'create'])->name(
 Route::get('promo-codes/check', Storefront\PromoCodeController::class)
     ->middleware(['auth', 'throttle:10,1,promo-code-checks'])
     ->name('promo-codes.check');
+
+/*
+| The private approval link the studio sends a customer (over Messenger, for
+| example) to see and approve their design without an account. Every request
+| must carry the order's secret "k" key.
+*/
+Route::prefix('design/{order}')->name('design-review.')->group(function () {
+    Route::get('/', [Storefront\DesignReviewController::class, 'show'])
+        ->middleware('throttle:60,1,design-review-views')
+        ->name('show');
+    Route::get('proofs/{proof}', [Storefront\DesignReviewController::class, 'proof'])
+        ->middleware('throttle:120,1,design-review-images')
+        ->name('proof');
+    Route::post('proofs/{proof}/approve', [Storefront\DesignReviewController::class, 'approve'])
+        ->middleware(['throttle:10,1,design-review-responses', PreventDuplicateSubmissions::class])
+        ->name('approve');
+    Route::post('proofs/{proof}/revision', [Storefront\DesignReviewController::class, 'requestRevision'])
+        ->middleware(['throttle:10,1,design-review-responses', PreventDuplicateSubmissions::class])
+        ->name('revision');
+});
 
 Route::middleware('auth')->group(function () {
     Route::post('orders', [Storefront\OrderWizardController::class, 'store'])
@@ -215,6 +238,10 @@ Route::middleware(['auth', 'verified', 'can:admin', EnsureAdminHasTwoFactor::cla
     Route::delete('products/{product}/images/{image}', [Admin\ProductImageController::class, 'destroy'])->name('products.images.destroy');
 
     Route::get('orders', [Admin\OrderController::class, 'index'])->name('orders.index');
+    Route::get('orders/create', [Admin\OrderController::class, 'create'])->name('orders.create');
+    Route::post('orders', [Admin\OrderController::class, 'store'])
+        ->middleware(PreventDuplicateSubmissions::class)
+        ->name('orders.store');
     Route::get('orders/export', [Admin\ExportController::class, 'orders'])->name('orders.export');
     Route::get('orders/{order}', [Admin\OrderController::class, 'show'])->name('orders.show');
     Route::get('orders/{order}/packing-slip', [Admin\OrderController::class, 'packingSlip'])->name('orders.packing-slip');
@@ -224,6 +251,8 @@ Route::middleware(['auth', 'verified', 'can:admin', EnsureAdminHasTwoFactor::cla
     Route::post('orders/{order}/notes', [Admin\OrderController::class, 'storeNote'])
         ->middleware(PreventDuplicateSubmissions::class)
         ->name('orders.notes.store');
+    Route::post('orders/{order}/approval-link', [Admin\OrderController::class, 'issueApprovalLink'])->name('orders.approval-link.store');
+    Route::delete('orders/{order}/approval-link', [Admin\OrderController::class, 'revokeApprovalLink'])->name('orders.approval-link.destroy');
     Route::post('orders/{order}/proofs', [Admin\DesignProofController::class, 'store'])
         ->middleware(PreventDuplicateSubmissions::class)
         ->name('orders.proofs.store');

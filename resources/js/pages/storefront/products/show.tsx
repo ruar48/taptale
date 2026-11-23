@@ -11,7 +11,6 @@ import {
 import { useState } from 'react';
 import { ProductArt } from '@/components/taptale/product-art';
 import { ProductCard } from '@/components/taptale/product-card';
-import { TemplatePreview } from '@/components/taptale/template-preview';
 import { Button } from '@/components/ui/button';
 import { useMoney } from '@/hooks/use-money';
 import { formatModifier } from '@/lib/money';
@@ -19,19 +18,17 @@ import { groupOptions } from '@/lib/pricing';
 import { cn } from '@/lib/utils';
 import { show as categoryShow } from '@/routes/categories';
 import { create as startOrder } from '@/routes/orders';
-import type { Product, Template } from '@/types';
+import type { Product } from '@/types';
 
 type Props = {
     product: Product;
     selectedCategorySlug: string | null;
-    templates: Template[];
     relatedProducts: Product[];
 };
 
 export default function ProductShow({
     product,
     selectedCategorySlug,
-    templates,
     relatedProducts,
 }: Props) {
     const money = useMoney();
@@ -200,8 +197,8 @@ export default function ProductShow({
                     <div className="mt-10 rounded-3xl bg-plum p-6 text-white">
                         <p className="font-display text-xl">Make it yours</p>
                         <p className="mt-1 text-sm text-white/80">
-                            Choose a template, add your photos or let our
-                            designers create it. You'll approve the design
+                            Add your photos and words, or let our designers
+                            create it. You'll approve the design
                             before anything is made.
                         </p>
                         <Button
@@ -227,51 +224,6 @@ export default function ProductShow({
                     </div>
                 </div>
             </section>
-
-            {templates.length > 0 && (
-                <section className="bg-blush-light/50 py-16 dark:bg-muted/30">
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                        <h2 className="font-display text-3xl">
-                            Templates for this gift
-                        </h2>
-                        <p className="mt-2 text-muted-foreground">
-                            Start from one of these when you personalize — the
-                            preview updates with your photos and words.
-                        </p>
-                        <div className="mt-8 grid grid-cols-2 gap-5 sm:grid-cols-4">
-                            {templates.map((template) => (
-                                <Link
-                                    key={template.id}
-                                    href={startOrder({
-                                        query: {
-                                            category:
-                                                selectedCategorySlug ??
-                                                undefined,
-                                            product: product.slug,
-                                            template: template.slug,
-                                        },
-                                    })}
-                                    className="group"
-                                >
-                                    <div className="overflow-hidden rounded-2xl shadow-[0_16px_32px_-20px_rgb(113_61_80/0.5)] transition-transform duration-300 group-hover:-translate-y-1">
-                                        <TemplatePreview
-                                            layout={template.layout}
-                                            palette={template.palette}
-                                            imageUrl={
-                                                template.mockup_url ??
-                                                template.preview_url
-                                            }
-                                        />
-                                    </div>
-                                    <p className="mt-3 font-display">
-                                        {template.name}
-                                    </p>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-            )}
 
             {relatedProducts.length > 0 && (
                 <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">

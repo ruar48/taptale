@@ -344,9 +344,13 @@ export type DigitalExperience = {
     view_count: number | null;
     /** Owner/admin only. */
     heart_count: number | null;
-    /** Owner/admin only: the tap link carries the secret access key. */
+    /** Owner/admin only: the page address, which opens nothing for anyone else. */
     public_url: string | null;
     qr_url: string | null;
+    /** Admin only: the link to program into the NFC tag (with UID + counter mirror). */
+    tag_url: string | null;
+    /** Owner/admin only: the genuine tag has been tapped, so copies of it (and the QR code) are refused. */
+    is_tag_check_active: boolean;
 };
 
 export type OrderReview = {
@@ -378,6 +382,8 @@ export type SelectedOption = {
 export type Order = {
     id: number;
     reference: string;
+    channel: 'website' | 'walk_in' | 'messenger' | 'other';
+    channel_label: string;
     status: string;
     status_label: string;
     status_tone: StatusTone;
@@ -433,7 +439,7 @@ export type Order = {
     activities?: OrderActivity[];
     payments?: Payment[];
     experience?: DigitalExperience | null;
-    user?: { id: number; name: string; email: string };
+    user?: { id: number; name: string; email: string } | null;
     created_at: string;
     updated_at: string;
 };
@@ -447,10 +453,7 @@ export type Testimonial = {
 };
 
 export type FinanceEntryTypeValue =
-    | 'capital'
-    | 'expense'
-    | 'withdrawal'
-    | 'income';
+    'capital' | 'expense' | 'withdrawal' | 'income';
 
 export type FinanceEntry = {
     id: number;

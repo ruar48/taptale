@@ -3,8 +3,8 @@ import {
     ArrowRight,
     BadgeCheck,
     Camera,
+    Gift,
     Heart,
-    LayoutTemplate,
     Nfc,
     QrCode,
     Quote,
@@ -16,19 +16,16 @@ import {
 import { CategoryCard } from "@/components/taptale/category-card";
 import { ProductCard } from "@/components/taptale/product-card";
 import { SectionHeading } from "@/components/taptale/section-heading";
-import { TemplatePreview } from "@/components/taptale/template-preview";
 import { Button } from "@/components/ui/button";
 import { index as categoriesIndex } from "@/routes/categories";
 import { templates as memoryPages } from "@/routes/experiences";
 import { create as startOrder } from "@/routes/orders";
-import { index as templatesIndex } from "@/routes/templates";
-import type { Category, Product, Template, Testimonial } from "@/types";
+import type { Category, Product, Testimonial } from "@/types";
 
 type Props = {
     categories: Category[];
     featuredProducts: Product[];
     bestsellers: Product[];
-    featuredTemplates: Template[];
     testimonials: Testimonial[];
 };
 
@@ -51,9 +48,9 @@ const STEPS = [
         body: "Anniversary, wedding, baptism, graduation — start with who the gift is for.",
     },
     {
-        icon: LayoutTemplate,
-        title: "Pick a gift & template",
-        body: "Browse keepsakes and professionally designed templates made for the moment.",
+        icon: Gift,
+        title: "Pick your gift",
+        body: "Browse keychains and keepsakes made for the moment — what you see is what you get.",
     },
     {
         icon: Camera,
@@ -71,7 +68,6 @@ export default function Home({
     categories,
     featuredProducts,
     bestsellers,
-    featuredTemplates,
     testimonials,
 }: Props) {
     return (
@@ -89,7 +85,7 @@ export default function Home({
                             <em className="text-rose">chapter</em>
                         </>
                     }
-                    description="Each occasion has its own gifts, templates and design options."
+                    description="Each occasion has its own gifts and design options."
                 >
                     <Button
                         asChild
@@ -128,55 +124,6 @@ export default function Home({
                     <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                         {featuredProducts.map((product) => (
                             <ProductCard key={product.id} product={product} />
-                        ))}
-                    </div>
-                </section>
-            )}
-
-            {featuredTemplates.length > 0 && (
-                <section className="overflow-hidden bg-blush-light/60 py-20 dark:bg-muted/40">
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                        <SectionHeading
-                            eyebrow="Featured designs"
-                            title="Templates our designers love"
-                            description="Every template comes alive with your photos and words — preview it live before you order."
-                        >
-                            <Button
-                                asChild
-                                variant="ghost"
-                                className="rounded-full text-plum hover:bg-plum/5 dark:text-blush"
-                            >
-                                <Link href={templatesIndex()}>
-                                    See all templates{" "}
-                                    <ArrowRight className="size-4" />
-                                </Link>
-                            </Button>
-                        </SectionHeading>
-                    </div>
-                    <div className="mt-10 flex snap-x scrollbar-none gap-5 overflow-x-auto px-4 pb-4 sm:px-6 lg:px-[max(2rem,calc((100vw-80rem)/2+2rem))]">
-                        {featuredTemplates.map((template) => (
-                            <Link
-                                key={template.id}
-                                href={templatesIndex()}
-                                className="group w-56 shrink-0 snap-start sm:w-64"
-                            >
-                                <div className="overflow-hidden rounded-3xl shadow-[0_20px_40px_-24px_rgb(113_61_80/0.5)] transition-transform duration-500 group-hover:-translate-y-1.5">
-                                    <TemplatePreview
-                                        layout={template.layout}
-                                        palette={template.palette}
-                                        imageUrl={template.preview_url}
-                                    />
-                                </div>
-                                <p className="mt-4 font-display text-lg">
-                                    {template.name}
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                    {template.categories
-                                        ?.slice(0, 2)
-                                        .map((category) => category.name)
-                                        .join(" · ")}
-                                </p>
-                            </Link>
                         ))}
                     </div>
                 </section>

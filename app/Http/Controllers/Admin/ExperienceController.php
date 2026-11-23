@@ -14,6 +14,8 @@ class ExperienceController extends Controller
 {
     /**
      * Associate a physical NFC tag with an order's digital experience.
+     * Changing the tag starts its tap count over, so the new tag is accepted
+     * from its first tap.
      */
     public function update(Request $request, DigitalExperience $experience): RedirectResponse
     {
@@ -28,7 +30,13 @@ class ExperienceController extends Controller
             'nfc_tag_uid.unique' => 'This NFC tag is already linked to another order.',
         ]);
 
-        $experience->update($validated);
+        $experience->fill($validated);
+
+        if ($experience->isDirty('nfc_tag_uid')) {
+            $experience->nfc_tap_counter = null;
+        }
+
+        $experience->save();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('NFC tag saved.')]);
 

@@ -66,14 +66,16 @@ class LookupSong
     /**
      * A memory page's song, from the page budget. Null when over budget: the
      * page then falls back to the visitor search when someone opens it.
+     * Pages of walk-in and chat orders have no owner and share the studio's
+     * budget.
      *
      * @return array{title: string, artist: string|null, artwork_url: string|null, preview_url: string|null, track_url: string|null, duration: float|null, synced_lyrics: list<array{time: float, text: string}>, plain_lyrics: list<string>}|null
      */
-    public function forPage(string $title, ?string $artist, int $ownerId): ?array
+    public function forPage(string $title, ?string $artist, ?int $ownerId): ?array
     {
         return $this->lookup($title, $artist, [
             'song-lookup:pages' => self::PAGE_LOOKUPS_PER_MINUTE,
-            'song-lookup:page-owner:'.$ownerId => self::PAGE_LOOKUPS_PER_OWNER,
+            'song-lookup:page-owner:'.($ownerId ?? 'studio') => self::PAGE_LOOKUPS_PER_OWNER,
         ]);
     }
 

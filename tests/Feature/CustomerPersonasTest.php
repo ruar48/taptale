@@ -23,7 +23,6 @@ use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\ProductOption;
 use App\Models\PromoCode;
-use App\Models\Template;
 use App\Models\User;
 use App\Notifications\AdminOrderAlert;
 use App\Notifications\MemoryPageReplied;
@@ -48,13 +47,10 @@ function personaCheckout(array $overrides = []): array
     $product = Product::factory()->create(['base_price' => 50000, 'design_fee' => 0, 'min_quantity' => 1]);
     $category->products()->attach($product);
     $size = ProductOption::factory()->for($product)->group(OptionGroup::Size)->create();
-    $template = Template::factory()->create();
-    $template->categories()->attach($category);
 
     return array_replace([
         'category_id' => $category->id,
         'product_id' => $product->id,
-        'template_id' => $template->id,
         'design_mode' => DesignMode::SelfCustomized->value,
         'option_ids' => [$size->id],
         'quantity' => 1,
@@ -78,14 +74,26 @@ function personaCheckout(array $overrides = []): array
 */
 
 describe('Tita Baby, the recipient who shares everything on Messenger', function () {
-    test('her tap opens the page, but the link she forwards opens nothing for her cousin', function () {
+    test('the address she copies opens nothing, but the week-long link she shares opens for her cousin', function () {
         $experience = DigitalExperience::factory()->create();
 
         tapTag($experience)->assertRedirect(route('experiences.show', $experience));
-        $this->get(route('experiences.show', $experience))->assertOk();
+        $shared = $this->postJson(route('experiences.share-links.store', $experience), ['days' => 7])->json('url');
 
         $this->flushSession();
         $this->get(route('experiences.show', $experience))->assertNotFound();
+        $this->get($shared)->assertOk();
+    });
+
+    test('she loses the keychain, and the old shared link stops working instead of replacing it', function () {
+        $experience = DigitalExperience::factory()->create();
+        tapTag($experience);
+        $shared = $this->postJson(route('experiences.share-links.store', $experience), ['days' => 30])->json('url');
+
+        $this->flushSession();
+        $this->travel(31)->days();
+
+        $this->get($shared)->assertNotFound();
     });
 
     test('she comes back to the open tab hours later and the page still opens on her phone', function () {

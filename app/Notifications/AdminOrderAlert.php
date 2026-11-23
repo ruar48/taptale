@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Concerns\EscapesMarkdown;
 use App\Enums\ActivityType;
+use App\Enums\OrderChannel;
 use App\Models\Order;
 use App\Models\OrderActivity;
 use Illuminate\Bus\Queueable;
@@ -40,8 +41,9 @@ class AdminOrderAlert extends Notification implements ShouldQueue
     {
         return match ($activity->type) {
             // A free or cash-on-delivery order has no payment to wait for:
-            // work starts now.
-            ActivityType::Placed => $order->total === 0 || $order->paymentMethod?->isCashOnDelivery() === true,
+            // work starts now. Orders the studio took itself need no alert.
+            ActivityType::Placed => $order->channel === OrderChannel::Website
+                && ($order->total === 0 || $order->paymentMethod?->isCashOnDelivery() === true),
             // Paid online (confirmed by PayMongo, not by a team member).
             ActivityType::PaymentVerified => $activity->user_id === null,
             ActivityType::PaymentSubmitted,

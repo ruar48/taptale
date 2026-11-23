@@ -22,11 +22,13 @@ class DigitalExperienceResource extends JsonResource
         $photoCount = count($this->photos ?? []);
 
         /*
-         * The tap link and QR code carry the access key, and the counters are
-         * private, so only the owner and admins receive them. A recipient
-         * never sees a URL they could pass on.
+         * The page address, QR code and counters are for the owner and
+         * admins. Only admins see the tag link, which carries the tag's
+         * secret key. Once the genuine tag is live the QR code no longer
+         * opens the page, so the owner stops seeing it.
          */
         $canManage = $request->user()?->can('view', $this->resource) ?? false;
+        $isAdmin = $request->user()?->isAdmin() ?? false;
 
         return [
             'code' => $this->code,
@@ -89,7 +91,9 @@ class DigitalExperienceResource extends JsonResource
             'view_count' => $canManage ? $this->view_count : null,
             'heart_count' => $canManage ? $this->heart_count : null,
             'public_url' => $canManage ? $this->publicUrl() : null,
-            'qr_url' => $canManage ? route('experiences.qr', $this->resource) : null,
+            'qr_url' => $isAdmin || ($canManage && ! $this->isTagCheckActive()) ? route('experiences.qr', $this->resource) : null,
+            'tag_url' => $isAdmin ? $this->tagUrl() : null,
+            'is_tag_check_active' => $canManage && $this->isTagCheckActive(),
         ];
     }
 }

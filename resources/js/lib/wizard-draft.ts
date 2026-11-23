@@ -24,7 +24,7 @@ export type WizardDraft<T> = {
     categorySlug: string | null;
     step: number;
     furthest: number;
-    templateSkipped: boolean;
+    customDesign: boolean;
     data: T;
 };
 

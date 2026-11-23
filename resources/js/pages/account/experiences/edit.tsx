@@ -361,8 +361,8 @@ export default function EditExperience({
                         </h1>
                         <p className="mt-1 text-sm text-muted-foreground">
                             This little website opens when someone taps your
-                            keepsake or scans its QR code. A copied link
-                            won&apos;t open it for anyone else.
+                            keepsake. Whoever taps it can share the page with a
+                            link that lasts up to 30 days.
                         </p>
                     </div>
                     <Button asChild variant="outline" className="rounded-full">

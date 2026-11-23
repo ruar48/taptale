@@ -77,7 +77,6 @@ import type {
     PaymentMethod,
     Personalization,
     Product,
-    Template,
 } from "@/types";
 
 type Props = {
@@ -85,9 +84,7 @@ type Props = {
     selectedCategory: Category | null;
     products: Product[];
     selectedProduct: Product | null;
-    templates: Template[];
     experienceTemplates: ExperienceTemplateOption[];
-    initialTemplate: string | null;
     /** The memory page design whose demo draft the customer is ordering with. */
     initialPage: string | null;
     maxPagePhotos: number;
@@ -108,7 +105,6 @@ type Props = {
 type WizardForm = {
     category_id: number | null;
     product_id: number | null;
-    template_id: number | null;
     design_mode: DesignMode | "";
     option_ids: number[];
     quantity: number;
@@ -158,7 +154,7 @@ function toDraftData(data: WizardForm): DraftData {
 }
 
 const ERROR_STEPS: [RegExp, WizardStepKey][] = [
-    [/^(category_id|product_id|template_id|design_mode)/, "product"],
+    [/^(category_id|product_id|design_mode)/, "product"],
     [/^(experience_template|personalization|photos|page)/, "website"],
     [/^(option_ids|quantity|approve_preview)/, "specs"],
 ];
@@ -168,9 +164,7 @@ export default function CreateGift({
     selectedCategory,
     products,
     selectedProduct,
-    templates,
     experienceTemplates,
-    initialTemplate,
     initialPage,
     maxPagePhotos,
     paymentMethods,
@@ -183,13 +177,11 @@ export default function CreateGift({
     const symbol = storefront?.currencySymbol ?? "₱";
     const isGuest = !auth.user;
     const isEmailVerified = Boolean(auth.user?.email_verified_at);
-    const preselectedTemplate =
-        templates.find((template) => template.slug === initialTemplate) ?? null;
 
     const initialStep = 0;
     const [step, setStep] = useState(initialStep);
     const [furthest, setFurthest] = useState(initialStep);
-    const [templateSkipped, setTemplateSkipped] = useState(false);
+    const [customDesign, setCustomDesign] = useState(false);
     const [loadingSelection, setLoadingSelection] = useState<number | null>(
         null,
     );
@@ -201,7 +193,6 @@ export default function CreateGift({
     const form = useForm<WizardForm>({
         category_id: selectedCategory?.id ?? null,
         product_id: selectedProduct?.id ?? null,
-        template_id: preselectedTemplate?.id ?? templates[0]?.id ?? null,
         design_mode: "",
         option_ids: selectedProduct
             ? defaultOptionIds(selectedProduct.options ?? [])
@@ -290,20 +281,17 @@ export default function CreateGift({
             product_id: selectedProduct.id,
             option_ids: defaultOptionIds(selectedProduct.options ?? []),
             quantity: selectedProduct.min_quantity,
-            template_id: templates[0]?.id ?? null,
             photos: current.photos.slice(0, selectedProduct.max_photos),
         }));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedProduct?.id]);
 
-    const template =
-        templates.find((item) => item.id === data.template_id) ?? null;
     /*
      * Details are always finished after ordering (or optionally on the
-     * website step), so a custom design means Taptale designs it and a
-     * chosen template means the customer's own details go on it.
+     * website step), so a custom design means Taptale designs it and the
+     * gift as shown means the customer's own details go on it.
      */
-    const designMode: DesignMode = templateSkipped ? "assisted" : "self";
+    const designMode: DesignMode = customDesign ? "assisted" : "self";
     const [isEditingPage, setIsEditingPage] = useState(false);
     const chosenPage =
         experienceTemplates.find(
@@ -429,18 +417,13 @@ export default function CreateGift({
                 restoredOptions.length > 0
                     ? restoredOptions
                     : current.option_ids,
-            template_id: templates.some(
-                (item) => item.id === draft.data.template_id,
-            )
-                ? draft.data.template_id
-                : current.template_id,
             payment_method_id: paymentMethods.some(
                 (method) => method.id === draft.data.payment_method_id,
             )
                 ? draft.data.payment_method_id
                 : current.payment_method_id,
         }));
-        setTemplateSkipped(Boolean(draft.templateSkipped));
+        setCustomDesign(Boolean(draft.customDesign));
         setIsEditingPage(
             Boolean(
                 draft.data.experience_template &&
@@ -482,7 +465,7 @@ export default function CreateGift({
             categorySlug: selectedCategory?.slug ?? null,
             step,
             furthest,
-            templateSkipped,
+            customDesign,
             data: toDraftData(data),
         });
     };
@@ -503,7 +486,7 @@ export default function CreateGift({
         data,
         step,
         furthest,
-        templateSkipped,
+        customDesign,
         isDraftReady,
         isKeepingSavedDraft,
     ]);
@@ -600,7 +583,6 @@ export default function CreateGift({
                     "selectedCategory",
                     "products",
                     "selectedProduct",
-                    "templates",
                 ],
                 onSuccess: () => goTo(nextStep),
                 onFinish: () => setLoadingSelection(null),
@@ -630,7 +612,7 @@ export default function CreateGift({
     };
 
     const chooseProduct = (product: Product) => {
-        setTemplateSkipped(false);
+        setCustomDesign(false);
         reloadSelection(
             selectedCategory
                 ? { category: selectedCategory.slug, product: product.slug }
@@ -647,9 +629,7 @@ export default function CreateGift({
                     return "Please choose a gift.";
                 }
 
-                return data.template_id || templateSkipped
-                    ? null
-                    : "Please choose a design, or pick “Custom design”.";
+                return null;
             case "specs": {
                 const missing = groupOptions(selectedProduct?.options ?? [])
                     .filter((group) => !group.multiple)
@@ -918,49 +898,42 @@ export default function CreateGift({
                                 }
                                 description={
                                     selectedProduct
-                                        ? "Pick a design to see it on your gift. Want something else? Choose another gift below."
+                                        ? "This is how your gift will look with your photos and words. Want something else? Choose another gift below."
                                         : selectedCategory
                                           ? `Gift ideas for ${selectedCategory.name.toLowerCase()}. Tap a gift to see its details.`
-                                          : "Tap a gift to see its details and designs. Need ideas? Pick an occasion below."
+                                          : "Tap a gift to see its details. Need ideas? Pick an occasion below."
                                 }
                             >
                                 {selectedProduct && (
                                     <div className="mb-10">
                                         <ProductShowcase
                                             product={selectedProduct}
-                                            templates={templates}
-                                            selectedTemplateId={
-                                                data.template_id
-                                            }
-                                            customSelected={templateSkipped}
+                                            customSelected={customDesign}
                                             hasTapPage={hasTapPage}
                                             loading={loadingSelection !== null}
-                                            onSelectTemplate={(id) => {
+                                            onSelectAsShown={() => {
                                                 setData((current) => ({
                                                     ...current,
-                                                    template_id: id,
                                                     design_mode:
                                                         current.design_mode ===
                                                         "assisted"
                                                             ? ""
                                                             : current.design_mode,
                                                 }));
-                                                setTemplateSkipped(false);
+                                                setCustomDesign(false);
                                                 setStepError(null);
                                             }}
                                             onSelectCustom={() => {
                                                 setData((current) => ({
                                                     ...current,
-                                                    template_id: null,
                                                     design_mode: "assisted",
                                                 }));
-                                                setTemplateSkipped(true);
+                                                setCustomDesign(true);
                                                 setStepError(null);
                                             }}
                                             preview={
                                                 <DesignPreview
                                                     product={selectedProduct}
-                                                    template={template}
                                                     selectedOptions={
                                                         price?.selected ?? []
                                                     }
@@ -1946,7 +1919,6 @@ export default function CreateGift({
                             <OrderSummary
                                 category={selectedCategory}
                                 product={selectedProduct}
-                                template={template}
                                 quantity={data.quantity}
                                 price={price}
                                 pricing={pricing}

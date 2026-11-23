@@ -10,7 +10,6 @@ use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\ProductOption;
 use App\Models\PromoCode;
-use App\Models\Template;
 use App\Models\User;
 use App\Notifications\AdminOrderAlert;
 use Illuminate\Http\UploadedFile;
@@ -30,9 +29,6 @@ beforeEach(function () {
     $this->large = ProductOption::factory()->for($this->product)->group(OptionGroup::Size)->costing(4500)->create(['name' => 'Large']);
     $this->charm = ProductOption::factory()->for($this->product)->group(OptionGroup::AddOn)->costing(2500)->create(['name' => 'Charm']);
 
-    $this->template = Template::factory()->create();
-    $this->template->categories()->attach($this->category);
-
     $this->paymentMethod = PaymentMethod::factory()->create();
     $this->customer = User::factory()->create();
 });
@@ -46,7 +42,6 @@ function orderPayload(object $test, array $overrides = []): array
     return array_replace([
         'category_id' => $test->category->id,
         'product_id' => $test->product->id,
-        'template_id' => $test->template->id,
         'design_mode' => DesignMode::SelfCustomized->value,
         'option_ids' => [$test->large->id, $test->charm->id],
         'quantity' => 2,
@@ -184,7 +179,6 @@ test('a customer places a self-customized order priced on the server', function 
 test('a Taptale-designed order adds the design fee and needs a design proof', function () {
     $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
         'design_mode' => DesignMode::TaptaleDesigned->value,
-        'template_id' => null,
         'option_ids' => [$this->small->id],
         'quantity' => 1,
         'personalization' => ['design_brief' => 'Soft pastel florals with our names.'],
@@ -243,14 +237,6 @@ test('the product must belong to the chosen category', function () {
     $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
         'category_id' => $otherCategory->id,
     ]))->assertSessionHasErrors(['product_id' => 'This product is not available in the selected category.']);
-});
-
-test('the template must be available for the category', function () {
-    $unrelated = Template::factory()->create();
-
-    $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
-        'template_id' => $unrelated->id,
-    ]))->assertSessionHasErrors(['template_id' => 'This template is not available for the selected product.']);
 });
 
 test('the quantity respects the product minimum', function () {

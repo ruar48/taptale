@@ -1,7 +1,9 @@
 <?php
 
 use App\Enums\OrderStatus;
+use App\Http\Controllers\Storefront\ExperienceController;
 use App\Models\DigitalExperience;
+use App\Models\ExperienceShareLink;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -20,8 +22,11 @@ test('tapping the tag opens the page at a clean URL and counts one view per sess
             ->where('experience.title', $experience->title)
             ->where('experience.public_url', null)
             ->where('experience.qr_url', null)
+            ->where('experience.tag_url', null)
             ->where('isPreview', false)
-            ->where('isRecipient', true));
+            ->where('isRecipient', true)
+            ->where('canShare', true)
+            ->where('shareLinkDays', DigitalExperience::SHARE_LINK_DAYS));
 
     tapTag($experience);
 
@@ -29,16 +34,180 @@ test('tapping the tag opens the page at a clean URL and counts one view per sess
         ->and($experience->views()->count())->toBe(1);
 });
 
-test('the page cannot be opened without the key from its tag or QR code', function () {
+test('the page cannot be opened without its tag, QR code or a share link', function () {
     Storage::fake('local');
     Storage::disk('local')->put('experiences/1/a.jpg', 'image');
     $experience = DigitalExperience::factory()->create(['photos' => ['experiences/1/a.jpg'], 'view_count' => 0]);
 
     $this->get(route('experiences.show', $experience))->assertNotFound();
     $this->get(route('experiences.show', ['experience' => $experience, 'k' => 'not-the-key']))->assertNotFound();
+    $this->get(route('experiences.show', ['experience' => $experience, 's' => 'not-the-token']))->assertNotFound();
+    $this->get(route('experiences.show', ['experience' => $experience, 's' => ['x']]))->assertNotFound();
     $this->get(route('experiences.photo', [$experience, 0]))->assertNotFound();
 
     expect($experience->fresh()->view_count)->toBe(0);
+});
+
+test('whoever tapped the tag makes a share link that lasts the days they choose', function () {
+    $experience = DigitalExperience::factory()->create();
+    tapTag($experience);
+
+    $response = $this->postJson(route('experiences.share-links.store', $experience), ['days' => 7])
+        ->assertCreated();
+
+    $shareLink = $experience->shareLinks()->sole();
+
+    expect($response->json('url'))->toBe($shareLink->url())
+        ->and($shareLink->expires_at->between(now()->addDays(7)->subMinute(), now()->addDays(7)->addMinute()))->toBeTrue();
+});
+
+test('share links have no lifetime option', function (mixed $days) {
+    $experience = DigitalExperience::factory()->create();
+    tapTag($experience);
+
+    $this->postJson(route('experiences.share-links.store', $experience), ['days' => $days])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('days');
+
+    expect($experience->shareLinks()->count())->toBe(0);
+})->with([
+    'a year' => [365],
+    'zero' => [0],
+    'forever' => ['lifetime'],
+    'missing' => [null],
+]);
+
+test('a share link opens the page for anyone until it expires', function () {
+    Storage::fake('local');
+    Storage::disk('local')->put('experiences/1/a.jpg', 'image');
+    $experience = DigitalExperience::factory()->create(['photos' => ['experiences/1/a.jpg'], 'view_count' => 0]);
+    $shareLink = ExperienceShareLink::factory()->for($experience, 'experience')->create(['expires_at' => now()->addDays(3)]);
+
+    $this->get($shareLink->url())
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('storefront/experience')
+            ->where('isRecipient', true)
+            ->where('canShare', false));
+    $this->get(route('experiences.photo', [$experience, 0]))->assertOk();
+
+    expect($experience->fresh()->view_count)->toBe(1);
+
+    $this->travel(3)->days();
+    $this->travel(1)->minutes();
+
+    $this->get(route('experiences.show', $experience))->assertNotFound();
+    $this->get(route('experiences.photo', [$experience, 0]))->assertNotFound();
+    $this->get($shareLink->url())->assertNotFound();
+});
+
+test('a share link leaves nothing on the device that outlives it', function () {
+    $experience = DigitalExperience::factory()->create();
+    $shareLink = ExperienceShareLink::factory()->for($experience, 'experience')->create();
+
+    $this->get($shareLink->url())->assertOk()->assertCookieMissing(ExperienceController::ACCESS_COOKIE);
+});
+
+test('a visitor who came through a share link cannot make links of their own', function () {
+    $experience = DigitalExperience::factory()->create();
+    $shareLink = ExperienceShareLink::factory()->for($experience, 'experience')->create();
+    $this->get($shareLink->url())->assertOk();
+
+    $this->postJson(route('experiences.share-links.store', $experience), ['days' => 30])->assertNotFound();
+
+    expect($experience->shareLinks()->count())->toBe(1);
+});
+
+test('the owner cannot make share links without the tag in hand', function () {
+    $experience = DigitalExperience::factory()->create();
+
+    $this->actingAs($experience->user)
+        ->postJson(route('experiences.share-links.store', $experience), ['days' => 30])
+        ->assertNotFound();
+});
+
+test('expired, unknown and other pages\' share links open nothing', function () {
+    $experience = DigitalExperience::factory()->create();
+    $expired = ExperienceShareLink::factory()->expired()->for($experience, 'experience')->create();
+    $otherPageLink = ExperienceShareLink::factory()->create();
+
+    $this->get($expired->url())->assertNotFound();
+    $this->get(route('experiences.show', ['experience' => $experience, 's' => $otherPageLink->token]))->assertNotFound();
+});
+
+test('a share link does not open an unpublished page', function () {
+    $experience = DigitalExperience::factory()->unpublished()->create();
+    $shareLink = ExperienceShareLink::factory()->for($experience, 'experience')->create();
+
+    $this->get($shareLink->url())->assertNotFound();
+});
+
+test('the QR code stops opening the page once the genuine tag is live', function () {
+    $admin = User::factory()->admin()->create();
+    $experience = DigitalExperience::factory()->create();
+
+    $this->get($experience->qrCodeUrl())->assertRedirect(route('experiences.show', $experience));
+    $this->actingAs($experience->user)->get(route('experiences.show', $experience))
+        ->assertInertia(fn (Assert $page) => $page->whereNot('experience.qr_url', null));
+
+    auth()->logout();
+    $this->flushSession();
+    tapTag($experience, '04A1B2C3D4E5F6x000001');
+    $this->flushSession();
+
+    $this->get($experience->qrCodeUrl())->assertNotFound();
+    $this->actingAs($experience->user)->get(route('experiences.show', $experience))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('experience.qr_url', null)
+            ->where('experience.is_tag_check_active', true));
+    $this->actingAs($admin)->get(route('experiences.show', $experience))
+        ->assertInertia(fn (Assert $page) => $page->whereNot('experience.qr_url', null));
+});
+
+test('the first mirrored tap registers the genuine tag, and copies of it are refused', function () {
+    $experience = DigitalExperience::factory()->create();
+
+    tapTag($experience, '04A1B2C3D4E5F6x000005')->assertRedirect(route('experiences.show', $experience));
+
+    expect($experience->fresh())
+        ->nfc_tag_uid->toBe('04:A1:B2:C3:D4:E5:F6')
+        ->nfc_tap_counter->toBe(5);
+
+    $this->flushSession();
+
+    tapTag($experience, '04A1B2C3D4E5F6x000005')->assertNotFound();
+    tapTag($experience, '04A1B2C3D4E5F6x000004')->assertNotFound();
+    tapTag($experience, '04FFFFFFFFFFFFx000009')->assertNotFound();
+    tapTag($experience)->assertNotFound();
+    tapTag($experience, 'not-a-mirror')->assertNotFound();
+
+    tapTag($experience, '04a1b2c3d4e5f6x000006')->assertRedirect(route('experiences.show', $experience));
+
+    expect($experience->fresh()->nfc_tap_counter)->toBe(6);
+});
+
+test('a tag only opens the page when its chip matches the one the admin saved', function () {
+    $experience = DigitalExperience::factory()->create(['nfc_tag_uid' => '04:A1:B2:C3:D4:E5:F6']);
+
+    tapTag($experience, '04FFFFFFFFFFFFx000001')->assertNotFound();
+    tapTag($experience, '04A1B2C3D4E5F6x000001')->assertRedirect(route('experiences.show', $experience));
+});
+
+test('a tag written without turning on the mirror is refused', function () {
+    $experience = DigitalExperience::factory()->create();
+
+    tapTag($experience, DigitalExperience::TAG_MIRROR_PLACEHOLDER)->assertNotFound();
+
+    expect($experience->fresh())
+        ->nfc_tag_uid->toBeNull()
+        ->nfc_tap_counter->toBeNull();
+});
+
+test('a chip already linked to another page cannot register on a second one', function () {
+    DigitalExperience::factory()->create(['nfc_tag_uid' => '04:A1:B2:C3:D4:E5:F6']);
+    $experience = DigitalExperience::factory()->create();
+
+    tapTag($experience, '04A1B2C3D4E5F6x000001')->assertNotFound();
 });
 
 test('a page scheduled to open later shows only a countdown to visitors', function () {
@@ -96,7 +265,7 @@ test('the owner downloads the QR code as an SVG', function () {
     expect($response->getContent())->toStartWith('<svg');
 });
 
-test('visitors cannot fetch the QR code, which carries the access key', function () {
+test('only the owner and admins fetch the QR code', function () {
     $experience = DigitalExperience::factory()->create();
 
     tapTag($experience);
@@ -235,6 +404,20 @@ test('an admin links an NFC tag to an experience', function () {
         ->assertSessionHasNoErrors();
 
     expect($experience->fresh()->nfc_tag_uid)->toBe('04:A2:3B:1C');
+});
+
+test('an admin swapping the tag starts its tap count over', function () {
+    $admin = User::factory()->admin()->create();
+    $experience = DigitalExperience::factory()->create();
+    tapTag($experience, '04A1B2C3D4E5F6x000040');
+
+    $this->actingAs($admin)
+        ->put(route('admin.experiences.update', $experience), ['nfc_tag_uid' => '04:11:22:33:44:55:66'])
+        ->assertSessionHasNoErrors();
+
+    expect($experience->fresh()->nfc_tap_counter)->toBeNull();
+
+    tapTag($experience, '04112233445566x000001')->assertRedirect(route('experiences.show', $experience));
 });
 
 test('experience photos on object storage redirect to a signed url', function () {

@@ -3,9 +3,12 @@ import {
     AlertTriangle,
     BadgeCheck,
     Banknote,
+    Check,
+    Copy,
     ExternalLink,
     FileText,
     Gift,
+    Link2,
     Loader2,
     Mail,
     Nfc,
@@ -34,7 +37,10 @@ import {
     paymentTone,
     proofTone,
 } from "@/components/taptale/status-badge";
-import { TemplatePreview } from "@/components/taptale/template-preview";
+import {
+    productPalette,
+    TemplatePreview,
+} from "@/components/taptale/template-preview";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -46,6 +52,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useClipboard } from "@/hooks/use-clipboard";
 import { useMoney } from "@/hooks/use-money";
 import { formatDate, formatFileSize, toPesoInput } from "@/lib/money";
 import { edit as experienceEdit } from "@/routes/account/experiences";
@@ -64,9 +71,11 @@ const PRODUCTION_STATUSES = [
 export default function AdminOrderShow({
     order,
     statuses,
+    approvalUrl,
 }: {
     order: Order;
     statuses: StatusOption[];
+    approvalUrl: string | null;
 }) {
     setLayoutProps({
         breadcrumbs: [
@@ -88,6 +97,8 @@ export default function AdminOrderShow({
                     <div>
                         <p className="text-sm text-muted-foreground">
                             Placed {formatDate(order.created_at, true)}
+                            {order.channel !== "website" &&
+                                ` · ${order.channel_label} order`}
                         </p>
                         <h1 className="mt-1 font-display text-3xl font-medium">
                             {order.reference}
@@ -144,12 +155,15 @@ export default function AdminOrderShow({
                             description={order.design_mode_label}
                         >
                             <div className="grid gap-6 sm:grid-cols-[180px_1fr]">
-                                {order.template ? (
+                                {order.design_mode === "self" &&
+                                order.design_layout ? (
                                     <div>
                                         <div className="overflow-hidden rounded-xl border">
                                             <TemplatePreview
-                                                layout={order.template.layout}
-                                                palette={order.template.palette}
+                                                layout={order.design_layout}
+                                                palette={productPalette(
+                                                    order.product_art_style,
+                                                )}
                                                 photoUrl={designPhoto?.url}
                                                 photos={order.files
                                                     ?.filter(
@@ -182,12 +196,12 @@ export default function AdminOrderShow({
                                             />
                                         </div>
                                         <p className="mt-2 text-center text-xs text-muted-foreground">
-                                            {order.template.name}
+                                            {order.product_name}
                                         </p>
                                     </div>
                                 ) : (
                                     <div className="flex aspect-[4/5] items-center justify-center rounded-xl border border-dashed p-3 text-center text-xs text-muted-foreground">
-                                        No template — custom design requested
+                                        Custom design requested
                                     </div>
                                 )}
                                 <PersonalizationDetails order={order} />
@@ -257,6 +271,10 @@ export default function AdminOrderShow({
 
                     <div className="space-y-6">
                         <StatusPanel order={order} statuses={statuses} />
+                        <ApprovalLinkPanel
+                            order={order}
+                            approvalUrl={approvalUrl}
+                        />
                         <PaymentsPanel order={order} />
                         {order.experience && <ExperiencePanel order={order} />}
 
@@ -273,20 +291,33 @@ export default function AdminOrderShow({
                                 <p className="font-medium">
                                     {order.customer_name}
                                 </p>
-                                <p className="flex items-center gap-2 text-muted-foreground">
-                                    <Mail className="size-3.5" />{" "}
-                                    {order.customer_email}
-                                </p>
-                                <p className="flex items-center gap-2 text-muted-foreground">
-                                    <Phone className="size-3.5" />{" "}
-                                    {order.customer_phone}
-                                </p>
-                                <address className="pt-2 not-italic">
-                                    {order.address_line}
-                                    <br />
-                                    {order.city}, {order.province}{" "}
-                                    {order.postal_code}
-                                </address>
+                                {order.customer_email && (
+                                    <p className="flex items-center gap-2 text-muted-foreground">
+                                        <Mail className="size-3.5" />{" "}
+                                        {order.customer_email}
+                                    </p>
+                                )}
+                                {order.customer_phone && (
+                                    <p className="flex items-center gap-2 text-muted-foreground">
+                                        <Phone className="size-3.5" />{" "}
+                                        {order.customer_phone}
+                                    </p>
+                                )}
+                                {order.address_line || order.city ? (
+                                    <address className="pt-2 not-italic">
+                                        {order.address_line}
+                                        <br />
+                                        {[order.city, order.province]
+                                            .filter(Boolean)
+                                            .join(", ")}{" "}
+                                        {order.postal_code}
+                                    </address>
+                                ) : (
+                                    <p className="pt-2 text-muted-foreground">
+                                        No delivery address (pickup, or not
+                                        given yet).
+                                    </p>
+                                )}
                                 {order.user && (
                                     <Link
                                         href={customerShow(order.user.id)}
@@ -342,6 +373,123 @@ export default function AdminOrderShow({
                 </div>
             </AdminPage>
         </>
+    );
+}
+
+function ApprovalLinkPanel({
+    order,
+    approvalUrl,
+}: {
+    order: Order;
+    approvalUrl: string | null;
+}) {
+    const [copiedText, copy] = useClipboard();
+    const [processing, setProcessing] = useState(false);
+    const visitOptions = {
+        preserveScroll: true,
+        onStart: () => setProcessing(true),
+        onFinish: () => setProcessing(false),
+    };
+    const issueLink = () =>
+        router.post(
+            OrderController.issueApprovalLink.url(order.reference),
+            {},
+            visitOptions,
+        );
+
+    return (
+        <Panel
+            title="Approval link"
+            description="Send this to the customer on Messenger. They can see the design and approve it or ask for changes, no account needed."
+        >
+            {approvalUrl ? (
+                <div className="space-y-3">
+                    <div className="flex gap-2">
+                        <Input
+                            readOnly
+                            value={approvalUrl}
+                            onFocus={(event) => event.target.select()}
+                            className="font-mono text-xs"
+                            aria-label="Approval link"
+                        />
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => void copy(approvalUrl)}
+                            aria-label="Copy approval link"
+                        >
+                            {copiedText === approvalUrl ? (
+                                <Check className="size-4 text-emerald-600" />
+                            ) : (
+                                <Copy className="size-4" />
+                            )}
+                        </Button>
+                    </div>
+                    {(order.proofs?.length ?? 0) === 0 && (
+                        <p className="text-xs text-muted-foreground">
+                            No design sent yet. Until you send one, the link
+                            tells the customer their design is on its way.
+                        </p>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                        <Button asChild variant="outline" size="sm">
+                            <a
+                                href={approvalUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                <ExternalLink className="size-4" /> Open
+                            </a>
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={processing}
+                            onClick={() => {
+                                if (
+                                    window.confirm(
+                                        "Create a new link? The link you already sent will stop working.",
+                                    )
+                                ) {
+                                    issueLink();
+                                }
+                            }}
+                        >
+                            New link
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={processing}
+                            className="text-destructive"
+                            onClick={() =>
+                                router.delete(
+                                    OrderController.revokeApprovalLink.url(
+                                        order.reference,
+                                    ),
+                                    visitOptions,
+                                )
+                            }
+                        >
+                            Turn off
+                        </Button>
+                    </div>
+                </div>
+            ) : (
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    disabled={processing}
+                    onClick={issueLink}
+                >
+                    <Link2 className="size-4" /> Create approval link
+                </Button>
+            )}
+        </Panel>
     );
 }
 
@@ -1078,10 +1226,21 @@ function ExperiencePanel({ order }: { order: Order }) {
                             : "Not published yet"}
                     </p>
                     <p className="text-xs break-all text-muted-foreground">
-                        Program tags with:{" "}
+                        Program the tag with:{" "}
                         <span className="font-mono text-foreground">
-                            {experience.public_url}
+                            {experience.tag_url}
                         </span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                        In NXP TagWriter, turn on the UID mirror and counter
+                        mirror over the{" "}
+                        <span className="font-mono">00000000000000x000000</span>{" "}
+                        at the end, then tap the tag once to activate it.
+                    </p>
+                    <p className="text-xs font-medium">
+                        {experience.is_tag_check_active
+                            ? "Tag check active: copied tags and the QR code won't open the page."
+                            : "Tag not activated yet: tap it once after programming."}
                     </p>
                     <div className="flex gap-3 pt-1 text-xs">
                         <Link
