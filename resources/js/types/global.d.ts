@@ -25,6 +25,12 @@ declare module '@inertiajs/core' {
                     address: string | null;
                     facebook_url: string | null;
                     instagram_url: string | null;
+                    town: string;
+                    province: string;
+                    latitude: string | null;
+                    longitude: string | null;
+                    /** Towns we deliver to, the studio's own town first. */
+                    service_area: string[];
                 };
                 policiesUpdatedOn: string;
                 /** Largest video file a customer can upload to their page. */

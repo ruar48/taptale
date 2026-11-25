@@ -11,7 +11,9 @@
     $shieldCheck = '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path>';
     $truck = '<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle>';
     $perkIcon = 'size-4.5 shrink-0 text-plum dark:text-rose';
-    $buttonBase = 'inline-flex h-13 items-center justify-center gap-2 rounded-full px-7 text-base font-medium whitespace-nowrap has-[>svg]:px-4 [&_svg]:shrink-0';
+    $business = config('taptale.business');
+    $inlineLink = 'font-medium text-plum underline decoration-plum/30 underline-offset-4 hover:decoration-plum dark:text-blush';
+    $buttonBase ='inline-flex h-13 items-center justify-center gap-2 rounded-full px-7 text-base font-medium whitespace-nowrap has-[>svg]:px-4 [&_svg]:shrink-0';
 @endphp
 <div class="flex min-h-screen flex-col bg-cream text-charcoal dark:bg-background dark:text-foreground">
     <header class="sticky top-0 z-40 border-b border-plum/10 bg-cream/85 backdrop-blur-xl dark:border-border dark:bg-background/85">
@@ -52,10 +54,61 @@
                     </div>
                     <ul class="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-sm text-charcoal/75 dark:text-foreground/70">
                         <li class="flex items-center gap-2">{!! $heroIcon($shieldCheck, $perkIcon) !!} Premium quality</li>
-                        <li class="flex items-center gap-2">{!! $heroIcon($truck, $perkIcon) !!} Nationwide delivery</li>
+                        <li class="flex items-center gap-2">{!! $heroIcon($truck, $perkIcon) !!} Delivery in {{ $business['town'] }} &amp; nearby</li>
                         <li class="flex items-center gap-2">{!! $heroIcon($heart, $perkIcon) !!} A gift with meaning</li>
                     </ul>
                 </div>
+            </div>
+        </section>
+
+        {{-- <LocalStudio> in home.tsx --}}
+        <section class="border-b border-plum/10 py-16 dark:border-border">
+            <div class="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[1.4fr_1fr] lg:px-8">
+                <div>
+                    <p class="mb-3 text-xs font-semibold tracking-[0.25em] text-rose uppercase">
+                        Made in {{ $business['town'] }}, {{ $business['province'] }}
+                    </p>
+                    <h2 class="font-display text-3xl leading-tight font-medium text-balance sm:text-4xl">
+                        Personalized NFC keychains and photo gifts, made right here in {{ $business['town'] }}
+                    </h2>
+                    <p class="mt-5 leading-relaxed text-charcoal/75 dark:text-foreground/75">
+                        Taptale is a small gift studio in {{ $business['town'] }}, {{ $business['province'] }}. We design and make every NFC keychain and photo keepsake by hand, then deliver it to you or to the person you are surprising. Every keychain comes with its own memory page: your photos, a video, a song and a message that open with one tap on any phone, no app needed.
+                    </p>
+                    <p class="mt-4 leading-relaxed text-charcoal/75 dark:text-foreground/75">
+                        Made for anniversaries, weddings, birthdays, baptisms and graduations. Browse
+                        <a href="{{ route('categories.index') }}" class="{{ $inlineLink }}">gifts by occasion</a>, see our
+                        <a href="{{ route('experiences.templates') }}" class="{{ $inlineLink }}">memory page designs</a> or read more
+                        <a href="{{ route('pages.about') }}" class="{{ $inlineLink }}">about our studio</a>.
+                    </p>
+                </div>
+                <div class="rounded-3xl bg-blush-light/50 p-6 dark:bg-card">
+                    <h3 class="font-display text-xl">Where we deliver</h3>
+                    <p class="mt-2 text-sm text-charcoal/70 dark:text-foreground/70">
+                        For now we deliver to {{ $business['town'] }} and these nearby towns and cities in {{ $business['province'] }}:
+                    </p>
+                    <ul class="mt-4 flex flex-wrap gap-2">
+                        @foreach ($business['service_area'] as $place)
+                            <li class="rounded-full bg-white/80 px-3 py-1 text-sm text-plum dark:bg-background dark:text-blush">{{ $place }}</li>
+                        @endforeach
+                    </ul>
+                    <a href="{{ route('pages.shipping') }}" class="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-plum hover:underline dark:text-blush">
+                        Delivery areas and fees {!! $heroIcon($arrowRight, 'size-4') !!}
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        {{-- <Faqs> in home.tsx. React shows it further down the page; it sits here so search engines that don't run JavaScript still read it. --}}
+        <section class="mx-auto max-w-7xl px-4 pt-20 sm:px-6 lg:px-8">
+            <p class="mb-3 text-xs font-semibold tracking-[0.25em] text-rose uppercase">Good to know</p>
+            <h2 class="font-display text-3xl leading-tight font-medium sm:text-4xl">Questions before you order</h2>
+            <div class="mt-10 grid gap-x-10 gap-y-8 md:grid-cols-2">
+                @foreach ($page['props']['faqs'] ?? [] as $faq)
+                    <div>
+                        <h3 class="font-display text-xl">{{ $faq['question'] }}</h3>
+                        <p class="mt-2 leading-relaxed text-charcoal/75 dark:text-foreground/75">{{ $faq['answer'] }}</p>
+                    </div>
+                @endforeach
             </div>
         </section>
     </main>

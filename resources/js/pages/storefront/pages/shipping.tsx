@@ -6,19 +6,43 @@ import { returns } from '@/routes/pages';
 
 export default function Shipping() {
     const money = useMoney();
-    const { deliveryFee, freeDeliveryThreshold } = usePage().props.storefront;
+    const { deliveryFee, freeDeliveryThreshold, business } =
+        usePage().props.storefront;
 
     return (
         <LegalPage
             title="Shipping & delivery"
             intro={
                 <p>
-                    Every gift is made to order, then delivered to your door
-                    anywhere in the Philippines. Here's how long it takes and
-                    what it costs.
+                    Every gift is made to order in {business.town},{' '}
+                    {business.province}, then delivered to your door in{' '}
+                    {business.town} and nearby towns. Here's where we deliver,
+                    how long it takes and what it costs.
                 </p>
             }
             sections={[
+                {
+                    id: 'areas',
+                    title: 'Where we deliver',
+                    content: (
+                        <>
+                            <p>
+                                For now we deliver to these towns and cities in{' '}
+                                {business.province}:
+                            </p>
+                            <ul>
+                                {business.service_area.map((place) => (
+                                    <li key={place}>{place}</li>
+                                ))}
+                            </ul>
+                            <p>
+                                Live somewhere else? Contact us at{' '}
+                                <ContactInline /> before ordering and we'll let
+                                you know if we can get your gift to you.
+                            </p>
+                        </>
+                    ),
+                },
                 {
                     id: 'timeline',
                     title: 'How long it takes',
@@ -42,11 +66,11 @@ export default function Shipping() {
                                     Day and Christmas) can take longer.
                                 </li>
                                 <li>
-                                    <strong>Delivery.</strong> After we hand
-                                    your gift to the courier, delivery usually
-                                    takes about 1–3 working days within Metro
-                                    Manila and 3–7 working days for other areas,
-                                    depending on the courier and location.
+                                    <strong>Delivery.</strong> Once your gift
+                                    is ready, delivery usually takes about 1–2
+                                    working days within {business.town} and
+                                    nearby towns, depending on the courier and
+                                    location.
                                 </li>
                             </ol>
                             <p>

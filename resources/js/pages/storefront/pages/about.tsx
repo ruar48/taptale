@@ -18,7 +18,8 @@ export default function About() {
             showUpdatedOn={false}
             intro={
                 <p>
-                    {business.name} is a small gift studio in the Philippines.
+                    {business.name} is a small gift studio in {business.town},{' '}
+                    {business.province}.
                     We make personalized keepsakes that join something you can
                     hold with the memories you never want to lose. Every tap
                     tells a story.

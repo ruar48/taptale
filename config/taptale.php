@@ -116,6 +116,29 @@ return [
         'address' => env('TAPTALE_BUSINESS_ADDRESS'),
         'facebook_url' => env('TAPTALE_FACEBOOK_URL'),
         'instagram_url' => env('TAPTALE_INSTAGRAM_URL'),
+
+        /*
+         * Where the studio is and the towns it delivers to. Shown on the
+         * homepage and shipping page and in the search engine markup, so
+         * Google matches the shop to people searching nearby.
+         */
+        'town' => env('TAPTALE_BUSINESS_TOWN', 'Binalonan'),
+        'province' => env('TAPTALE_BUSINESS_PROVINCE', 'Pangasinan'),
+        // The studio's map pin (right-click it in Google Maps to copy them).
+        'latitude' => env('TAPTALE_BUSINESS_LATITUDE'),
+        'longitude' => env('TAPTALE_BUSINESS_LONGITUDE'),
+        'service_area' => [
+            'Binalonan',
+            'Urdaneta City',
+            'Pozorrubio',
+            'Laoac',
+            'Manaoag',
+            'San Manuel',
+            'Asingan',
+            'Sison',
+            'Villasis',
+            'Dagupan City',
+        ],
     ],
 
     'policies_updated_on' => env('TAPTALE_POLICIES_UPDATED_ON', '2026-11-24'),
@@ -164,7 +187,7 @@ return [
     */
 
     'seo' => [
-        'description' => 'Personalized NFC keychains, photo keepsakes and memory pages from the Philippines. Turn your photos, videos and messages into a gift they can tap to relive.',
+        'description' => 'Personalized NFC keychains and photo keepsakes made in Binalonan, Pangasinan. Delivered to Urdaneta, Pozorrubio, Manaoag and nearby towns.',
         'image' => '/image/taptale-og.jpg',
         'locale' => 'en_PH',
     ],

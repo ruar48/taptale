@@ -356,7 +356,7 @@ function SiteFooter() {
                     <p className="mt-3 text-sm text-cream/70">
                         Personalized keepsakes that join the things you can hold
                         with the memories you never want to lose. Handmade with
-                        love in the Philippines.
+                        love in {business.town}, {business.province}.
                     </p>
                     <ContactDetails className="mt-5 text-sm text-cream/75 [&_a]:hover:text-white [&_svg]:text-blush" />
                     {(business.facebook_url || business.instagram_url) && (

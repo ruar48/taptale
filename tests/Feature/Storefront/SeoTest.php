@@ -20,6 +20,28 @@ test('a product page renders its meta tags and price for search engines', functi
         ->assertSee('"price":"1299.00"', false);
 });
 
+test('the homepage tells search engines which towns the shop delivers to', function () {
+    config([
+        'taptale.business.town' => 'Binalonan',
+        'taptale.business.province' => 'Pangasinan',
+        'taptale.business.service_area' => ['Binalonan', 'Urdaneta City'],
+    ]);
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('<title>Taptale | NFC Keychains &amp; Photo Gifts in Binalonan</title>', false)
+        ->assertSee('Delivery in Binalonan &amp; nearby', false)
+        ->assertSee('<li class="rounded-full bg-white/80 px-3 py-1 text-sm text-plum dark:bg-background dark:text-blush">Urdaneta City</li>', false)
+        ->assertSee('href="'.route('pages.shipping').'"', false)
+        ->assertSee('"@type":"Store"', false)
+        ->assertSee('"addressLocality":"Binalonan"', false)
+        ->assertSee('{"@type":"City","name":"Urdaneta City, Pangasinan"}', false)
+        ->assertSee('<h3 class="font-display text-xl">Where do you deliver?</h3>', false)
+        ->assertSee('"@type":"FAQPage"', false)
+        ->assertSee('"text":"For now we deliver to Binalonan and nearby towns and cities in Pangasinan: Urdaneta City.', false)
+        ->assertDontSee('Nationwide');
+});
+
 test('private memory pages are kept out of search engines', function () {
     $experience = DigitalExperience::factory()->create();
     tapTag($experience);

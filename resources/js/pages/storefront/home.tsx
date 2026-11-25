@@ -1,4 +1,4 @@
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import {
     ArrowRight,
     BadgeCheck,
@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { index as categoriesIndex } from "@/routes/categories";
 import { templates as memoryPages } from "@/routes/experiences";
 import { create as startOrder } from "@/routes/orders";
+import { about, shipping } from "@/routes/pages";
 import type { Category, Product, Testimonial } from "@/types";
 
 type Props = {
@@ -27,7 +28,10 @@ type Props = {
     featuredProducts: Product[];
     bestsellers: Product[];
     testimonials: Testimonial[];
+    faqs: Faq[];
 };
+
+type Faq = { question: string; answer: string };
 
 /**
  * Kept in sync with the <link rel="preload"> in app.blade.php so the browser fetches
@@ -69,12 +73,17 @@ export default function Home({
     featuredProducts,
     bestsellers,
     testimonials,
+    faqs,
 }: Props) {
+    const { town } = usePage().props.storefront.business;
+
     return (
         <>
-            <Head title="Personalized NFC & Photo Keepsakes" />
+            <Head title={`NFC Keychains & Photo Gifts in ${town}`} />
 
             <Hero />
+
+            <LocalStudio />
 
             <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
                 <SectionHeading
@@ -190,6 +199,8 @@ export default function Home({
                 </section>
             )}
 
+            <Faqs faqs={faqs} />
+
             <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
                 <div className="relative overflow-hidden rounded-[2.5rem] bg-plum px-6 py-16 text-center text-white sm:px-12">
                     <div className="absolute -top-24 -left-16 size-72 rounded-full bg-rose/50 blur-3xl" />
@@ -222,6 +233,8 @@ export default function Home({
 }
 
 function Hero() {
+    const { town } = usePage().props.storefront.business;
+
     return (
         <section className="relative flex flex-col overflow-hidden bg-blush-light/40 lg:min-h-[640px] lg:justify-center dark:bg-background">
             <img
@@ -277,7 +290,10 @@ function Hero() {
                     <ul className="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-sm text-charcoal/75 dark:text-foreground/70">
                         {[
                             { icon: ShieldCheck, label: "Premium quality" },
-                            { icon: Truck, label: "Nationwide delivery" },
+                            {
+                                icon: Truck,
+                                label: `Delivery in ${town} & nearby`,
+                            },
                             { icon: Heart, label: "A gift with meaning" },
                         ].map(({ icon: Icon, label }) => (
                             <li key={label} className="flex items-center gap-2">
@@ -287,6 +303,111 @@ function Hero() {
                         ))}
                     </ul>
                 </div>
+            </div>
+        </section>
+    );
+}
+
+/**
+ * Where the studio is and which towns it delivers to. Also painted by
+ * resources/views/partials/home-shell.blade.php (what search engines that
+ * don't run JavaScript read), so keep the markup and copy in sync.
+ */
+function LocalStudio() {
+    const { town, province, service_area } =
+        usePage().props.storefront.business;
+    const inlineLink =
+        "font-medium text-plum underline decoration-plum/30 underline-offset-4 hover:decoration-plum dark:text-blush";
+
+    return (
+        <section className="border-b border-plum/10 py-16 dark:border-border">
+            <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[1.4fr_1fr] lg:px-8">
+                <div>
+                    <p className="mb-3 text-xs font-semibold tracking-[0.25em] text-rose uppercase">
+                        Made in {town}, {province}
+                    </p>
+                    <h2 className="font-display text-3xl leading-tight font-medium text-balance sm:text-4xl">
+                        Personalized NFC keychains and photo gifts, made right
+                        here in {town}
+                    </h2>
+                    <p className="mt-5 leading-relaxed text-charcoal/75 dark:text-foreground/75">
+                        Taptale is a small gift studio in {town}, {province}. We
+                        design and make every NFC keychain and photo keepsake
+                        by hand, then deliver it to you or to the person you
+                        are surprising. Every keychain comes with its own
+                        memory page: your photos, a video, a song and a
+                        message that open with one tap on any phone, no app
+                        needed.
+                    </p>
+                    <p className="mt-4 leading-relaxed text-charcoal/75 dark:text-foreground/75">
+                        Made for anniversaries, weddings, birthdays, baptisms
+                        and graduations. Browse{" "}
+                        <Link href={categoriesIndex()} className={inlineLink}>
+                            gifts by occasion
+                        </Link>
+                        , see our{" "}
+                        <Link href={memoryPages()} className={inlineLink}>
+                            memory page designs
+                        </Link>{" "}
+                        or read more{" "}
+                        <Link href={about()} className={inlineLink}>
+                            about our studio
+                        </Link>
+                        .
+                    </p>
+                </div>
+                <div className="rounded-3xl bg-blush-light/50 p-6 dark:bg-card">
+                    <h3 className="font-display text-xl">Where we deliver</h3>
+                    <p className="mt-2 text-sm text-charcoal/70 dark:text-foreground/70">
+                        For now we deliver to {town} and these nearby towns
+                        and cities in {province}:
+                    </p>
+                    <ul className="mt-4 flex flex-wrap gap-2">
+                        {service_area.map((place) => (
+                            <li
+                                key={place}
+                                className="rounded-full bg-white/80 px-3 py-1 text-sm text-plum dark:bg-background dark:text-blush"
+                            >
+                                {place}
+                            </li>
+                        ))}
+                    </ul>
+                    <Link
+                        href={shipping()}
+                        className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-plum hover:underline dark:text-blush"
+                    >
+                        Delivery areas and fees <ArrowRight className="size-4" />
+                    </Link>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+/**
+ * Also painted by resources/views/partials/home-shell.blade.php, so keep the
+ * markup in sync.
+ */
+function Faqs({ faqs }: { faqs: Faq[] }) {
+    return (
+        <section className="mx-auto max-w-7xl px-4 pt-20 sm:px-6 lg:px-8">
+            <p className="mb-3 text-xs font-semibold tracking-[0.25em] text-rose uppercase">
+                Good to know
+            </p>
+            <h2 className="font-display text-3xl leading-tight font-medium sm:text-4xl">
+                Questions before you order
+            </h2>
+            <div className="mt-10 grid gap-x-10 gap-y-8 md:grid-cols-2">
+                {faqs.map((faq) => (
+                    <div key={faq.question}>
+                        <h3 className="font-display text-xl">
+                            {faq.question}
+                        </h3>
+                        <p className="mt-2 leading-relaxed text-charcoal/75 dark:text-foreground/75">
+                            {faq.answer}
+                        </p>
+                    </div>
+                ))}
             </div>
         </section>
     );
@@ -391,7 +512,7 @@ function TapSection() {
                             <em className="text-rose">Tap it</em> to relive it.
                         </>
                     }
-                    description="Our NFC keychains and QR keepsakes open a private memory page on any phone — your photos, a video, a song and a message, all on taptale.com."
+                    description="Our NFC keychains and QR keepsakes open a private memory page on any phone — your photos, a video, a song and a message, all on taptale.online."
                 />
                 <ul className="mt-8 grid gap-4">
                     {[
