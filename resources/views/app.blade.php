@@ -43,6 +43,12 @@
             <link rel="preload" as="image" fetchpriority="high" type="image/webp"
                 imagesrcset="/image/taptale-nfc-wedding-couple-hero-640.webp 640w, /image/taptale-nfc-wedding-couple-hero-960.webp 960w, /image/taptale-nfc-wedding-couple-hero-1280.webp 1280w, /image/taptale-nfc-wedding-couple-hero.webp 1672w"
                 imagesizes="(min-width: 1024px) 100vw, calc(100vw - 2rem)">
+            {{-- The homepage is painted in --color-petal (app.css), not cream --}}
+            <style>
+                html:not(.dark) {
+                    background-color: #fbe9e6;
+                }
+            </style>
         @endif
 
         @fonts

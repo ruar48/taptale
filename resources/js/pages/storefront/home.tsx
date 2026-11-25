@@ -2,7 +2,9 @@ import { Head, Link, usePage } from "@inertiajs/react";
 import { useRef } from "react";
 import {
     ArrowRight,
+    Gift,
     Heart,
+    MapPin,
     Nfc,
     Plus,
     QrCode,
@@ -12,6 +14,7 @@ import {
     Sparkles,
     Star,
     Truck,
+    Zap,
 } from "lucide-react";
 import { CategoryCard } from "@/components/taptale/category-card";
 import { CategoryIllustration } from "@/components/taptale/category-illustration";
@@ -86,9 +89,12 @@ export default function Home({
         <>
             <Head title={`NFC Keychains & Photo Gifts in ${town}`} />
 
-            <Hero />
-
-            <LocalStudio />
+            {/* overflow-clip (not hidden) keeps the backdrop sticky while cutting it off at the end of <LocalStudio> */}
+            <div className="flex flex-col lg:overflow-clip">
+                <HeroBackdrop />
+                <Hero />
+                <LocalStudio />
+            </div>
 
             <ShopByOccasion categories={categories} />
 
@@ -126,7 +132,7 @@ export default function Home({
             )}
 
             {testimonials.length > 0 && (
-                <section className="bg-cream-dark/60 py-20 dark:bg-muted/30">
+                <section className="bg-blush/30 py-20 dark:bg-muted/30">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                         <SectionHeading
                             align="center"
@@ -378,11 +384,16 @@ function OccasionsBackdrop() {
     );
 }
 
-function Hero() {
-    const { town } = usePage().props.storefront.business;
-
+/**
+ * The hero photo, shared by <Hero> and <LocalStudio>. From lg up it is pinned
+ * just under the header while both sections scroll over it, so they read as
+ * one scene; below lg it is a framed picture under the hero copy (the `order`
+ * classes put it there). Also painted by
+ * resources/views/partials/home-shell.blade.php, so keep the markup in sync.
+ */
+function HeroBackdrop() {
     return (
-        <section className="relative flex flex-col overflow-hidden bg-blush-light/40 lg:min-h-[640px] lg:justify-center dark:bg-background">
+        <div className="order-1 px-4 pb-12 sm:px-6 lg:sticky lg:top-20 lg:order-none lg:-mb-[calc(100svh-5rem)] lg:h-[calc(100svh-5rem)] lg:p-0">
             <img
                 src="/image/taptale-nfc-wedding-couple-hero-1280.webp"
                 srcSet={HERO_SRCSET}
@@ -391,11 +402,19 @@ function Hero() {
                 width={1672}
                 height={941}
                 fetchPriority="high"
-                className="order-last mx-4 mb-12 aspect-[16/10] w-[calc(100%-2rem)] rounded-3xl object-cover object-[70%_center] shadow-[0_24px_50px_-24px_rgb(113_61_80/0.45)] sm:mx-6 sm:w-[calc(100%-3rem)] lg:absolute lg:inset-0 lg:order-none lg:m-0 lg:aspect-auto lg:h-full lg:w-full lg:rounded-none lg:object-[75%_center] lg:shadow-none"
+                className="aspect-[16/10] w-full rounded-3xl object-cover object-[70%_center] shadow-[0_24px_50px_-24px_rgb(113_61_80/0.45)] lg:aspect-auto lg:h-full lg:rounded-none lg:object-[75%_center] lg:shadow-none"
             />
-            <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-[#fbe9e6]/95 via-[#fbe9e6]/60 to-transparent lg:block lg:w-[65%] dark:from-background dark:via-background/80" />
+            <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-petal/95 via-petal/60 to-transparent lg:block lg:w-[65%] dark:from-background dark:via-background/80" />
+        </div>
+    );
+}
 
-            <div className="relative mx-auto w-full max-w-7xl px-4 pt-12 pb-10 sm:px-6 lg:px-8 lg:py-24">
+function Hero() {
+    const { town } = usePage().props.storefront.business;
+
+    return (
+        <section className="relative flex flex-col lg:min-h-[640px] lg:justify-center">
+            <div className="mx-auto w-full max-w-7xl px-4 pt-12 pb-10 sm:px-6 lg:px-8 lg:py-24">
                 {/* No fade-in: resources/views/partials/home-shell.blade.php paints this first, keep it in sync */}
                 <div className="max-w-xl">
                     <span className="inline-flex items-center gap-2 rounded-full border border-rose/30 bg-white/70 px-4 py-1.5 text-xs font-semibold tracking-wide text-plum backdrop-blur dark:bg-card/60 dark:text-blush">
@@ -457,10 +476,53 @@ function Hero() {
     );
 }
 
+/** A hand-drawn underline; size and place it with `className`. */
+function Swash({ className }: { className?: string }) {
+    return (
+        <svg
+            viewBox="0 0 120 8"
+            preserveAspectRatio="none"
+            fill="none"
+            aria-hidden="true"
+            className={className}
+        >
+            <path
+                d="M2 5.5C32 2.5 78 1.5 118 4.5"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+            />
+        </svg>
+    );
+}
+
+/** Two little outline hearts, doodled beside a heading. */
+function HeartsDoodle({ className }: { className?: string }) {
+    return (
+        <svg
+            viewBox="0 0 32 32"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinejoin="round"
+            aria-hidden="true"
+            className={className}
+        >
+            <path d="M9 14.5S3 10.6 3 7a3 3 0 0 1 6-1 3 3 0 0 1 6 1c0 3.6-6 7.5-6 7.5Z" />
+            <path d="M21 28s-7-4.5-7-8.6a3.5 3.5 0 0 1 7-1.2 3.5 3.5 0 0 1 7 1.2c0 4.1-7 8.6-7 8.6Z" />
+        </svg>
+    );
+}
+
 /**
- * Where the studio is and which towns it delivers to. Also painted by
- * resources/views/partials/home-shell.blade.php (what search engines that
- * don't run JavaScript read), so keep the markup and copy in sync.
+ * Where the studio is and which towns it delivers to. From lg up it scrolls
+ * over the same pinned photo as <Hero> (see <HeroBackdrop>): the copy sits on
+ * the photo's soft left side, the delivery card over the gift box, and the
+ * bottom fades into the page's pink before the photo is cut off.
+ *
+ * Also painted by resources/views/partials/home-shell.blade.php (what search
+ * engines that don't run JavaScript read), so keep the markup and copy in sync.
  */
 function LocalStudio() {
     const { town, province, service_area } =
@@ -469,27 +531,38 @@ function LocalStudio() {
         "font-medium text-plum underline decoration-plum/30 underline-offset-4 hover:decoration-plum dark:text-blush";
 
     return (
-        <section className="border-b border-plum/10 py-16 dark:border-border">
-            <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[1.4fr_1fr] lg:px-8">
-                <div>
-                    <p className="mb-3 text-xs font-semibold tracking-[0.25em] text-rose uppercase">
+        <section className="relative order-2 lg:order-none lg:bg-linear-to-b lg:from-transparent lg:from-55% lg:to-petal lg:dark:to-background">
+            <div className="mx-auto grid max-w-7xl gap-10 px-4 pb-16 sm:px-6 lg:grid-cols-[minmax(0,34rem)_minmax(0,24rem)] lg:items-center lg:justify-between lg:gap-12 lg:px-8 lg:pt-12 lg:pb-32">
+                <div className="relative isolate">
+                    {/* A soft pink glow so the copy stays readable where it crosses the keychain in the photo */}
+                    <div className="pointer-events-none absolute -inset-x-12 -inset-y-10 -z-10 hidden rounded-[4rem] bg-petal/80 blur-2xl lg:block dark:bg-background/80" />
+                    <p className="inline-flex items-center gap-2 rounded-full bg-rose/15 px-4 py-1.5 text-xs font-semibold tracking-[0.18em] text-plum uppercase dark:bg-rose/20 dark:text-blush">
+                        <MapPin className="size-3.5 shrink-0" />
                         Made in {town}, {province}
                     </p>
-                    <h2 className="font-display text-3xl leading-tight font-medium text-balance sm:text-4xl">
+                    <h2 className="mt-5 font-display text-4xl leading-[1.1] font-medium text-balance text-plum-dark sm:text-[2.75rem] dark:text-cream">
                         Personalized NFC keychains and photo gifts, made right
-                        here in {town}
+                        here in{" "}
+                        <span className="whitespace-nowrap">
+                            <em className="relative font-normal text-rose">
+                                {town}
+                                <Swash className="absolute inset-x-0 -bottom-[0.18em] h-[0.2em] w-full" />
+                            </em>
+                            <HeartsDoodle className="ml-1.5 inline-block size-[0.75em] -translate-y-[0.4em] rotate-12 text-rose/80" />
+                        </span>
                     </h2>
-                    <p className="mt-5 leading-relaxed text-charcoal/75 dark:text-foreground/75">
-                        Taptale is a small gift studio in {town}, {province}. We
-                        design and make every NFC keychain and photo keepsake by
-                        hand, then deliver it to you or to the person you are
-                        surprising. Every keychain comes with its own memory
-                        page: your photos, a video, a song and a message that
-                        open with one tap on any phone, no app needed. Because
-                        every memory deserves to be held, not just scrolled
-                        past.
+                    <p className="mt-5 leading-relaxed text-charcoal/80 dark:text-foreground/75">
+                        <strong className="font-semibold text-charcoal dark:text-foreground">
+                            Taptale is a small gift studio in {town}
+                        </strong>
+                        , {province}. We design and make every NFC keychain and
+                        photo keepsake by hand, then deliver it to you or to the
+                        person you are surprising. Every keychain comes with its
+                        own memory page: your photos, a video, a song and a
+                        message that open with one tap on any phone, no app
+                        needed.
                     </p>
-                    <p className="mt-4 leading-relaxed text-charcoal/75 dark:text-foreground/75">
+                    <p className="mt-3 leading-relaxed text-charcoal/80 dark:text-foreground/75">
                         Made for anniversaries, weddings, birthdays, 18th
                         debuts, baptisms, graduations and every trip you take.
                         Browse{" "}
@@ -506,30 +579,68 @@ function LocalStudio() {
                         </Link>
                         .
                     </p>
+                    <p className="mt-4 font-medium text-plum-dark dark:text-cream">
+                        Because every memory deserves to be held, not just{" "}
+                        <span className="relative whitespace-nowrap">
+                            scrolled past
+                            <Swash className="absolute inset-x-0 -bottom-1 h-1.5 w-full text-rose" />
+                        </span>
+                        .{" "}
+                        <Heart className="inline size-4 -translate-y-px text-rose" />
+                    </p>
+                    <ul className="mt-7 grid grid-cols-3 divide-x divide-plum/15 rounded-2xl bg-white/60 py-3 ring-1 ring-white/70 backdrop-blur-sm sm:w-fit dark:divide-border dark:bg-card/60 dark:ring-border">
+                        {[
+                            { icon: Gift, label: "Personalized with love" },
+                            { icon: Zap, label: "Tap to view your memories" },
+                            { icon: Heart, label: "Perfect for any occasion" },
+                        ].map(({ icon: Icon, label }) => (
+                            <li
+                                key={label}
+                                className="flex flex-col items-center gap-2 px-3 text-center text-xs leading-snug text-charcoal/80 sm:flex-row sm:px-4 sm:text-left sm:text-[0.8rem] dark:text-foreground/75"
+                            >
+                                <Icon className="size-5 shrink-0 text-plum dark:text-rose" />
+                                <span className="max-w-28">{label}</span>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
-                <div className="rounded-3xl bg-blush-light/50 p-6 dark:bg-card">
-                    <h3 className="font-display text-xl">Where we deliver</h3>
-                    <p className="mt-2 text-sm text-charcoal/70 dark:text-foreground/70">
+
+                <div className="rounded-[1.75rem] border border-white/70 bg-white/70 p-6 shadow-[0_24px_60px_-30px_rgb(113_61_80/0.5)] backdrop-blur-md sm:p-7 dark:border-border dark:bg-card/85">
+                    <h3 className="flex items-center gap-2.5 font-display text-2xl text-plum-dark dark:text-cream">
+                        <MapPin className="size-6 shrink-0 text-plum dark:text-rose" />
+                        Where we deliver
+                    </h3>
+                    <p className="mt-3 text-sm leading-relaxed text-charcoal/75 dark:text-foreground/70">
                         For now we deliver to {town} and these nearby towns and
                         cities in {province}:
                     </p>
-                    <ul className="mt-4 flex flex-wrap gap-2">
+                    <ul className="mt-5 flex flex-wrap gap-2">
                         {service_area.map((place) => (
                             <li
                                 key={place}
-                                className="rounded-full bg-white/80 px-3 py-1 text-sm text-plum dark:bg-background dark:text-blush"
+                                className={cn(
+                                    "inline-flex items-center gap-1 rounded-full border px-3.5 py-1.5 text-sm",
+                                    place === town
+                                        ? "border-plum bg-plum text-white dark:border-blush dark:bg-blush dark:text-plum-dark"
+                                        : "border-plum/10 bg-blush-light/70 text-plum-dark dark:border-border dark:bg-background dark:text-blush",
+                                )}
                             >
+                                {place === town && (
+                                    <MapPin className="size-3.5 shrink-0" />
+                                )}
                                 {place}
                             </li>
                         ))}
                     </ul>
-                    <Link
-                        href={shipping()}
-                        className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-plum hover:underline dark:text-blush"
-                    >
-                        Delivery areas and fees{" "}
-                        <ArrowRight className="size-4" />
-                    </Link>
+                    <div className="mt-6 border-t border-plum/10 pt-5 dark:border-border">
+                        <Link
+                            href={shipping()}
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-plum-dark hover:underline dark:text-blush"
+                        >
+                            Delivery areas and fees{" "}
+                            <ArrowRight className="size-4" />
+                        </Link>
+                    </div>
                 </div>
             </div>
         </section>
@@ -591,7 +702,7 @@ function HowItWorks() {
             ref={sectionRef}
             id="how-it-works"
             className={cn(
-                "reveal-on-view relative isolate scroll-mt-24 overflow-hidden bg-linear-to-br from-blush-light via-[#fbeef0] to-cream py-20 dark:from-plum-dark/40 dark:via-background dark:to-background",
+                "reveal-on-view relative isolate scroll-mt-24 overflow-hidden bg-linear-to-br from-blush-light via-[#fbeef0] to-petal py-20 dark:from-plum-dark/40 dark:via-background dark:to-background",
                 isVisible && "is-visible",
             )}
         >

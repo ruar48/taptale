@@ -51,9 +51,16 @@ export default function StorefrontLayout({
 }: {
     children: ReactNode;
 }) {
+    const isHome = usePage().component === 'storefront/home';
+
     return (
-        <div className="flex min-h-screen flex-col bg-cream text-charcoal dark:bg-background dark:text-foreground">
-            <SiteHeader />
+        <div
+            className={cn(
+                'flex min-h-screen flex-col text-charcoal dark:bg-background dark:text-foreground',
+                isHome ? 'bg-petal' : 'bg-cream',
+            )}
+        >
+            <SiteHeader isHome={isHome} />
             <main className="flex-1">{children}</main>
             <SiteFooter />
             <CookieNotice />
@@ -61,13 +68,19 @@ export default function StorefrontLayout({
     );
 }
 
-function SiteHeader() {
+/** On the homepage the bar takes the hero photo's pink so the page reads as one colour. */
+function SiteHeader({ isHome }: { isHome: boolean }) {
     const { auth, navCategories } = usePage().props;
     const [open, setOpen] = useState(false);
     const user = auth?.user;
 
     return (
-        <header className="sticky top-0 z-40 border-b border-plum/10 bg-cream/85 backdrop-blur-xl dark:border-border dark:bg-background/85">
+        <header
+            className={cn(
+                'sticky top-0 z-40 border-b border-plum/10 backdrop-blur-xl dark:border-border dark:bg-background/85',
+                isHome ? 'bg-petal/85' : 'bg-cream/85',
+            )}
+        >
             <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 sm:px-6 lg:h-20 lg:px-8">
                 <Link
                     href={home()}

@@ -24,6 +24,8 @@
     --color-blush-light: #f4e3e3;
     --color-cream: #f8f3ed;
     --color-cream-dark: #efe6dc;
+    /* The soft pink of the homepage hero photo; the homepage is painted in it instead of cream */
+    --color-petal: #fbe9e6;
     --color-charcoal: #343039;
 
     --animate-float: float 6s ease-in-out infinite;

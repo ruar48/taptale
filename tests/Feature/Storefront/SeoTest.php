@@ -35,7 +35,7 @@ test('the homepage tells search engines which towns the shop delivers to', funct
         ->assertOk()
         ->assertSee('<title>Taptale | NFC Keychains &amp; Photo Gifts in Binalonan</title>', false)
         ->assertSee('Delivery in Binalonan &amp; nearby', false)
-        ->assertSee('<li class="rounded-full bg-white/80 px-3 py-1 text-sm text-plum dark:bg-background dark:text-blush">Urdaneta City</li>', false)
+        ->assertSee('<li class="inline-flex items-center gap-1 rounded-full border border-plum/10 bg-blush-light/70 px-3.5 py-1.5 text-sm text-plum-dark dark:border-border dark:bg-background dark:text-blush">Urdaneta City</li>', false)
         ->assertSee('href="'.route('pages.shipping').'"', false)
         ->assertSee('"@type":"Store"', false)
         ->assertSee('"addressLocality":"Binalonan"', false)
