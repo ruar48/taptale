@@ -248,6 +248,8 @@ export function ExperienceEditor({
     const keptPhotos = experience.photos.filter(
         (photo) => !data.remove_photos.includes(photo.index),
     );
+    // The cover picked on the page itself, or else the first photo.
+    const coverIndex = experience.photo_frames?.hero_photo?.[0] ?? 0;
     const photoError = Object.entries(errors).find(([key]) =>
         key.startsWith("new_photos"),
     )?.[1];
@@ -830,7 +832,7 @@ export function ExperienceEditor({
                             {experience.photos.length > 0 && (
                                 <ul className="mb-4 grid grid-cols-4 gap-3 sm:grid-cols-6">
                                     {experience.photos.map(
-                                        (photo, position) => {
+                                        (photo) => {
                                             const removing =
                                                 data.remove_photos.includes(
                                                     photo.index,
@@ -856,7 +858,8 @@ export function ExperienceEditor({
                                                                     "opacity-30 grayscale",
                                                             )}
                                                         />
-                                                        {position === 0 &&
+                                                        {photo.index ===
+                                                            coverIndex &&
                                                             !removing && (
                                                                 <span className="absolute top-1 left-1 rounded-full bg-plum px-1.5 py-0.5 text-[9px] font-semibold text-white">
                                                                     Cover

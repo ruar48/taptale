@@ -149,8 +149,8 @@ function ScrollHint() {
 }
 
 function HeroPhoto() {
-    const { experience, photoAt } = useExperience();
-    const cover = photoAt(0);
+    const { experience, framePhotos } = useExperience();
+    const [cover = null] = framePhotos('hero_photo');
 
     return (
         <section
@@ -207,6 +207,7 @@ function HeroPhoto() {
                 {!cover && (
                     <AddPhotoButton
                         label="Add a cover photo"
+                        frame={{ section: 'hero_photo', index: 0 }}
                         className="mt-8 inline-block"
                     />
                 )}
@@ -311,7 +312,8 @@ function HeroDoily() {
 }
 
 function Note() {
-    const { experience, preset, photoAt, editable } = useExperience();
+    const { experience, preset, framePhotos, editable } = useExperience();
+    const [photo = null] = framePhotos('note');
     const parts = paragraphs(experience.message);
 
     if (parts.length === 0 && !editable) {
@@ -323,9 +325,10 @@ function Note() {
             <div className="grid items-center gap-10 md:grid-cols-[0.9fr_1.1fr]">
                 <Reveal>
                     <Polaroid
-                        src={photoAt(0)}
+                        src={photo}
                         rotate={-4}
                         className="mx-auto w-64 sm:w-72"
+                        frame={{ section: 'note', index: 0 }}
                     />
                 </Reveal>
                 <Reveal delay={150}>
@@ -362,7 +365,8 @@ function Note() {
 }
 
 function LetterCard() {
-    const { experience, photoAt, editable } = useExperience();
+    const { experience, framePhotos, editable } = useExperience();
+    const [first = null, second = null] = framePhotos('letter_card');
     const parts = paragraphs(experience.message);
 
     if (parts.length === 0 && !editable) {
@@ -374,8 +378,9 @@ function LetterCard() {
             <div className="grid items-center gap-6 md:grid-cols-[1fr_1.3fr_1fr]">
                 <Reveal className="hidden md:block">
                     <PhotoFill
-                        src={photoAt(1)}
+                        src={first}
                         className="aspect-[3/4] w-full -rotate-3 rounded-2xl shadow-xl"
+                        frame={{ section: 'letter_card', index: 0 }}
                     />
                 </Reveal>
                 <Reveal delay={120}>
@@ -416,12 +421,14 @@ function LetterCard() {
                 </Reveal>
                 <Reveal delay={240} className="grid grid-cols-2 gap-4 md:block">
                     <PhotoFill
-                        src={photoAt(1)}
+                        src={first}
                         className="aspect-[3/4] w-full rotate-2 rounded-2xl shadow-xl md:hidden"
+                        frame={{ section: 'letter_card', index: 0 }}
                     />
                     <PhotoFill
-                        src={photoAt(2)}
+                        src={second}
                         className="aspect-[3/4] w-full rotate-3 rounded-2xl shadow-xl"
+                        frame={{ section: 'letter_card', index: 1 }}
                     />
                 </Reveal>
             </div>
@@ -430,7 +437,8 @@ function LetterCard() {
 }
 
 function LetterPaper() {
-    const { experience, photoAt, editable } = useExperience();
+    const { experience, framePhotos, editable } = useExperience();
+    const [photo = null] = framePhotos('letter_paper');
     const parts = paragraphs(experience.message);
 
     if (parts.length === 0 && !editable) {
@@ -449,10 +457,11 @@ function LetterPaper() {
                         }}
                     >
                         <Polaroid
-                            src={photoAt(3)}
+                            src={photo}
                             rotate={2}
                             tape
                             className="mx-auto w-48"
+                            frame={{ section: 'letter_paper', index: 0 }}
                         />
                         <div className="mt-6 flex justify-center gap-1 text-[#D04A6B]">
                             {[0, 1, 2].map((index) => (
@@ -565,11 +574,17 @@ export function PolaroidConnector({
 }
 
 function PolaroidWall() {
-    const { experience, preset, moments, photos, editable } = useExperience();
+    const { experience, preset, moments, framePhotos, editable } =
+        useExperience();
+    /*
+     * The page's moments, or else the wall's own frames. Visitors only see
+     * the frames that hold a photo.
+     */
     const items: {
         src: string | null;
         caption: string | null;
         moment?: number;
+        frame?: number;
     }[] =
         moments.length > 0
             ? moments.map((moment, index) => ({
@@ -577,11 +592,13 @@ function PolaroidWall() {
                   caption: moment.title ?? moment.date,
                   moment: index,
               }))
-            : photos.map((src) => ({ src, caption: null }));
+            : framePhotos('polaroid_wall')
+                  .map((src, index) => ({ src, caption: null, frame: index }))
+                  .filter((item) => editable || item.src);
 
     if (editable && moments.length === 0) {
         while (items.length < 4 || items.length % 4 !== 0) {
-            items.push({ src: null, caption: null });
+            items.push({ src: null, caption: null, frame: items.length });
         }
     }
 
@@ -623,6 +640,14 @@ function PolaroidWall() {
                                 caption={item.caption}
                                 rotate={ROTATIONS[index % ROTATIONS.length]}
                                 moment={item.moment}
+                                frame={
+                                    item.frame !== undefined
+                                        ? {
+                                              section: 'polaroid_wall',
+                                              index: item.frame,
+                                          }
+                                        : undefined
+                                }
                             />
                         </div>
                     </Reveal>
@@ -633,13 +658,18 @@ function PolaroidWall() {
 }
 
 function FilmStrip() {
-    const { experience, preset, photos, photoAt, openPhoto } = useExperience();
-    const frames = Array.from(
-        { length: Math.max(3, Math.min(photos.length, 6)) },
-        (_, index) => photoAt(index),
-    );
+    const { experience, preset, framePhotos, openPhoto, editable } =
+        useExperience();
+    // Visitors only see the frames that hold a photo.
+    const frames = framePhotos('film_strip')
+        .map((src, index) => ({ src, index }))
+        .filter((frame) => editable || frame.src);
     const sprockets =
         'repeating-linear-gradient(90deg, transparent 0 10px, #F5F0E8 10px 22px, transparent 22px 34px)';
+
+    if (frames.length === 0) {
+        return null;
+    }
 
     return (
         <SectionShell>
@@ -660,15 +690,16 @@ function FilmStrip() {
                             }}
                         />
                         <div className="flex gap-3">
-                            {frames.map((src, index) => (
+                            {frames.map(({ src, index }, position) => (
                                 <div key={index} className="w-44 sm:w-56">
                                     <p className="mb-1 flex justify-between font-mono text-[9px] tracking-widest text-[#E8A33D]">
                                         <span>TAPTALE 400</span>
-                                        <span>{index + 1}A</span>
+                                        <span>{position + 1}A</span>
                                     </p>
                                     <PhotoFill
                                         src={src}
                                         className="aspect-[4/3] w-full"
+                                        frame={{ section: 'film_strip', index }}
                                         onClick={
                                             src
                                                 ? () => openPhoto(src)
@@ -1045,7 +1076,8 @@ function SongSection() {
 }
 
 function PlayerSection() {
-    const { experience, photoAt } = useExperience();
+    const { experience, framePhotos, editable } = useExperience();
+    const [cover = null] = framePhotos('player');
     const { available, playing, toggle } = useExperienceAudio();
     const embed = embedFor(experience.music_url);
     const lines = (experience.message ?? '')
@@ -1055,18 +1087,22 @@ function PlayerSection() {
 
     return (
         <section className="relative flex min-h-[100svh] items-center justify-center overflow-hidden px-5 py-16">
-            <PhotoFill
-                src={photoAt(0)}
-                className="absolute inset-0 size-full scale-125 opacity-40 blur-3xl"
-            />
+            {/* The empty album art below is where the owner adds the photo. */}
+            {(cover || !editable) && (
+                <PhotoFill
+                    src={cover}
+                    className="absolute inset-0 size-full scale-125 opacity-40 blur-3xl"
+                />
+            )}
             <Reveal className="relative w-full max-w-sm">
                 <p className="mb-6 text-center font-script text-4xl sm:text-5xl">
                     {experience.title}
                 </p>
                 <div className="rounded-[2rem] bg-black/35 p-6 shadow-2xl backdrop-blur-xl">
                     <PhotoFill
-                        src={photoAt(0)}
+                        src={cover}
                         className="aspect-square w-full rounded-2xl shadow-lg"
+                        frame={{ section: 'player', index: 0 }}
                     />
                     <div className="mt-5 flex items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -1156,9 +1192,16 @@ function PlayerSection() {
 }
 
 function Scrapbook() {
-    const { experience, photoAt, photos } = useExperience();
+    const { experience, framePhotos, editable } = useExperience();
     const stickers = [Heart, Star, Flower2, Sparkles];
-    const count = Math.max(4, Math.min(photos.length, 6));
+    // Visitors only see the frames that hold a photo.
+    const frames = framePhotos('scrapbook')
+        .map((src, index) => ({ src, index }))
+        .filter((frame) => editable || frame.src);
+
+    if (frames.length === 0 && !experience.quote && !editable) {
+        return null;
+    }
 
     return (
         <SectionShell>
@@ -1172,18 +1215,23 @@ function Scrapbook() {
                         backgroundSize: '36px 36px',
                     }}
                 >
-                    <div className="grid grid-cols-2 gap-5 sm:grid-cols-3">
-                        {Array.from({ length: count }, (_, index) => (
-                            <Polaroid
-                                key={index}
-                                src={photoAt(index)}
-                                rotate={
-                                    ROTATIONS[(index + 3) % ROTATIONS.length]
-                                }
-                                tape={index % 2 === 0}
-                            />
-                        ))}
-                    </div>
+                    {frames.length > 0 && (
+                        <div className="grid grid-cols-2 gap-5 sm:grid-cols-3">
+                            {frames.map(({ src, index }, position) => (
+                                <Polaroid
+                                    key={index}
+                                    src={src}
+                                    rotate={
+                                        ROTATIONS[
+                                            (position + 3) % ROTATIONS.length
+                                        ]
+                                    }
+                                    tape={position % 2 === 0}
+                                    frame={{ section: 'scrapbook', index }}
+                                />
+                            ))}
+                        </div>
+                    )}
                     {stickers.map((Sticker, index) => (
                         <Sticker
                             key={index}

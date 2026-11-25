@@ -23,9 +23,18 @@ import {
 import {
     AddSectionButton,
     CustomSection,
+    sharedSectionOf,
 } from "@/components/taptale/experience/custom-sections";
 import type { FlowersOption } from "@/components/taptale/experience/custom-sections";
 import { Gate } from "@/components/taptale/experience/gates";
+import {
+    isPhotoFrameSection,
+    layoutPhotoFrames,
+} from "@/components/taptale/experience/photo-frames";
+import type {
+    PhotoFrame,
+    PhotoFrameSection,
+} from "@/components/taptale/experience/photo-frames";
 import { RecipientActions } from "@/components/taptale/experience/recipient-actions";
 import {
     ExperienceSection,
@@ -153,22 +162,60 @@ export default function Experience({
         );
 
     /*
-     * Visitors see photos repeat so every frame is filled. Whoever edits
-     * the page sees empty frames instead, so they can tap one and add a
-     * picture.
+     * The design's sections with photo frames, in page order. The polaroid
+     * wall shows the page's moments instead when it has some.
      */
-    const photoAt = (index: number): string | null => {
-        if (editable) {
-            return photos[index] ?? null;
-        }
+    const frameSections = preset.sections
+        .flatMap((section, index) => [
+            section,
+            ...customSectionsAt(index + 1).flatMap(
+                (customSection) => sharedSectionOf(customSection.type) ?? [],
+            ),
+        ])
+        .filter(isPhotoFrameSection)
+        .filter(
+            (section) =>
+                section !== "polaroid_wall" || experience.moments.length === 0,
+        );
 
-        return photos.length > 0 ? photos[index % photos.length] : null;
-    };
+    /*
+     * Each frame shows its own photo, never one already shown in another
+     * frame, a moment or an extra section. Empty frames are where whoever
+     * edits the page taps to add a picture.
+     */
+    const frameLayout = layoutPhotoFrames({
+        sections: frameSections,
+        photoCount: photos.length,
+        chosen: experience.photo_frames ?? {},
+        placed: [
+            ...experience.moments.map((moment) => moment.photo),
+            ...(experience.custom_sections ?? []).flatMap((customSection) =>
+                customSection.slots.map((slot) => slot.photo),
+            ),
+        ],
+    });
 
-    const addPhotos = (files: File[], moment?: number, slot?: PhotoSlot) => {
+    const framePhotos = (section: PhotoFrameSection): (string | null)[] =>
+        (frameLayout[section] ?? []).map((photo) =>
+            photo !== null ? (photos[photo] ?? null) : null,
+        );
+
+    const coverPhoto =
+        frameSections
+            .map((section) => framePhotos(section).find(Boolean))
+            .find(Boolean) ??
+        photos[0] ??
+        null;
+
+    const addPhotos = (
+        files: File[],
+        moment?: number,
+        slot?: PhotoSlot,
+        frame?: PhotoFrame,
+    ) => {
         if (isDemo) {
             if (!draft.processing) {
-                void draft.addPhotos(files, moment, slot);
+                void draft.addPhotos(files, moment, slot, frame);
             }
 
             return;
@@ -184,6 +231,9 @@ export default function Experience({
                 photos: files,
                 ...(moment !== undefined ? { moment } : {}),
                 ...(slot ? { section: slot.section, slot: slot.slot } : {}),
+                ...(frame
+                    ? { frame: frame.section, frame_index: frame.index }
+                    : {}),
             },
             {
                 forceFormData: true,
@@ -379,7 +429,8 @@ export default function Experience({
                 preset,
                 theme,
                 photos,
-                photoAt,
+                framePhotos,
+                coverPhoto,
                 moments: experience.moments,
                 openPhoto: setLightbox,
                 editable,

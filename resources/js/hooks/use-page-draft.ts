@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import type { PhotoFrame } from '@/components/taptale/experience/photo-frames';
 import type {
     PhotoSlot,
     SectionActions,
@@ -57,6 +58,7 @@ function withDefaults(content: PageDraftContent): PageDraftContent {
         ...content,
         flower_addon: content.flower_addon ?? false,
         custom_sections: content.custom_sections ?? [],
+        photo_frames: content.photo_frames ?? {},
     };
 }
 
@@ -331,6 +333,7 @@ export function usePageDraft(
         files: File[],
         moment?: number,
         slot?: PhotoSlot,
+        frame?: PhotoFrame,
     ) => {
         const room = maxPhotos - photoFiles.length;
 
@@ -368,6 +371,23 @@ export function usePageDraft(
                         : entry,
                 ),
             }));
+        }
+
+        if (frame) {
+            const frames = [...(current.photo_frames[frame.section] ?? [])];
+
+            while (frames.length < frame.index) {
+                frames.push(null);
+            }
+
+            frames[frame.index] = firstIndex;
+            store({
+                ...current,
+                photo_frames: {
+                    ...current.photo_frames,
+                    [frame.section]: frames,
+                },
+            });
         }
     };
 

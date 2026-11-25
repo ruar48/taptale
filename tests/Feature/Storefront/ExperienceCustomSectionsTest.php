@@ -25,8 +25,8 @@ function timelineSection(string $id = 'abc12345', ?array $slots = null): array
     ];
 }
 
-test('the owner adds a section in the chosen style between the template sections', function (string $type, int $slots) {
-    $experience = DigitalExperience::factory()->create();
+test('the owner adds a section in the chosen style between the template sections', function (string $type, int $slots, string $template = 'classic') {
+    $experience = DigitalExperience::factory()->create(['template' => $template]);
 
     $this->actingAs($experience->user)
         ->from(route('experiences.show', $experience))
@@ -49,11 +49,71 @@ test('the owner adds a section in the chosen style between the template sections
     'polaroid timeline' => ['timeline', 4],
     'film strip' => ['film_strip', 3],
     'scrapbook board' => ['scrapbook', 4],
-    'photo album' => ['album', 6],
+    'photo album' => ['album', 6, 'anniversary'],
     'text note' => ['note', 0],
     'story timeline from the page designs' => ['story_timeline', 0],
     'love letter from the page designs' => ['letter', 0],
 ]);
+
+test('a section already on the page cannot be added again', function (string $template, array $added, string $type) {
+    $experience = DigitalExperience::factory()->create([
+        'template' => $template,
+        'custom_sections' => $added,
+    ]);
+
+    $this->actingAs($experience->user)
+        ->post(route('account.experiences.sections.store', $experience), ['position' => 1, 'type' => $type])
+        ->assertSessionHasErrors(['type' => 'This section is already on your page.']);
+
+    expect($experience->fresh()->custom_sections)->toBe($added);
+})->with([
+    'a story timeline on a design with a timeline' => ['anniversary', [], 'story_timeline'],
+    'a film strip on a design with one' => ['monthsary', [], 'film_strip'],
+    'a polaroid timeline on a design with a polaroid wall' => ['monthsary', [], 'timeline'],
+    'a photo album on a design with a gallery' => ['classic', [], 'album'],
+    'a polaroid wall already added as a polaroid timeline' => ['classic', [timelineSection()], 'polaroid_wall'],
+]);
+
+test('text notes can be added more than once', function () {
+    $experience = DigitalExperience::factory()->create([
+        'custom_sections' => [[...timelineSection(slots: []), 'type' => 'note']],
+    ]);
+
+    $this->actingAs($experience->user)
+        ->post(route('account.experiences.sections.store', $experience), ['position' => 1, 'type' => 'note'])
+        ->assertSessionHasNoErrors();
+
+    expect($experience->fresh()->custom_sections)->toHaveCount(2);
+});
+
+test('a section can only switch to a style that is not on the page yet', function () {
+    $experience = DigitalExperience::factory()->create([
+        'template' => 'monthsary',
+        'custom_sections' => [[...timelineSection(slots: []), 'type' => 'note']],
+    ]);
+
+    $this->actingAs($experience->user)
+        ->patch(route('account.experiences.sections.update', [$experience, 'abc12345']), ['type' => 'film_strip'])
+        ->assertSessionHasErrors(['type' => 'This section is already on your page.']);
+
+    expect($experience->fresh()->custom_sections[0]['type'])->toBe('note');
+
+    $this->actingAs($experience->user)
+        ->patch(route('account.experiences.sections.update', [$experience, 'abc12345']), ['type' => 'countdown'])
+        ->assertSessionHasNoErrors();
+
+    expect($experience->fresh()->custom_sections[0]['type'])->toBe('countdown');
+});
+
+test('a section can switch to the design section it already looks like', function () {
+    $experience = DigitalExperience::factory()->create(['custom_sections' => [timelineSection()]]);
+
+    $this->actingAs($experience->user)
+        ->patch(route('account.experiences.sections.update', [$experience, 'abc12345']), ['type' => 'polaroid_wall'])
+        ->assertSessionHasNoErrors();
+
+    expect($experience->fresh()->custom_sections[0]['type'])->toBe('polaroid_wall');
+});
 
 test('flowers can only be placed on a page that bought them', function () {
     $experience = DigitalExperience::factory()->create(['template' => 'anniversary']);
@@ -130,6 +190,7 @@ test('the owner switches a section to another style and keeps its photos', funct
 
 test('a note switched to a photo style gets empty photo slots', function () {
     $experience = DigitalExperience::factory()->create([
+        'template' => 'anniversary',
         'custom_sections' => [[...timelineSection(slots: []), 'type' => 'note']],
     ]);
 

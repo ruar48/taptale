@@ -52,6 +52,7 @@ use Illuminate\Support\Str;
  * @property list<string>|null $rain_photos Photos that rain down over the flowers, apart from the page photos
  * @property list<array{date?: string|null, title?: string|null, caption?: string|null, photo?: int|null}>|null $moments
  * @property list<array{id: string, type: string, position: int, title: string|null, text?: string|null, background: string|null, slots: list<array{photo: int|null, caption: string|null}>}>|null $custom_sections
+ * @property array<string, list<int|null>>|null $photo_frames The photo the owner put in each frame of the page design's sections (see PHOTO_FRAMES)
  * @property string $theme
  * @property string|null $nfc_tag_uid Chip ID of the genuine tag, saved by an admin or on its first mirrored tap
  * @property int|null $nfc_tap_counter Last tap count the genuine tag reported; once set, only that tag opens the page through the tag link
@@ -65,7 +66,7 @@ use Illuminate\Support\Str;
 #[RouteKey('code')]
 #[Fillable([
     'template', 'title', 'subtitle', 'recipient_name', 'sender_name', 'message', 'quote', 'flowers_note', 'flower_style', 'flower_rain', 'flower_addon',
-    'photo_rain_layer', 'event_date', 'video_url', 'video_path', 'video_frame', 'video_background', 'music_url', 'song_title', 'song_artist', 'song_ornament', 'song_background', 'photos', 'rain_photos', 'moments', 'custom_sections', 'theme',
+    'photo_rain_layer', 'event_date', 'video_url', 'video_path', 'video_frame', 'video_background', 'music_url', 'song_title', 'song_artist', 'song_ornament', 'song_background', 'photos', 'rain_photos', 'moments', 'custom_sections', 'photo_frames', 'theme',
     'nfc_tag_uid', 'is_published', 'unlocks_at',
 ])]
 class DigitalExperience extends Model
@@ -111,6 +112,23 @@ class DigitalExperience extends Model
      * Maximum number of photo slots in one extra section.
      */
     public const MAX_SECTION_SLOTS = 12;
+
+    /**
+     * Sections of the page designs with their own photo frames, and the most
+     * frames each one shows (mirrors photo-frames.ts).
+     *
+     * @var array<string, int>
+     */
+    public const PHOTO_FRAMES = [
+        'hero_photo' => 1,
+        'note' => 1,
+        'letter_card' => 2,
+        'letter_paper' => 1,
+        'player' => 1,
+        'film_strip' => 6,
+        'scrapbook' => 6,
+        'polaroid_wall' => 12,
+    ];
 
     /**
      * Visual themes for the public experience page.
@@ -190,6 +208,7 @@ class DigitalExperience extends Model
             'rain_photos' => 'array',
             'moments' => 'array',
             'custom_sections' => 'array',
+            'photo_frames' => 'array',
             'song_details' => 'array',
             'is_published' => 'boolean',
             'unlocks_at' => 'datetime',
@@ -209,6 +228,36 @@ class DigitalExperience extends Model
         } while (static::where('code', $code)->exists());
 
         return $code;
+    }
+
+    /**
+     * Photo frames of the page design's sections, keeping only known
+     * sections and frames, with each photo moved to its new position (or
+     * emptied when the photo is gone).
+     *
+     * @param  callable(int): (int|null)  $newIndex
+     * @return array<string, list<int|null>>
+     */
+    public static function photoFramesFrom(mixed $frames, callable $newIndex): array
+    {
+        if (! is_array($frames)) {
+            return [];
+        }
+
+        $kept = [];
+
+        foreach (self::PHOTO_FRAMES as $section => $count) {
+            if (! is_array($frames[$section] ?? null)) {
+                continue;
+            }
+
+            $kept[$section] = array_map(
+                fn (mixed $photo): ?int => is_numeric($photo) ? $newIndex((int) $photo) : null,
+                array_slice(array_values($frames[$section]), 0, $count),
+            );
+        }
+
+        return $kept;
     }
 
     /**

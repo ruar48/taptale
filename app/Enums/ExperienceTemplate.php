@@ -93,6 +93,33 @@ enum ExperienceTemplate: string
     }
 
     /**
+     * The sections the design shows, in order (mirrors EXPERIENCE_PRESETS in config.ts).
+     *
+     * @return list<string>
+     */
+    public function sections(): array
+    {
+        return match ($this) {
+            self::Monthsary => ['hero_photo', 'letter_card', 'polaroid_wall', 'film_strip', 'letter_paper', 'scrapbook', 'song', 'quote', 'closing'],
+            self::Birthday => ['hero_photo', 'note', 'polaroid_wall', 'gallery', 'song', 'video', 'quote', 'closing'],
+            self::LoveStory => ['note', 'timeline', 'quote', 'gallery', 'song', 'closing'],
+            self::LittleSomething => ['hero_script', 'gifts', 'letter_paper', 'quote', 'closing'],
+            self::DigitalBouquet => ['bouquet', 'letter_paper', 'gallery', 'song', 'quote', 'closing'],
+            self::GirlfriendsDay => ['hero_doily', 'letter_paper', 'scrapbook', 'film_strip', 'song', 'closing'],
+            self::Valentines => ['hero_script', 'letter_card', 'polaroid_wall', 'song', 'quote', 'closing'],
+            self::Apology => ['hero_script', 'letter_paper', 'gallery', 'quote', 'closing'],
+            self::OurSong => ['player', 'letter_card', 'gallery', 'quote', 'closing'],
+            self::Anniversary => ['hero_photo', 'film_strip', 'timeline', 'letter_paper', 'song', 'closing'],
+            self::Wedding => ['hero_photo', 'note', 'countdown', 'timeline', 'gallery', 'video', 'song', 'quote', 'closing'],
+            self::SaveTheDate => ['hero_script', 'countdown', 'details', 'gallery', 'closing'],
+            self::Bestie => ['hero_script', 'scrapbook', 'film_strip', 'polaroid_wall', 'letter_card', 'song', 'closing'],
+            self::Family => ['hero_photo', 'note', 'gallery', 'quote', 'closing'],
+            self::Graduation => ['hero_photo', 'note', 'polaroid_wall', 'gallery', 'quote', 'closing'],
+            self::Classic => ['hero_script', 'gallery', 'note', 'video', 'song', 'closing'],
+        };
+    }
+
+    /**
      * The flowers and rain a former flower design showed. Those designs are
      * now options of the single bouquet template, and their old demo links
      * redirect to it with the same look.

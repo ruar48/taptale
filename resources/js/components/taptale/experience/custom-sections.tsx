@@ -55,6 +55,8 @@ const MAX_SLOTS = 12;
  * The section styles an owner can insert, in the order the picker shows them.
  * Styles with `shared` are the sections of the page designs themselves: they
  * show the page's own words, photos and moments rather than their own.
+ * Styles with `looksLike` have their own photos but look just like that
+ * design section, so a page shows either one, once.
  */
 const SECTION_STYLES: {
     type: ExperienceSectionType;
@@ -63,6 +65,7 @@ const SECTION_STYLES: {
     titlePlaceholder: string;
     icon: ComponentType<{ className?: string }>;
     shared?: SectionKey;
+    looksLike?: SectionKey;
 }[] = [
     {
         type: "timeline",
@@ -70,6 +73,7 @@ const SECTION_STYLES: {
         description: "Polaroids joined by a dashed line, each with a caption.",
         titlePlaceholder: "Our moments together",
         icon: Route,
+        looksLike: "polaroid_wall",
     },
     {
         type: "film_strip",
@@ -77,6 +81,7 @@ const SECTION_STYLES: {
         description: "Your photos on a vintage film roll with a caption.",
         titlePlaceholder: "My favorite person",
         icon: Film,
+        looksLike: "film_strip",
     },
     {
         type: "scrapbook",
@@ -84,6 +89,7 @@ const SECTION_STYLES: {
         description: "Taped photos on a gingham board with a sweet line.",
         titlePlaceholder: "Our little scrapbook",
         icon: BookHeart,
+        looksLike: "scrapbook",
     },
     {
         type: "album",
@@ -91,6 +97,7 @@ const SECTION_STYLES: {
         description: "A simple grid that shows off lots of photos.",
         titlePlaceholder: "Our album",
         icon: LayoutGrid,
+        looksLike: "gallery",
     },
     {
         type: "note",
@@ -169,6 +176,44 @@ function styleFor(type: ExperienceSectionType) {
     return (
         SECTION_STYLES.find((style) => style.type === type) ?? SECTION_STYLES[0]
     );
+}
+
+/** The page design section an extra section of this style shows, if any. */
+export function sharedSectionOf(
+    type: ExperienceSectionType,
+): SectionKey | undefined {
+    return SECTION_STYLES.find((style) => style.type === type)?.shared;
+}
+
+/** The design section a style shows or looks like; text notes have none. */
+function designSectionOf(type: ExperienceSectionType): SectionKey | undefined {
+    const style = SECTION_STYLES.find((item) => item.type === type);
+
+    return style?.shared ?? style?.looksLike;
+}
+
+/**
+ * Design sections already on the page, from its design or its extra
+ * sections (leaving out the one being changed), so each shows only once.
+ */
+function useSectionsOnPage(exceptId?: string): Set<SectionKey> {
+    const { experience, preset } = useExperience();
+
+    return new Set([
+        ...preset.sections,
+        ...(experience.custom_sections ?? [])
+            .filter((section) => section.id !== exceptId)
+            .flatMap((section) => designSectionOf(section.type) ?? []),
+    ]);
+}
+
+function isOnPage(
+    type: ExperienceSectionType,
+    sectionsOnPage: Set<SectionKey>,
+): boolean {
+    const designSection = designSectionOf(type);
+
+    return designSection !== undefined && sectionsOnPage.has(designSection);
 }
 
 /** Ready-made background colors offered next to the free color picker. */
@@ -608,6 +653,7 @@ function SectionToolbar({
     onPreviewBackground: (color: string | null) => void;
 }) {
     const { experience, sectionActions } = useExperience();
+    const sectionsOnPage = useSectionsOnPage(section.id);
     const colorInput = useRef<HTMLInputElement>(null);
     const url = ExperienceSectionController.update.url({
         experience: experience.code,
@@ -691,11 +737,22 @@ function SectionToolbar({
                     }
                     className="rounded-full border border-[#E4D8CE] bg-white py-1 pr-7 pl-2.5 text-xs font-medium"
                 >
-                    {SECTION_STYLES.map((style) => (
-                        <option key={style.type} value={style.type}>
-                            {style.label}
-                        </option>
-                    ))}
+                    {SECTION_STYLES.map((style) => {
+                        const isTaken =
+                            style.type !== section.type &&
+                            isOnPage(style.type, sectionsOnPage);
+
+                        return (
+                            <option
+                                key={style.type}
+                                value={style.type}
+                                disabled={isTaken}
+                            >
+                                {style.label}
+                                {isTaken && " (already on your page)"}
+                            </option>
+                        );
+                    })}
                 </select>
             </label>
 
@@ -808,6 +865,7 @@ export function AddSectionButton({
     flowers?: FlowersOption;
 }) {
     const { experience, sectionActions } = useExperience();
+    const sectionsOnPage = useSectionsOnPage();
     const [picking, setPicking] = useState(false);
     const [adding, setAdding] = useState(false);
 
@@ -849,6 +907,7 @@ export function AddSectionButton({
                 <SectionPicker
                     adding={adding}
                     flowers={flowers}
+                    sectionsOnPage={sectionsOnPage}
                     onPick={add}
                     onClose={() => !adding && setPicking(false)}
                 />
@@ -860,11 +919,14 @@ export function AddSectionButton({
 function SectionPicker({
     adding,
     flowers,
+    sectionsOnPage,
     onPick,
     onClose,
 }: {
     adding: boolean;
     flowers: FlowersOption;
+    /** Design sections already on the page; their styles can't be added again. */
+    sectionsOnPage: Set<SectionKey>;
     onPick: (type: ExperienceSectionType) => void;
     onClose: () => void;
 }) {
@@ -936,27 +998,36 @@ function SectionPicker({
                             {group.heading}
                         </p>
                         <div className="grid gap-2 sm:grid-cols-2">
-                            {group.styles.map((style) => (
-                                <button
-                                    key={style.type}
-                                    type="button"
-                                    disabled={adding}
-                                    onClick={() => onPick(style.type)}
-                                    className="flex items-start gap-3 rounded-2xl border border-[#E4D8CE] p-3 text-left transition hover:border-[#B86F83] hover:bg-[#FBF3EE] disabled:opacity-50"
-                                >
-                                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#FBE3E6] text-[#B23A62]">
-                                        <style.icon className="size-4" />
-                                    </span>
-                                    <span>
-                                        <span className="block text-sm font-semibold">
-                                            {style.label}
+                            {group.styles.map((style) => {
+                                const isTaken = isOnPage(
+                                    style.type,
+                                    sectionsOnPage,
+                                );
+
+                                return (
+                                    <button
+                                        key={style.type}
+                                        type="button"
+                                        disabled={adding || isTaken}
+                                        onClick={() => onPick(style.type)}
+                                        className="flex items-start gap-3 rounded-2xl border border-[#E4D8CE] p-3 text-left transition enabled:hover:border-[#B86F83] enabled:hover:bg-[#FBF3EE] disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#FBE3E6] text-[#B23A62]">
+                                            <style.icon className="size-4" />
                                         </span>
-                                        <span className="mt-0.5 block text-xs text-[#776D75]">
-                                            {style.description}
+                                        <span>
+                                            <span className="block text-sm font-semibold">
+                                                {style.label}
+                                            </span>
+                                            <span className="mt-0.5 block text-xs text-[#776D75]">
+                                                {isTaken
+                                                    ? "Already on your page"
+                                                    : style.description}
+                                            </span>
                                         </span>
-                                    </span>
-                                </button>
-                            ))}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
                 ))}

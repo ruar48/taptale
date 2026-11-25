@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -20,11 +21,15 @@ use Inertia\Inertia;
 class ExperiencePhotoController extends Controller
 {
     /**
-     * Add photos to the page, optionally attaching the first one to a moment.
+     * Add photos to the page, optionally putting the first one in a moment,
+     * an extra section's slot, or a frame of the page design's sections.
      */
     public function store(Request $request, DigitalExperience $experience, StoreExperiencePhoto $storePhoto): RedirectResponse
     {
         Gate::authorize('update', $experience);
+
+        $frameSection = $request->input('frame');
+        $frameCount = is_string($frameSection) ? (DigitalExperience::PHOTO_FRAMES[$frameSection] ?? 1) : 1;
 
         $validated = $request->validate([
             'photos' => ['required', 'array', 'min:1', 'max:10'],
@@ -32,6 +37,8 @@ class ExperiencePhotoController extends Controller
             'moment' => ['nullable', 'integer', 'min:0'],
             'section' => ['nullable', 'string', 'max:20'],
             'slot' => ['nullable', 'required_with:section', 'integer', 'min:0'],
+            'frame' => ['nullable', 'string', Rule::in(array_keys(DigitalExperience::PHOTO_FRAMES))],
+            'frame_index' => ['nullable', 'required_with:frame', 'integer', 'min:0', 'max:'.($frameCount - 1)],
         ], [
             'photos.required' => 'Please choose a photo to add.',
         ], [
@@ -66,10 +73,19 @@ class ExperiencePhotoController extends Controller
             }
         }
 
+        $frames = $experience->photo_frames ?? [];
+        $frame = $validated['frame'] ?? null;
+
+        if ($frame !== null && count($photos) > $firstNewIndex) {
+            $frames[$frame] = array_pad($frames[$frame] ?? [], $validated['frame_index'] + 1, null);
+            $frames[$frame][$validated['frame_index']] = $firstNewIndex;
+        }
+
         $experience->update([
             'photos' => $photos,
             'moments' => $moments,
             'custom_sections' => $sections,
+            'photo_frames' => $frames,
         ]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Photo added to your page.')]);

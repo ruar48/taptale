@@ -435,6 +435,31 @@ test('extra sections and raining photos made on a demo come with the order', fun
     Storage::disk('local')->assertExists($experience->rain_photos);
 });
 
+test('the photo put in each design frame on a demo comes with the order', function () {
+    $nfc = ProductOption::factory()->for($this->product)->group(OptionGroup::Nfc)->costing(15000)->create([
+        'enables_digital_experience' => true,
+    ]);
+
+    $this->actingAs($this->customer)->post(route('orders.store'), orderPayload($this, [
+        'option_ids' => [$this->small->id, $nfc->id],
+        'experience_template' => 'monthsary',
+        'page' => [
+            'title' => 'Six months',
+            'photo_frames' => [
+                'hero_photo' => [1],
+                'film_strip' => [null, 0],
+                'gallery' => [0],
+            ],
+        ],
+        'page_photos' => [UploadedFile::fake()->image('first.jpg'), UploadedFile::fake()->image('second.jpg')],
+    ]))->assertSessionHasNoErrors();
+
+    expect(Order::sole()->experience->photo_frames)->toBe([
+        'hero_photo' => [1],
+        'film_strip' => [null, 0],
+    ]);
+});
+
 test('the spot chosen for the flowers on a demo is kept only with the paid add-on', function (bool $flowerAddon, int $expectedSections) {
     $nfc = ProductOption::factory()->for($this->product)->group(OptionGroup::Nfc)->costing(15000)->create([
         'enables_digital_experience' => true,

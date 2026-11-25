@@ -232,6 +232,10 @@ class PlaceOrder
             ], $sections));
         }
 
+        if (is_array($page['photo_frames'] ?? null)) {
+            $content['photo_frames'] = DigitalExperience::photoFramesFrom($page['photo_frames'], fn (int $photo): int => $photo);
+        }
+
         return $content;
     }
 
@@ -357,6 +361,7 @@ class PlaceOrder
             'rain_photos' => $rainPaths,
             'moments' => $moments,
             'custom_sections' => $sections,
+            'photo_frames' => DigitalExperience::photoFramesFrom($experience->photo_frames, $storedIndex),
         ]);
     }
 

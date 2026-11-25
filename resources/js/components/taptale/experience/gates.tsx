@@ -53,8 +53,7 @@ function EnvelopeGate({
     opening: boolean;
     onOpen: () => void;
 }) {
-    const { experience, preset, photoAt } = useExperience();
-    const backdrop = photoAt(0);
+    const { experience, preset, coverPhoto: backdrop } = useExperience();
 
     return (
         <>

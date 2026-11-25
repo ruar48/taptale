@@ -82,6 +82,7 @@ class ExperienceController extends Controller
             'photos' => $photos,
             'moments' => $this->normalizeMoments($request->validated('moments', []), $photoIndexMap),
             'custom_sections' => $this->remapSectionPhotos($experience->custom_sections ?? [], $photoIndexMap),
+            'photo_frames' => DigitalExperience::photoFramesFrom($experience->photo_frames, fn (int $photo): ?int => $photoIndexMap[$photo] ?? null),
         ]);
         $experience->audio_path = $audioPath;
         $experience->save();

@@ -5,6 +5,10 @@ import type {
     ExperiencePreset,
     ExperienceTheme,
 } from '@/components/taptale/experience/config';
+import type {
+    PhotoFrame,
+    PhotoFrameSection,
+} from '@/components/taptale/experience/photo-frames';
 import { cn } from '@/lib/utils';
 import type {
     DigitalExperience,
@@ -41,13 +45,21 @@ export type ExperienceContextValue = {
     preset: ExperiencePreset;
     theme: ExperienceTheme;
     photos: string[];
-    photoAt: (index: number) => string | null;
+    /** The photo in each frame of a design section, in order (null is an empty frame). */
+    framePhotos: (section: PhotoFrameSection) => (string | null)[];
+    /** The photo behind the opening gate: the page's first framed photo. */
+    coverPhoto: string | null;
     moments: ExperienceMoment[];
     openPhoto: (url: string) => void;
     /** True when the owner is viewing: empty frames become "Add photo" buttons. */
     editable: boolean;
     uploading: boolean;
-    addPhotos: (files: File[], moment?: number, slot?: PhotoSlot) => void;
+    addPhotos: (
+        files: File[],
+        moment?: number,
+        slot?: PhotoSlot,
+        frame?: PhotoFrame,
+    ) => void;
     replacePhoto: (index: number, file: File) => void;
     saveText: (field: string, value: string) => Promise<boolean>;
     /** Demo drafts keep section changes locally; the owner's page saves them. */
@@ -259,6 +271,7 @@ export function Reveal({
 export function AddPhotoButton({
     moment,
     slot,
+    frame,
     multiple = false,
     label = 'Add photo',
     className,
@@ -266,6 +279,7 @@ export function AddPhotoButton({
 }: {
     moment?: number;
     slot?: PhotoSlot;
+    frame?: PhotoFrame;
     multiple?: boolean;
     label?: string;
     className?: string;
@@ -295,7 +309,7 @@ export function AddPhotoButton({
                     const files = Array.from(event.target.files ?? []);
 
                     if (files.length > 0) {
-                        context.addPhotos(files, moment, slot);
+                        context.addPhotos(files, moment, slot, frame);
                     }
 
                     event.target.value = '';
@@ -323,6 +337,7 @@ export function PhotoFill({
     onClick,
     moment,
     slot,
+    frame,
 }: {
     src: string | null;
     className?: string;
@@ -332,6 +347,8 @@ export function PhotoFill({
     moment?: number;
     /** Attach a photo added into this frame to an extra section's slot. */
     slot?: PhotoSlot;
+    /** Keep a photo added into this frame in a design section's frame. */
+    frame?: PhotoFrame;
 }) {
     const context = useContext(ExperienceContext);
 
@@ -340,6 +357,7 @@ export function PhotoFill({
             <AddPhotoButton
                 moment={moment}
                 slot={slot}
+                frame={frame}
                 className={cn(
                     'group/add relative isolate flex flex-col items-center justify-center gap-2 overflow-hidden border-2 border-dashed border-white/80 text-white transition hover:brightness-105',
                     className,
@@ -459,6 +477,7 @@ export function Polaroid({
     tape = false,
     moment,
     slot,
+    frame,
 }: {
     src: string | null;
     caption?: ReactNode;
@@ -467,6 +486,7 @@ export function Polaroid({
     tape?: boolean;
     moment?: number;
     slot?: PhotoSlot;
+    frame?: PhotoFrame;
 }) {
     const { openPhoto } = useExperience();
 
@@ -493,6 +513,7 @@ export function Polaroid({
                 onClick={src ? () => openPhoto(src) : undefined}
                 moment={moment}
                 slot={slot}
+                frame={frame}
             />
             {caption && (
                 <figcaption className="mt-2 truncate text-center font-display text-sm text-[#3A2A2A] italic">

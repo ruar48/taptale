@@ -336,6 +336,8 @@ export type DigitalExperience = {
     rain_photos: { index: number; url: string }[];
     moments: ExperienceMoment[];
     custom_sections: ExperienceCustomSection[];
+    /** The photo (by position in `photos`) the owner put in each frame of the design's sections. */
+    photo_frames: Partial<Record<string, (number | null)[]>>;
     nfc_tag_uid: string | null;
     is_published: boolean;
     /** Owner/admin only: before this moment visitors see a countdown. */

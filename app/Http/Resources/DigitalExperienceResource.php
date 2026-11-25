@@ -85,6 +85,10 @@ class DigitalExperienceResource extends JsonResource
                     'caption' => $slot['caption'] ?? null,
                 ])->all(),
             ])->all(),
+            'photo_frames' => (object) DigitalExperience::photoFramesFrom(
+                $this->photo_frames,
+                fn (int $photo): ?int => $photo < $photoCount ? $photo : null,
+            ),
             'nfc_tag_uid' => $canManage ? $this->nfc_tag_uid : null,
             'is_published' => $this->is_published,
             'unlocks_at' => $canManage ? $this->unlocks_at?->toIso8601String() : null,

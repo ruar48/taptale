@@ -44,6 +44,27 @@ class ExperienceSectionController extends Controller
     ];
 
     /**
+     * The page design section each style shows or looks just like. A page
+     * shows each of these once; text notes can be added any number of times.
+     *
+     * @var array<string, string>
+     */
+    public const SECTIONS = [
+        'timeline' => 'polaroid_wall',
+        'film_strip' => 'film_strip',
+        'scrapbook' => 'scrapbook',
+        'album' => 'gallery',
+        'story_timeline' => 'timeline',
+        'polaroid_wall' => 'polaroid_wall',
+        'gallery' => 'gallery',
+        'letter' => 'letter_paper',
+        'quote' => 'quote',
+        'song' => 'song',
+        'countdown' => 'countdown',
+        'video' => 'video',
+    ];
+
+    /**
      * Where the flowers go. Flowers are a paid add-on chosen at checkout, so
      * a page only gets this section once they are bought, and only once.
      */
@@ -73,6 +94,8 @@ class ExperienceSectionController extends Controller
                 'position' => 'Your page can have at most '.DigitalExperience::MAX_CUSTOM_SECTIONS.' extra sections.',
             ]);
         }
+
+        $this->ensureNotOnPage($experience, $sections, $validated['type']);
 
         $sections[] = [
             'id' => Str::lower(Str::random(8)),
@@ -112,7 +135,8 @@ class ExperienceSectionController extends Controller
         $sections = $experience->custom_sections ?? [];
         $index = $this->indexOf($sections, $section);
 
-        if (array_key_exists('type', $validated)) {
+        if (array_key_exists('type', $validated) && $validated['type'] !== $sections[$index]['type']) {
+            $this->ensureNotOnPage($experience, $sections, $validated['type'], except: $section);
             $sections[$index]['type'] = $validated['type'];
 
             if ($sections[$index]['slots'] === []) {
@@ -201,6 +225,32 @@ class ExperienceSectionController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Your flowers moved here.')]);
 
         return back();
+    }
+
+    /**
+     * Refuse a style whose section the page already shows, in its design or
+     * as another extra section.
+     *
+     * @param  list<array<string, mixed>>  $sections
+     *
+     * @throws ValidationException
+     */
+    private function ensureNotOnPage(DigitalExperience $experience, array $sections, string $type, ?string $except = null): void
+    {
+        $designSection = self::SECTIONS[$type] ?? null;
+
+        if ($designSection === null) {
+            return;
+        }
+
+        $isAdded = collect($sections)->contains(fn (array $section): bool => $section['id'] !== $except
+            && (self::SECTIONS[$section['type']] ?? null) === $designSection);
+
+        if ($isAdded || in_array($designSection, $experience->template->sections(), true)) {
+            throw ValidationException::withMessages([
+                'type' => 'This section is already on your page.',
+            ]);
+        }
     }
 
     /**

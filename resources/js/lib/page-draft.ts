@@ -95,6 +95,8 @@ export type PageDraftContent = {
     song_background: 'theme' | 'hearts';
     moments: PageDraftMoment[];
     custom_sections: PageDraftSection[];
+    /** The photo put in each frame of the design's sections. */
+    photo_frames: Partial<Record<string, (number | null)[]>>;
 };
 
 export type PageDraft = {
@@ -211,6 +213,7 @@ export function pageContentFrom(
                 caption: slot.caption,
             })),
         })),
+        photo_frames: { ...experience.photo_frames },
     };
 }
 

@@ -77,6 +77,82 @@ test('a photo added in a moment frame is attached to that moment', function () {
         ->and($moments[1]['photo'])->toBe(0);
 });
 
+test('a photo added in a design frame stays in that frame only', function () {
+    $experience = DigitalExperience::factory()->create([
+        'template' => 'monthsary',
+        'photos' => ['experiences/cover.jpg'],
+        'photo_frames' => ['hero_photo' => [0]],
+    ]);
+
+    $this->actingAs($experience->user)
+        ->post(route('account.experiences.photos.store', $experience), [
+            'photos' => [UploadedFile::fake()->image('trip.jpg')],
+            'frame' => 'film_strip',
+            'frame_index' => 2,
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($experience->fresh()->photo_frames)->toBe([
+        'hero_photo' => [0],
+        'film_strip' => [null, null, 1],
+    ]);
+});
+
+test('photos only go in frames the page designs have', function (array $frame, string $field) {
+    $experience = DigitalExperience::factory()->create();
+
+    $this->actingAs($experience->user)
+        ->post(route('account.experiences.photos.store', $experience), [
+            'photos' => [UploadedFile::fake()->image('us.jpg')],
+            ...$frame,
+        ])
+        ->assertSessionHasErrors($field);
+
+    expect($experience->fresh())
+        ->photos->toBe([])
+        ->photo_frames->toBeNull();
+})->with([
+    'a section without frames' => [['frame' => 'gallery', 'frame_index' => 0], 'frame'],
+    'past the last frame of the section' => [['frame' => 'film_strip', 'frame_index' => 6], 'frame_index'],
+    'a frame without its position' => [['frame' => 'hero_photo'], 'frame_index'],
+]);
+
+test('frame photos follow their photos when other photos are removed', function () {
+    $experience = DigitalExperience::factory()->create([
+        'photos' => ['experiences/a.jpg', 'experiences/b.jpg', 'experiences/c.jpg'],
+        'photo_frames' => ['hero_photo' => [2], 'film_strip' => [0, null, 1]],
+    ]);
+
+    $this->actingAs($experience->user)
+        ->put(route('account.experiences.update', $experience), [
+            'template' => 'monthsary',
+            'theme' => 'crimson',
+            'title' => 'Happy monthsary',
+            'remove_photos' => [0],
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($experience->fresh()->photo_frames)->toBe([
+        'hero_photo' => [1],
+        'film_strip' => [null, null, 0],
+    ]);
+});
+
+test('the page shows which photo is in each design frame', function () {
+    $experience = DigitalExperience::factory()->create([
+        'is_published' => true,
+        'photos' => ['experiences/a.jpg'],
+        'photo_frames' => ['film_strip' => [null, 0], 'hero_photo' => [3]],
+    ]);
+
+    tapTag($experience);
+
+    $this->get(route('experiences.show', $experience))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('experience.photo_frames.film_strip', [null, 0])
+            ->where('experience.photo_frames.hero_photo', [null]));
+});
+
 test('the owner picks photos to rain down, apart from the page photos', function () {
     $experience = DigitalExperience::factory()->create(['photos' => ['experiences/page.jpg']]);
 
