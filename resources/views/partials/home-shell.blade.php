@@ -72,10 +72,10 @@
                         Personalized NFC keychains and photo gifts, made right here in {{ $business['town'] }}
                     </h2>
                     <p class="mt-5 leading-relaxed text-charcoal/75 dark:text-foreground/75">
-                        Taptale is a small gift studio in {{ $business['town'] }}, {{ $business['province'] }}. We design and make every NFC keychain and photo keepsake by hand, then deliver it to you or to the person you are surprising. Every keychain comes with its own memory page: your photos, a video, a song and a message that open with one tap on any phone, no app needed.
+                        Taptale is a small gift studio in {{ $business['town'] }}, {{ $business['province'] }}. We design and make every NFC keychain and photo keepsake by hand, then deliver it to you or to the person you are surprising. Every keychain comes with its own memory page: your photos, a video, a song and a message that open with one tap on any phone, no app needed. Because every memory deserves to be held, not just scrolled past.
                     </p>
                     <p class="mt-4 leading-relaxed text-charcoal/75 dark:text-foreground/75">
-                        Made for anniversaries, weddings, birthdays, baptisms and graduations. Browse
+                        Made for anniversaries, weddings, birthdays, 18th debuts, baptisms, graduations and every trip you take. Browse
                         <a href="{{ route('categories.index') }}" class="{{ $inlineLink }}">gifts by occasion</a>, see our
                         <a href="{{ route('experiences.templates') }}" class="{{ $inlineLink }}">memory page designs</a> or read more
                         <a href="{{ route('pages.about') }}" class="{{ $inlineLink }}">about our studio</a>.
@@ -98,6 +98,22 @@
             </div>
         </section>
 
+        {{-- The occasions React shows as cards, as a plain list of links for search engines that don't run JavaScript. --}}
+        <section class="mx-auto max-w-7xl px-4 pt-20 sm:px-6 lg:px-8">
+            <p class="mb-3 text-xs font-semibold tracking-[0.25em] text-rose uppercase">Shop by occasion</p>
+            <h2 class="font-display text-3xl leading-tight font-medium sm:text-4xl">A keepsake for every chapter</h2>
+            <ul class="mt-10 grid gap-x-10 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach ($page['props']['categories'] ?? [] as $category)
+                    <li>
+                        <a href="{{ route('categories.show', $category['slug']) }}" class="font-display text-xl text-plum hover:underline dark:text-blush">{{ $category['name'] }}</a>
+                        @if (filled($category['tagline']))
+                            <p class="mt-1 text-sm leading-relaxed text-charcoal/70 dark:text-foreground/70">{{ $category['tagline'] }}</p>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+        </section>
+
         {{-- <Faqs> in home.tsx. React shows it further down the page; it sits here so search engines that don't run JavaScript still read it. --}}
         <section class="mx-auto max-w-7xl px-4 pt-20 sm:px-6 lg:px-8">
             <p class="mb-3 text-xs font-semibold tracking-[0.25em] text-rose uppercase">Good to know</p>
@@ -112,4 +128,26 @@
             </div>
         </section>
     </main>
+
+    {{-- Stand-in for <SiteFooter> in storefront-layout.tsx until React mounts. --}}
+    <footer class="mt-20 bg-charcoal text-cream">
+        <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-14 text-sm text-cream/75 sm:px-6 lg:px-8">
+            <p class="font-display text-2xl text-blush italic">Every tap tells a story.</p>
+            <p>Personalized keepsakes that join the things you can hold with the memories you never want to lose. Handmade with love in {{ $business['town'] }}, {{ $business['province'] }}.</p>
+            <nav aria-label="Taptale" class="flex flex-wrap gap-x-6 gap-y-2">
+                <a href="{{ route('orders.create') }}" class="hover:text-white">Start creating</a>
+                <a href="{{ route('pages.about') }}" class="hover:text-white">Who we are</a>
+                <a href="{{ route('pages.shipping') }}" class="hover:text-white">Shipping &amp; delivery</a>
+                <a href="{{ route('pages.returns') }}" class="hover:text-white">Returns &amp; refunds</a>
+                <a href="{{ route('pages.terms') }}" class="hover:text-white">Terms</a>
+                <a href="{{ route('pages.privacy') }}" class="hover:text-white">Privacy</a>
+                @if (filled($business['facebook_url']))
+                    <a href="{{ $business['facebook_url'] }}" target="_blank" rel="noreferrer" class="hover:text-white">Facebook</a>
+                @endif
+                @if (filled($business['instagram_url']))
+                    <a href="{{ $business['instagram_url'] }}" target="_blank" rel="noreferrer" class="hover:text-white">Instagram</a>
+                @endif
+            </nav>
+        </div>
+    </footer>
 </div>

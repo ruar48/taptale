@@ -3,11 +3,13 @@ import {
     Baby,
     Cake,
     CalendarHeart,
+    Crown,
     Gem,
     Gift,
     GraduationCap,
     Heart,
     Home,
+    MapPin,
     Sparkles,
     Users,
 } from 'lucide-react';
@@ -25,6 +27,8 @@ export const CATEGORY_ICONS: Record<string, LucideIcon> = {
     home: Home,
     sparkles: Sparkles,
     gift: Gift,
+    crown: Crown,
+    'map-pin': MapPin,
 };
 
 export function CategoryIcon({

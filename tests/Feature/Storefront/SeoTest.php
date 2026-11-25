@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Category;
 use App\Models\DigitalExperience;
 use App\Models\Product;
 
@@ -21,6 +22,9 @@ test('a product page renders its meta tags and price for search engines', functi
 });
 
 test('the homepage tells search engines which towns the shop delivers to', function () {
+    $occasion = Category::factory()->create(['name' => 'Travel Keepsakes', 'is_active' => true]);
+    $hidden = Category::factory()->create(['is_active' => false]);
+
     config([
         'taptale.business.town' => 'Binalonan',
         'taptale.business.province' => 'Pangasinan',
@@ -39,6 +43,8 @@ test('the homepage tells search engines which towns the shop delivers to', funct
         ->assertSee('<h3 class="font-display text-xl">Where do you deliver?</h3>', false)
         ->assertSee('"@type":"FAQPage"', false)
         ->assertSee('"text":"For now we deliver to Binalonan and nearby towns and cities in Pangasinan: Urdaneta City.', false)
+        ->assertSee('<a href="'.route('categories.show', $occasion).'"', false)
+        ->assertDontSee(route('categories.show', $hidden), false)
         ->assertDontSee('Nationwide');
 });
 

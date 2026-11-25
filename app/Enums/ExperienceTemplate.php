@@ -130,7 +130,7 @@ enum ExperienceTemplate: string
         return match ($categorySlug) {
             'couple-gifts' => self::Monthsary,
             'anniversary-gifts' => self::Anniversary,
-            'birthday-gifts' => self::Birthday,
+            'birthday-gifts', '18th-debut-gifts' => self::Birthday,
             'wedding-souvenirs' => self::Wedding,
             'friendship-gifts' => self::Bestie,
             'baptism-souvenirs', 'family-keepsakes' => self::Family,

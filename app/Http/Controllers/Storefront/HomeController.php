@@ -59,6 +59,14 @@ class HomeController extends Controller
                 'answer' => 'Yes. Every keychain comes with its own memory page at no extra cost. You design it with your photos, a video, a song and a message, and you can update it anytime from your account.',
             ],
             [
+                'question' => 'Do you make keepsakes for an 18th debut?',
+                'answer' => 'Yes. We make a personalized NFC keychain for the debutante with her photos, a video and messages from family and friends, plus matching souvenir keychains for the 18 roses, 18 candles and every guest.',
+            ],
+            [
+                'question' => 'Can I get a keychain for every place I travel to?',
+                'answer' => 'Yes. Make a travel keychain for each trip, like Dagupan, Baguio or the Hundred Islands, and put all your photos and videos from that place on its memory page. Tap it anytime to relive the trip.',
+            ],
+            [
                 'question' => 'Can I see my design before it is made?',
                 'answer' => 'Yes. Nothing goes into production until you approve your design. You can design it yourself or tell us your idea and our designers take it from there.',
             ],

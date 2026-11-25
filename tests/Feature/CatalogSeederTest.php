@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ExperienceTemplate;
 use App\Enums\TemplateLayout;
 use App\Models\Category;
 use App\Models\PaymentMethod;
@@ -49,6 +50,20 @@ test('re-seeding a live catalog keeps the studio edits and only adds missing rec
     $restored = Product::query()->where('slug', 'pinoy-calendar-keychain')->sole();
 
     expect($restored->categories()->count())->toBeGreaterThan(0);
+});
+
+test('re-seeding a live catalog adds the debut and travel occasions with their gifts', function () {
+    Category::query()->whereIn('slug', ['18th-debut-gifts', 'travel-keepsakes'])->delete();
+
+    $this->seed(CatalogSeeder::class);
+
+    $debut = Category::query()->where('slug', '18th-debut-gifts')->sole();
+    $travel = Category::query()->where('slug', 'travel-keepsakes')->sole();
+
+    expect($debut->products()->where('slug', 'event-souvenir-keychains')->exists())->toBeTrue()
+        ->and($travel->products()->where('slug', 'nfc-memory-keychain')->exists())->toBeTrue()
+        ->and(ExperienceTemplate::forCategory($debut->slug))->toBe(ExperienceTemplate::Birthday)
+        ->and(ExperienceTemplate::forCategory($travel->slug))->toBe(ExperienceTemplate::Classic);
 });
 
 test('the seeder can run twice without duplicating the catalog', function () {

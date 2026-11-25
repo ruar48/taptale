@@ -38,11 +38,13 @@ class CatalogSeeder extends Seeder
             ['Wedding Souvenirs', 'Keepsakes your guests will treasure long after the vows.', '#713D50', 'gem'],
             ['Baptism Souvenirs', 'Gentle mementos for a blessed beginning.', '#9DB4C0', 'baby'],
             ['Birthday Gifts', 'Celebrate another chapter of their story.', '#E3A587', 'cake'],
+            ['18th Debut Gifts', 'Eighteen years, beautifully remembered — for the debutante and every guest.', '#C98BA0', 'crown'],
             ['Anniversary Gifts', 'Every year together, beautifully remembered.', '#A85C72', 'calendar-heart'],
             ['Graduation Gifts', 'Honor the hard work and the bright road ahead.', '#5B6C8F', 'graduation-cap'],
             ["Teacher's Day Gifts", 'A heartfelt thank you they can hold.', '#7C9473', 'apple'],
             ['Friendship Gifts', 'For the friends who feel like family.', '#D08C60', 'users'],
             ['Family Keepsakes', 'Moments the whole family will want to keep close.', '#8A6E5A', 'home'],
+            ['Travel Keepsakes', 'One keychain for every place you visit — all your trip photos in a single tap.', '#4F8A8B', 'map-pin'],
             ['Other Personalized Gifts', 'Anything you can imagine, made personal.', '#6E5A7E', 'sparkles'],
         ];
 
@@ -364,6 +366,8 @@ class CatalogSeeder extends Seeder
             'Wedding Souvenirs' => ['event-souvenir-keychains', 'personalized-qr-keepsake', 'nfc-memory-keychain', 'acrylic-photo-souvenir', 'photobooth-strip-keychain'],
             'Baptism Souvenirs' => ['event-souvenir-keychains', 'personalized-acrylic-keychain', 'acrylic-photo-souvenir'],
             'Birthday Gifts' => [...$music, ...$everyday, ...$fun],
+            '18th Debut Gifts' => [...$music, ...$everyday, ...$fun, 'event-souvenir-keychains', 'engraved-wooden-keychain'],
+            'Travel Keepsakes' => ['nfc-memory-keychain', 'personalized-acrylic-keychain', 'photobooth-strip-keychain', 'die-cut-photo-keychain', 'engraved-wooden-keychain', 'nfc-social-tap-tag', 'acrylic-photo-souvenir'],
             'Anniversary Gifts' => [...$music, ...$everyday, 'matching-couple-keychains', 'engraved-wooden-keychain', 'pinoy-calendar-keychain'],
             'Graduation Gifts' => ['personalized-acrylic-keychain', 'acrylic-photo-souvenir', 'nfc-memory-keychain', 'event-souvenir-keychains', 'nfc-social-tap-tag', 'engraved-wooden-keychain'],
             "Teacher's Day Gifts" => ['teacher-appreciation-plaque', 'personalized-acrylic-keychain', 'acrylic-photo-souvenir', 'engraved-wooden-keychain'],

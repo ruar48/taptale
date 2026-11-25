@@ -9,11 +9,13 @@ import {
     QrCode,
     Quote,
     ShieldCheck,
+    Sparkle,
     Sparkles,
     Star,
     Truck,
 } from "lucide-react";
 import { CategoryCard } from "@/components/taptale/category-card";
+import { CategoryIllustration } from "@/components/taptale/category-illustration";
 import { ProductCard } from "@/components/taptale/product-card";
 import { SectionHeading } from "@/components/taptale/section-heading";
 import { Button } from "@/components/ui/button";
@@ -85,39 +87,66 @@ export default function Home({
 
             <LocalStudio />
 
-            <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-                <SectionHeading
-                    eyebrow="Shop by occasion"
-                    title={
-                        <>
-                            A keepsake for every{" "}
-                            <em className="text-rose">chapter</em>
-                        </>
-                    }
-                    description="Each occasion has its own gifts and design options."
-                >
-                    <Button
-                        asChild
-                        variant="ghost"
-                        className="rounded-full text-plum hover:bg-plum/5 dark:text-blush"
+            <section className="relative isolate">
+                <OccasionsBackdrop />
+                <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+                    <CategoryIllustration
+                        name="gift"
+                        className="pointer-events-none absolute top-6 right-[18rem] hidden w-36 drop-shadow-[0_14px_18px_rgba(113,61,80,0.18)] lg:block xl:right-[22rem] xl:w-44"
+                    />
+                    <Sparkle className="pointer-events-none absolute fill-current top-24 right-[16rem] hidden size-5 text-[#e8a35c] lg:block xl:right-[20rem]" />
+                    <Sparkle className="pointer-events-none absolute fill-current top-10 right-[29rem] hidden size-4 text-[#e8a35c] lg:block xl:right-[34rem]" />
+
+                    <SectionHeading
+                        eyebrow="Shop by occasion"
+                        title={
+                            <>
+                                A keepsake for every{" "}
+                                <span className="relative inline-block">
+                                    <em className="text-rose">chapter</em>
+                                    <svg
+                                        viewBox="0 0 160 40"
+                                        aria-hidden="true"
+                                        className="pointer-events-none absolute -right-10 -bottom-3 w-[calc(100%+3rem)] text-rose/70"
+                                    >
+                                        <path
+                                            d="M4 30 C 50 40, 110 34, 150 14"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.6"
+                                            strokeLinecap="round"
+                                        />
+                                    </svg>
+                                    <Heart className="pointer-events-none absolute -top-2 -right-8 size-6 -rotate-12 text-rose/80" />
+                                </span>
+                            </>
+                        }
+                        description="Each occasion has its own gifts and design options."
                     >
-                        <Link href={categoriesIndex()}>
-                            All occasions <ArrowRight className="size-4" />
-                        </Link>
-                    </Button>
-                </SectionHeading>
-                <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    {categories.slice(0, 8).map((category, index) => (
-                        <CategoryCard
-                            key={category.id}
-                            category={category}
-                            className={
-                                index === 0 || index === 5
-                                    ? "lg:col-span-2"
-                                    : undefined
-                            }
-                        />
-                    ))}
+                        <Button
+                            asChild
+                            variant="ghost"
+                            className="rounded-full text-plum hover:bg-plum/5 dark:text-blush"
+                        >
+                            <Link href={categoriesIndex()}>
+                                All occasions <ArrowRight className="size-4" />
+                            </Link>
+                        </Button>
+                    </SectionHeading>
+                    <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:gap-5">
+                        {categories
+                            .slice(0, 8)
+                            .map((category, index, shown) => (
+                                <CategoryCard
+                                    key={category.id}
+                                    category={category}
+                                    className={occasionCardSpan(
+                                        index,
+                                        shown.length,
+                                    )}
+                                />
+                            ))}
+                    </div>
                 </div>
             </section>
 
@@ -232,6 +261,56 @@ export default function Home({
     );
 }
 
+const OCCASION_SPANS: Record<number, string> = {
+    1: "lg:col-span-6",
+    2: "lg:col-span-3",
+    3: "lg:col-span-2",
+};
+
+/**
+ * Lays the occasion cards out in alternating rows of three and two on large screens,
+ * stretching whatever is left in the final row so the grid never ends with a gap.
+ */
+function occasionCardSpan(index: number, total: number): string {
+    const smallScreenSpan =
+        total % 2 === 1 && index === total - 1 ? "sm:col-span-2" : "";
+    let rowStart = 0;
+
+    for (let row = 0; ; row++) {
+        const rowSize = row % 2 === 0 ? 3 : 2;
+
+        if (index < rowStart + rowSize) {
+            const largeScreenSpan =
+                OCCASION_SPANS[Math.min(rowSize, total - rowStart)];
+
+            return `${smallScreenSpan} ${largeScreenSpan}`.trim();
+        }
+
+        rowStart += rowSize;
+    }
+}
+
+function OccasionsBackdrop() {
+    return (
+        <svg
+            viewBox="0 0 1440 420"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[26rem] w-full text-blush-light opacity-80 dark:text-plum/25"
+        >
+            <path
+                d="M0 0 H1440 V250 C1200 330 1010 180 760 240 C520 300 300 400 0 300 Z"
+                fill="currentColor"
+                opacity="0.6"
+            />
+            <path
+                d="M0 0 H1440 V170 C1180 250 980 110 720 170 C470 230 250 300 0 220 Z"
+                fill="currentColor"
+            />
+        </svg>
+    );
+}
+
 function Hero() {
     const { town } = usePage().props.storefront.business;
 
@@ -332,16 +411,18 @@ function LocalStudio() {
                     </h2>
                     <p className="mt-5 leading-relaxed text-charcoal/75 dark:text-foreground/75">
                         Taptale is a small gift studio in {town}, {province}. We
-                        design and make every NFC keychain and photo keepsake
-                        by hand, then deliver it to you or to the person you
-                        are surprising. Every keychain comes with its own
-                        memory page: your photos, a video, a song and a
-                        message that open with one tap on any phone, no app
-                        needed.
+                        design and make every NFC keychain and photo keepsake by
+                        hand, then deliver it to you or to the person you are
+                        surprising. Every keychain comes with its own memory
+                        page: your photos, a video, a song and a message that
+                        open with one tap on any phone, no app needed. Because
+                        every memory deserves to be held, not just scrolled
+                        past.
                     </p>
                     <p className="mt-4 leading-relaxed text-charcoal/75 dark:text-foreground/75">
-                        Made for anniversaries, weddings, birthdays, baptisms
-                        and graduations. Browse{" "}
+                        Made for anniversaries, weddings, birthdays, 18th
+                        debuts, baptisms, graduations and every trip you take.
+                        Browse{" "}
                         <Link href={categoriesIndex()} className={inlineLink}>
                             gifts by occasion
                         </Link>
@@ -359,8 +440,8 @@ function LocalStudio() {
                 <div className="rounded-3xl bg-blush-light/50 p-6 dark:bg-card">
                     <h3 className="font-display text-xl">Where we deliver</h3>
                     <p className="mt-2 text-sm text-charcoal/70 dark:text-foreground/70">
-                        For now we deliver to {town} and these nearby towns
-                        and cities in {province}:
+                        For now we deliver to {town} and these nearby towns and
+                        cities in {province}:
                     </p>
                     <ul className="mt-4 flex flex-wrap gap-2">
                         {service_area.map((place) => (
@@ -376,7 +457,8 @@ function LocalStudio() {
                         href={shipping()}
                         className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-plum hover:underline dark:text-blush"
                     >
-                        Delivery areas and fees <ArrowRight className="size-4" />
+                        Delivery areas and fees{" "}
+                        <ArrowRight className="size-4" />
                     </Link>
                 </div>
             </div>
@@ -400,9 +482,7 @@ function Faqs({ faqs }: { faqs: Faq[] }) {
             <div className="mt-10 grid gap-x-10 gap-y-8 md:grid-cols-2">
                 {faqs.map((faq) => (
                     <div key={faq.question}>
-                        <h3 className="font-display text-xl">
-                            {faq.question}
-                        </h3>
+                        <h3 className="font-display text-xl">{faq.question}</h3>
                         <p className="mt-2 leading-relaxed text-charcoal/75 dark:text-foreground/75">
                             {faq.answer}
                         </p>

@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { CategoryIcon } from '@/components/taptale/category-icon';
+import { CategoryIllustration } from '@/components/taptale/category-illustration';
 import { cn } from '@/lib/utils';
 import { show } from '@/routes/categories';
 import type { Category } from '@/types';
@@ -17,33 +18,43 @@ export function CategoryCard({
             href={show(category.slug)}
             prefetch
             className={cn(
-                'group relative flex min-h-44 flex-col justify-between overflow-hidden rounded-3xl p-5 text-white transition-transform duration-300 hover:-translate-y-1',
+                'group relative isolate flex min-h-44 flex-col justify-between gap-6 overflow-hidden rounded-3xl p-5 text-white shadow-sm ring-1 ring-white/10 transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:p-6',
                 className,
             )}
             style={{
-                background: `linear-gradient(150deg, ${category.accent_color} 0%, color-mix(in oklab, ${category.accent_color} 70%, #343039) 100%)`,
+                background: `linear-gradient(135deg, ${category.accent_color} 0%, color-mix(in oklab, ${category.accent_color} 72%, #343039) 100%)`,
             }}
         >
-            {category.image_url && (
+            <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(120%_90%_at_0%_0%,rgba(255,255,255,0.22),transparent_55%)]" />
+            <div className="pointer-events-none absolute -right-10 -bottom-16 -z-10 size-56 rounded-full bg-white/12 blur-[1px] transition-transform duration-500 group-hover:scale-110" />
+
+            {category.image_url ? (
                 <img
                     src={category.image_url}
                     alt=""
-                    className="absolute inset-0 size-full object-cover opacity-35 mix-blend-luminosity transition-transform duration-700 group-hover:scale-105"
+                    className="pointer-events-none absolute right-5 bottom-5 -z-10 aspect-4/3 w-[38%] max-w-48 rounded-2xl object-cover shadow-lg ring-2 ring-white/40 transition-transform duration-500 group-hover:scale-105"
+                />
+            ) : (
+                <CategoryIllustration
+                    name={category.icon}
+                    className="pointer-events-none absolute right-2 bottom-0 -z-10 w-[44%] max-w-56 drop-shadow-[0_10px_14px_rgba(0,0,0,0.18)] transition-transform duration-500 group-hover:-translate-y-1 group-hover:scale-105"
                 />
             )}
-            <div className="absolute -right-8 -bottom-8 size-36 rounded-full bg-white/10 transition-transform duration-500 group-hover:scale-125" />
-            <div className="relative flex items-start justify-between">
-                <span className="flex size-11 items-center justify-center rounded-2xl bg-white/20 backdrop-blur">
+
+            <div className="flex items-start justify-between">
+                <span className="flex size-11 items-center justify-center rounded-full bg-white/20 ring-1 ring-white/25 backdrop-blur">
                     <CategoryIcon name={category.icon} className="size-5" />
                 </span>
-                <ArrowUpRight className="size-5 opacity-60 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
+                <span className="flex size-8 items-center justify-center rounded-full bg-white text-plum shadow-md transition-transform duration-300 group-hover:translate-x-0.5">
+                    <ArrowRight className="size-4" />
+                </span>
             </div>
-            <div className="relative">
-                <h3 className="font-display text-xl leading-tight font-medium">
+            <div className="max-w-[56%]">
+                <h3 className="font-display text-xl leading-tight font-medium sm:text-2xl">
                     {category.name}
                 </h3>
                 {category.tagline && (
-                    <p className="mt-1 line-clamp-2 text-sm text-white/80">
+                    <p className="mt-1.5 line-clamp-2 text-sm text-white/85">
                         {category.tagline}
                     </p>
                 )}
