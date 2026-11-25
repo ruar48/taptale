@@ -42,6 +42,7 @@ Route::name('pages.')->group(function () {
 });
 
 Route::get('sitemap.xml', Storefront\SitemapController::class)->name('sitemap');
+Route::get('llms.txt', [Storefront\HomeController::class, 'llms'])->name('llms');
 
 /*
 | NFC tags and QR codes point here. Kept on the main domain on purpose.

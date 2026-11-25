@@ -8,6 +8,7 @@ use App\Http\Resources\ProductResource;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Testimonial;
+use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -32,6 +33,24 @@ class HomeController extends Controller
                 'schema' => [...$this->structuredData(), $this->faqStructuredData($faqs)],
             ],
         ]);
+    }
+
+    /**
+     * A plain-text summary of the shop for AI assistants (ChatGPT, Perplexity, Gemini,
+     * Claude), following the llms.txt convention, so they can describe and recommend it
+     * accurately: where it is, where it delivers, what it sells and what it costs.
+     */
+    public function llms(): HttpResponse
+    {
+        return response()
+            ->view('llms', [
+                'business' => config('taptale.business'),
+                'description' => config('taptale.seo.description'),
+                'categories' => Category::active()->get(['name', 'slug', 'tagline']),
+                'products' => Product::active()->get(['name', 'slug', 'short_description', 'base_price']),
+                'faqs' => $this->faqs(),
+            ])
+            ->header('Content-Type', 'text/plain; charset=UTF-8');
     }
 
     /**

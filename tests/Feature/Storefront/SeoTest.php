@@ -48,6 +48,32 @@ test('the homepage tells search engines which towns the shop delivers to', funct
         ->assertDontSee('Nationwide');
 });
 
+test('occasion pages target searches from the studio town', function () {
+    config(['taptale.business.town' => 'Binalonan']);
+    $category = Category::factory()->create(['name' => 'Graduation Gifts', 'is_active' => true]);
+
+    $this->get(route('categories.show', $category))
+        ->assertOk()
+        ->assertSee('<title>Taptale | Graduation Gifts in Binalonan</title>', false);
+});
+
+test('llms.txt describes the shop, its delivery area and active products for AI assistants', function () {
+    config([
+        'taptale.business.town' => 'Binalonan',
+        'taptale.business.service_area' => ['Binalonan', 'Urdaneta City'],
+    ]);
+    $listed = Product::factory()->create(['name' => 'NFC Memory Keychain & Card', 'base_price' => 34900]);
+    $hidden = Product::factory()->inactive()->create();
+
+    $this->get(route('llms'))
+        ->assertOk()
+        ->assertHeader('Content-Type', 'text/plain; charset=UTF-8')
+        ->assertSee('Delivers to: Binalonan, Urdaneta City', false)
+        ->assertSee('[NFC Memory Keychain & Card]('.route('products.show', $listed).'): from ₱349.', false)
+        ->assertSee('### Where do you deliver?', false)
+        ->assertDontSee(route('products.show', $hidden), false);
+});
+
 test('private memory pages are kept out of search engines', function () {
     $experience = DigitalExperience::factory()->create();
     tapTag($experience);

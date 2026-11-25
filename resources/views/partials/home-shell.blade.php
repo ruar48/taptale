@@ -39,6 +39,7 @@
                         {!! $heroIcon($heart, 'size-3.5 shrink-0') !!} A little gift. A lifetime of memories.
                     </span>
                     <h1 class="mt-6 font-display text-5xl leading-[1.05] font-medium text-balance text-charcoal sm:text-6xl lg:text-7xl dark:text-cream">
+                        <span class="mb-4 block font-sans text-sm leading-normal font-semibold tracking-[0.2em] text-rose uppercase">Personalized NFC keychains in {{ $business['town'] }}</span>
                         Every memory deserves to be <em class="font-normal text-plum dark:text-rose">held.</em>
                     </h1>
                     <p class="mt-6 max-w-md text-lg leading-relaxed text-charcoal/75 dark:text-foreground/75">

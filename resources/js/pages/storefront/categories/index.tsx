@@ -5,12 +5,14 @@ import type { Category } from '@/types';
 
 export default function CategoriesIndex({
     categories,
+    seo,
 }: {
     categories: Category[];
+    seo: { title: string };
 }) {
     return (
         <>
-            <Head title="Shop by Occasion" />
+            <Head title={seo.title} />
             <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
                 <SectionHeading
                     eyebrow="Shop by occasion"

@@ -23,8 +23,8 @@ class CategoryController extends Controller
                 Category::active()->withCount(['products' => fn (Builder $query) => $query->where('is_active', true)])->get()
             ),
             'seo' => [
-                'title' => 'Shop by Occasion',
-                'description' => 'Personalized gifts for weddings, anniversaries, birthdays, baptisms, graduations and more — NFC keychains and photo keepsakes made to order.',
+                'title' => 'Personalized Gifts by Occasion in '.config('taptale.business.town'),
+                'description' => 'Personalized gifts for weddings, anniversaries, birthdays, 18th debuts, graduations and trips — NFC keychains and photo keepsakes made in '.$this->madeIn().'.',
             ],
         ]);
     }
@@ -45,10 +45,18 @@ class CategoryController extends Controller
                 Category::active()->whereKeyNot($category->id)->limit(6)->get()
             ),
             'seo' => [
-                'title' => $category->name,
-                'description' => Str::limit(strip_tags($category->description ?: $category->tagline ?: "Personalized {$category->name} — NFC keychains and photo keepsakes made to order."), 160),
+                'title' => "{$category->name} in ".config('taptale.business.town'),
+                'description' => Str::limit(trim(strip_tags($category->tagline ?: "Personalized {$category->name}.").' NFC keychains and photo keepsakes made in '.$this->madeIn().', delivered to nearby towns.'), 160),
                 'image' => $category->image_url,
             ],
         ]);
+    }
+
+    /**
+     * "Binalonan, Pangasinan": where the studio is, for the local search wording.
+     */
+    private function madeIn(): string
+    {
+        return config('taptale.business.town').', '.config('taptale.business.province');
     }
 }

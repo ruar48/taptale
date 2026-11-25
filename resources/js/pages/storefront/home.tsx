@@ -2,9 +2,6 @@ import { Head, Link, usePage } from "@inertiajs/react";
 import { useRef } from "react";
 import {
     ArrowRight,
-    BadgeCheck,
-    Camera,
-    Gift,
     Heart,
     Nfc,
     Plus,
@@ -20,6 +17,8 @@ import { CategoryCard } from "@/components/taptale/category-card";
 import { CategoryIllustration } from "@/components/taptale/category-illustration";
 import { ProductCard } from "@/components/taptale/product-card";
 import { SectionHeading } from "@/components/taptale/section-heading";
+import { StepIllustration } from "@/components/taptale/step-illustration";
+import type { StepScene } from "@/components/taptale/step-illustration";
 import { Button } from "@/components/ui/button";
 import { useInView } from "@/hooks/use-in-view";
 import { cn } from "@/lib/utils";
@@ -51,24 +50,24 @@ const HERO_SRCSET = [640, 960, 1280, 1672]
     .join(', ');
 const HERO_SIZES = '(min-width: 1024px) 100vw, calc(100vw - 2rem)';
 
-const STEPS = [
+const STEPS: Array<{ scene: StepScene; title: string; body: string }> = [
     {
-        icon: Heart,
+        scene: "calendar",
         title: "Choose the occasion",
         body: "Anniversary, wedding, baptism, graduation — start with who the gift is for.",
     },
     {
-        icon: Gift,
+        scene: "keychain",
         title: "Pick your gift",
         body: "Browse keychains and keepsakes made for the moment — what you see is what you get.",
     },
     {
-        icon: Camera,
+        scene: "polaroid",
         title: "Add your story",
         body: "Upload photos, names and a message — or tell us your idea and our designers take it from there.",
     },
     {
-        icon: BadgeCheck,
+        scene: "gift",
         title: "Approve, then we craft",
         body: "Nothing goes into production until you approve your design. Then we make it by hand.",
     },
@@ -404,6 +403,9 @@ function Hero() {
                         of memories.
                     </span>
                     <h1 className="mt-6 font-display text-5xl leading-[1.05] font-medium text-balance text-charcoal sm:text-6xl lg:text-7xl dark:text-cream">
+                        <span className="mb-4 block font-sans text-sm leading-normal font-semibold tracking-[0.2em] text-rose uppercase">
+                            Personalized NFC keychains in {town}
+                        </span>
                         Every memory deserves to be{" "}
                         <em className="font-normal text-plum dark:text-rose">
                             held.
@@ -581,50 +583,111 @@ function Faqs({ faqs }: { faqs: Faq[] }) {
 }
 
 function HowItWorks() {
+    const sectionRef = useRef<HTMLElement>(null);
+    const isVisible = useInView(sectionRef);
+
     return (
         <section
+            ref={sectionRef}
             id="how-it-works"
-            className="scroll-mt-24 bg-charcoal py-20 text-cream"
+            className={cn(
+                "reveal-on-view relative isolate scroll-mt-24 overflow-hidden bg-linear-to-br from-blush-light via-[#fbeef0] to-cream py-20 dark:from-plum-dark/40 dark:via-background dark:to-background",
+                isVisible && "is-visible",
+            )}
         >
+            <div className="pointer-events-none absolute -top-24 -right-24 -z-10 size-96 animate-float-slow rounded-full bg-white/50 blur-3xl dark:bg-plum/20" />
+            <div className="pointer-events-none absolute -bottom-32 -left-20 -z-10 size-80 animate-float-slow rounded-full bg-blush/50 blur-3xl [animation-delay:-4s] dark:bg-plum/20" />
+            <svg
+                viewBox="0 0 600 160"
+                aria-hidden="true"
+                className="pointer-events-none absolute top-6 right-0 -z-10 hidden w-[44rem] max-w-[55%] text-rose/45 lg:block"
+            >
+                <path
+                    d="M0 150 C120 160 220 120 300 92 C350 74 372 40 352 30 C332 20 316 46 334 64 C370 100 470 70 600 18"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    pathLength={1}
+                    strokeDasharray={1}
+                    className="animate-draw"
+                />
+            </svg>
+            <Heart
+                aria-hidden="true"
+                className="pointer-events-none absolute top-10 right-[24%] hidden size-9 animate-heartbeat text-rose/60 lg:block"
+                strokeWidth={1.4}
+            />
+
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="max-w-2xl">
-                    <p className="mb-3 text-xs font-semibold tracking-[0.25em] text-blush uppercase">
+                <div className="max-w-2xl animate-fade-up">
+                    <p className="mb-3 flex items-center gap-4 text-xs font-semibold tracking-[0.25em] text-plum uppercase dark:text-blush">
                         How Taptale works
+                        <span className="h-px w-20 bg-rose/40" />
                     </p>
-                    <h2 className="font-display text-3xl leading-tight font-medium sm:text-4xl">
-                        From a memory to a keepsake in four gentle steps
+                    <h2 className="font-display text-3xl leading-tight font-medium text-balance text-charcoal sm:text-4xl lg:text-5xl dark:text-cream">
+                        From a memory to a keepsake in{" "}
+                        <em className="text-rose">four</em> gentle steps
                     </h2>
+                    <p className="mt-4 text-base text-charcoal/70 dark:text-foreground/70">
+                        Turn your favorite moments into a heartfelt gift,
+                        effortlessly.
+                    </p>
                 </div>
-                <ol className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                    {STEPS.map(({ icon: Icon, title, body }, index) => (
+                <ol className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-10">
+                    {STEPS.map(({ scene, title, body }, index) => (
                         <li
                             key={title}
-                            className="relative rounded-3xl border border-white/10 bg-white/[0.04] p-6"
+                            className="group relative animate-fade-up"
+                            style={{
+                                animationDelay: `${0.2 + index * 0.12}s`,
+                            }}
                         >
-                            <span className="font-display text-6xl text-white/10">
-                                0{index + 1}
-                            </span>
-                            <span className="absolute top-6 right-6 flex size-11 items-center justify-center rounded-2xl bg-rose/20 text-blush">
-                                <Icon className="size-5" />
-                            </span>
-                            <h3 className="mt-2 font-display text-xl">
-                                {title}
-                            </h3>
-                            <p className="mt-2 text-sm leading-relaxed text-cream/70">
-                                {body}
-                            </p>
+                            <div className="flex h-full flex-col overflow-hidden rounded-3xl border border-white/80 bg-white/70 shadow-[0_24px_48px_-28px_rgba(113,61,80,0.45)] backdrop-blur transition duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_30px_60px_-28px_rgba(113,61,80,0.55)] dark:border-white/10 dark:bg-card/70">
+                                <div className="p-6 pb-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="rounded-full bg-blush/70 px-3 py-1 font-display text-sm font-medium text-plum dark:bg-plum/40 dark:text-blush">
+                                            0{index + 1}
+                                        </span>
+                                        <span className="flex size-8 items-center justify-center rounded-full border border-plum/20 text-plum transition duration-300 group-hover:translate-x-0.5 group-hover:border-plum group-hover:bg-plum group-hover:text-white dark:border-blush/30 dark:text-blush">
+                                            <ArrowRight className="size-4" />
+                                        </span>
+                                    </div>
+                                    <h3 className="mt-5 font-display text-xl text-charcoal dark:text-cream">
+                                        {title}
+                                    </h3>
+                                    <p className="mt-2 text-sm leading-relaxed text-charcoal/70 dark:text-foreground/70">
+                                        {body}
+                                    </p>
+                                </div>
+                                <div className="relative mt-auto h-40 bg-linear-to-b from-transparent to-blush/40 dark:to-plum/20">
+                                    <StepIllustration
+                                        scene={scene}
+                                        className="absolute inset-0 size-full transition-[scale] duration-500 group-hover:scale-105"
+                                    />
+                                </div>
+                            </div>
+                            {index < STEPS.length - 1 && (
+                                <ArrowRight
+                                    aria-hidden="true"
+                                    className="absolute top-1/2 -right-[1.9rem] hidden size-5 animate-nudge text-rose lg:block"
+                                    style={{
+                                        animationDelay: `${index * 0.25}s`,
+                                    }}
+                                />
+                            )}
                         </li>
                     ))}
                 </ol>
-                <div className="mt-10">
+                <div className="mt-12 animate-fade-up [animation-delay:0.7s]">
                     <Button
                         asChild
                         size="lg"
-                        className="h-12 rounded-full bg-blush px-7 text-plum-dark hover:bg-white"
+                        className="group/cta h-12 rounded-full bg-plum px-7 text-white shadow-[0_14px_30px_-12px_rgba(113,61,80,0.7)] hover:bg-plum-dark"
                     >
                         <Link href={startOrder()}>
                             Start with an occasion{" "}
-                            <ArrowRight className="size-4" />
+                            <ArrowRight className="size-4 transition-transform group-hover/cta:translate-x-1" />
                         </Link>
                     </Button>
                 </div>

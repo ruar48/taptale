@@ -12,16 +12,18 @@ type Props = {
     category: Category;
     products: Product[];
     otherCategories: Category[];
+    seo: { title: string };
 };
 
 export default function CategoryShow({
     category,
     products,
     otherCategories,
+    seo,
 }: Props) {
     return (
         <>
-            <Head title={category.name} />
+            <Head title={seo.title} />
 
             <section
                 className="relative overflow-hidden text-white"

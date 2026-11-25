@@ -3,7 +3,7 @@ import type { ReactNode, SVGProps } from 'react';
 
 type IdFactory = (name: string) => string;
 
-const HEART_PATH =
+export const HEART_PATH =
     'M0 28 C-34 6 -40 -12 -30 -24 C-21 -34 -6 -30 0 -18 C6 -30 21 -34 30 -24 C40 -12 34 6 0 28 Z';
 
 function Shadow({
@@ -24,7 +24,7 @@ function Shadow({
  * Animates its children around their own bounding box, so CSS keyframes work
  * on SVG shapes without clobbering any `transform` attribute inside.
  */
-function Motion({
+export function Motion({
     className,
     delay = 0,
     origin = 'center',
@@ -49,7 +49,7 @@ function Motion({
     );
 }
 
-function Twinkle({
+export function Twinkle({
     x,
     y,
     size = 6,
