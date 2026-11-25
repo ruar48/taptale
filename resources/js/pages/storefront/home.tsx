@@ -1,4 +1,5 @@
 import { Head, Link, usePage } from "@inertiajs/react";
+import { useRef } from "react";
 import {
     ArrowRight,
     BadgeCheck,
@@ -6,6 +7,7 @@ import {
     Gift,
     Heart,
     Nfc,
+    Plus,
     QrCode,
     Quote,
     ShieldCheck,
@@ -19,6 +21,8 @@ import { CategoryIllustration } from "@/components/taptale/category-illustration
 import { ProductCard } from "@/components/taptale/product-card";
 import { SectionHeading } from "@/components/taptale/section-heading";
 import { Button } from "@/components/ui/button";
+import { useInView } from "@/hooks/use-in-view";
+import { cn } from "@/lib/utils";
 import { index as categoriesIndex } from "@/routes/categories";
 import { templates as memoryPages } from "@/routes/experiences";
 import { create as startOrder } from "@/routes/orders";
@@ -87,68 +91,7 @@ export default function Home({
 
             <LocalStudio />
 
-            <section className="relative isolate">
-                <OccasionsBackdrop />
-                <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-                    <CategoryIllustration
-                        name="gift"
-                        className="pointer-events-none absolute top-6 right-[18rem] hidden w-36 drop-shadow-[0_14px_18px_rgba(113,61,80,0.18)] lg:block xl:right-[22rem] xl:w-44"
-                    />
-                    <Sparkle className="pointer-events-none absolute fill-current top-24 right-[16rem] hidden size-5 text-[#e8a35c] lg:block xl:right-[20rem]" />
-                    <Sparkle className="pointer-events-none absolute fill-current top-10 right-[29rem] hidden size-4 text-[#e8a35c] lg:block xl:right-[34rem]" />
-
-                    <SectionHeading
-                        eyebrow="Shop by occasion"
-                        title={
-                            <>
-                                A keepsake for every{" "}
-                                <span className="relative inline-block">
-                                    <em className="text-rose">chapter</em>
-                                    <svg
-                                        viewBox="0 0 160 40"
-                                        aria-hidden="true"
-                                        className="pointer-events-none absolute -right-10 -bottom-3 w-[calc(100%+3rem)] text-rose/70"
-                                    >
-                                        <path
-                                            d="M4 30 C 50 40, 110 34, 150 14"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="1.6"
-                                            strokeLinecap="round"
-                                        />
-                                    </svg>
-                                    <Heart className="pointer-events-none absolute -top-2 -right-8 size-6 -rotate-12 text-rose/80" />
-                                </span>
-                            </>
-                        }
-                        description="Each occasion has its own gifts and design options."
-                    >
-                        <Button
-                            asChild
-                            variant="ghost"
-                            className="rounded-full text-plum hover:bg-plum/5 dark:text-blush"
-                        >
-                            <Link href={categoriesIndex()}>
-                                All occasions <ArrowRight className="size-4" />
-                            </Link>
-                        </Button>
-                    </SectionHeading>
-                    <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:gap-5">
-                        {categories
-                            .slice(0, 8)
-                            .map((category, index, shown) => (
-                                <CategoryCard
-                                    key={category.id}
-                                    category={category}
-                                    className={occasionCardSpan(
-                                        index,
-                                        shown.length,
-                                    )}
-                                />
-                            ))}
-                    </div>
-                </div>
-            </section>
+            <ShopByOccasion categories={categories} />
 
             <HowItWorks />
 
@@ -258,6 +201,131 @@ export default function Home({
                 </div>
             </section>
         </>
+    );
+}
+
+const OCCASION_SPARKLES = [
+    { className: "top-24 right-[16rem] size-5 xl:right-[20rem]", delay: 0 },
+    { className: "top-10 right-[29rem] size-4 xl:right-[34rem]", delay: 0.9 },
+    { className: "top-4 right-[15rem] size-3 xl:right-[19rem]", delay: 1.6 },
+];
+
+const OCCASION_FLOATING_HEARTS = [
+    { className: "top-[18%] left-[2%] size-5", delay: 0 },
+    { className: "top-[55%] right-[1.5%] size-6", delay: 2.5 },
+    { className: "top-[85%] left-[1%] size-4", delay: 4.5 },
+    { className: "top-[6%] left-[44%] size-4", delay: 1.5 },
+];
+
+function ShopByOccasion({ categories }: { categories: Category[] }) {
+    const sectionRef = useRef<HTMLElement>(null);
+    const isVisible = useInView(sectionRef);
+    const shownCategories = categories.slice(0, 8);
+
+    return (
+        <section
+            ref={sectionRef}
+            className={cn(
+                "reveal-on-view relative isolate",
+                isVisible && "is-visible",
+            )}
+        >
+            <OccasionsBackdrop />
+            {OCCASION_FLOATING_HEARTS.map(({ className, delay }) => (
+                <Heart
+                    key={className}
+                    aria-hidden="true"
+                    className={cn(
+                        "pointer-events-none absolute -z-10 hidden animate-float-slow fill-current text-rose/20 sm:block",
+                        className,
+                    )}
+                    style={{ animationDelay: `${delay}s` }}
+                />
+            ))}
+
+            <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+                <div
+                    className="pointer-events-none absolute top-6 right-[18rem] hidden w-36 animate-pop-in lg:block xl:right-[22rem] xl:w-44"
+                    style={{ animationDelay: "0.3s" }}
+                >
+                    <CategoryIllustration
+                        name="gift"
+                        className="w-full animate-float-slow drop-shadow-[0_14px_18px_rgba(113,61,80,0.18)]"
+                    />
+                </div>
+                {OCCASION_SPARKLES.map(({ className, delay }) => (
+                    <Sparkle
+                        key={className}
+                        aria-hidden="true"
+                        className={cn(
+                            "pointer-events-none absolute hidden animate-twinkle fill-current text-[#e8a35c] lg:block",
+                            className,
+                        )}
+                        style={{ animationDelay: `${delay}s` }}
+                    />
+                ))}
+
+                <SectionHeading
+                    className="animate-fade-up"
+                    eyebrow="Shop by occasion"
+                    title={
+                        <>
+                            A keepsake for every{" "}
+                            <span className="relative inline-block">
+                                <em className="text-rose">chapter</em>
+                                <svg
+                                    viewBox="0 0 160 40"
+                                    aria-hidden="true"
+                                    className="pointer-events-none absolute -right-10 -bottom-3 w-[calc(100%+3rem)] text-rose/70"
+                                >
+                                    <path
+                                        d="M4 30 C 50 40, 110 34, 150 14"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="1.6"
+                                        strokeLinecap="round"
+                                        pathLength={1}
+                                        strokeDasharray={1}
+                                        className="animate-draw"
+                                    />
+                                </svg>
+                                <Heart
+                                    aria-hidden="true"
+                                    className="pointer-events-none absolute -top-2 -right-8 size-6 -rotate-12 animate-heartbeat text-rose/80"
+                                />
+                            </span>
+                        </>
+                    }
+                    description="Each occasion has its own gifts and design options."
+                >
+                    <Button
+                        asChild
+                        variant="ghost"
+                        className="group/all rounded-full text-plum hover:bg-plum/5 dark:text-blush"
+                    >
+                        <Link href={categoriesIndex()}>
+                            All occasions{" "}
+                            <ArrowRight className="size-4 transition-transform group-hover/all:translate-x-1" />
+                        </Link>
+                    </Button>
+                </SectionHeading>
+                <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:gap-5">
+                    {shownCategories.map((category, index) => (
+                        <CategoryCard
+                            key={category.id}
+                            category={category}
+                            className={cn(
+                                "animate-fade-up",
+                                occasionCardSpan(index, shownCategories.length),
+                            )}
+                            style={{
+                                animationDelay: `${0.15 + index * 0.08}s`,
+                            }}
+                        />
+                    ))}
+                </div>
+            </div>
+        </section>
     );
 }
 
@@ -473,21 +541,40 @@ function LocalStudio() {
 function Faqs({ faqs }: { faqs: Faq[] }) {
     return (
         <section className="mx-auto max-w-7xl px-4 pt-20 sm:px-6 lg:px-8">
-            <p className="mb-3 text-xs font-semibold tracking-[0.25em] text-rose uppercase">
-                Good to know
-            </p>
-            <h2 className="font-display text-3xl leading-tight font-medium sm:text-4xl">
-                Questions before you order
-            </h2>
-            <div className="mt-10 grid gap-x-10 gap-y-8 md:grid-cols-2">
-                {faqs.map((faq) => (
-                    <div key={faq.question}>
-                        <h3 className="font-display text-xl">{faq.question}</h3>
-                        <p className="mt-2 leading-relaxed text-charcoal/75 dark:text-foreground/75">
-                            {faq.answer}
-                        </p>
-                    </div>
-                ))}
+            <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:gap-16">
+                <div className="lg:sticky lg:top-28 lg:self-start">
+                    <p className="mb-3 text-xs font-semibold tracking-[0.25em] text-rose uppercase">
+                        Good to know
+                    </p>
+                    <h2 className="font-display text-3xl leading-tight font-medium sm:text-4xl">
+                        Questions before you order
+                    </h2>
+                    <p className="mt-4 text-muted-foreground">
+                        Tap a question to see the answer.
+                    </p>
+                </div>
+                <div className="space-y-3">
+                    {faqs.map((faq, index) => (
+                        <details
+                            key={faq.question}
+                            name="faq"
+                            open={index === 0}
+                            className="group rounded-2xl border border-plum/10 bg-white/60 transition-colors duration-300 open:border-rose/30 open:bg-white open:shadow-sm hover:border-rose/30 dark:border-border dark:bg-card/50 dark:open:bg-card"
+                        >
+                            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-2xl px-5 py-4 outline-none focus-visible:ring-2 focus-visible:ring-rose/50 sm:px-6 [&::-webkit-details-marker]:hidden">
+                                <h3 className="font-display text-lg leading-snug sm:text-xl">
+                                    {faq.question}
+                                </h3>
+                                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blush-light text-plum transition duration-300 group-open:rotate-45 group-open:bg-plum group-open:text-white dark:bg-plum/30 dark:text-blush">
+                                    <Plus className="size-4" />
+                                </span>
+                            </summary>
+                            <p className="px-5 pb-5 leading-relaxed text-charcoal/75 group-open:animate-fade-up sm:px-6 dark:text-foreground/75">
+                                {faq.answer}
+                            </p>
+                        </details>
+                    ))}
+                </div>
             </div>
         </section>
     );

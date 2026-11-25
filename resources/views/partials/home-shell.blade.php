@@ -116,15 +116,25 @@
 
         {{-- <Faqs> in home.tsx. React shows it further down the page; it sits here so search engines that don't run JavaScript still read it. --}}
         <section class="mx-auto max-w-7xl px-4 pt-20 sm:px-6 lg:px-8">
-            <p class="mb-3 text-xs font-semibold tracking-[0.25em] text-rose uppercase">Good to know</p>
-            <h2 class="font-display text-3xl leading-tight font-medium sm:text-4xl">Questions before you order</h2>
-            <div class="mt-10 grid gap-x-10 gap-y-8 md:grid-cols-2">
-                @foreach ($page['props']['faqs'] ?? [] as $faq)
-                    <div>
-                        <h3 class="font-display text-xl">{{ $faq['question'] }}</h3>
-                        <p class="mt-2 leading-relaxed text-charcoal/75 dark:text-foreground/75">{{ $faq['answer'] }}</p>
-                    </div>
-                @endforeach
+            <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:gap-16">
+                <div class="lg:sticky lg:top-28 lg:self-start">
+                    <p class="mb-3 text-xs font-semibold tracking-[0.25em] text-rose uppercase">Good to know</p>
+                    <h2 class="font-display text-3xl leading-tight font-medium sm:text-4xl">Questions before you order</h2>
+                    <p class="mt-4 text-muted-foreground">Tap a question to see the answer.</p>
+                </div>
+                <div class="space-y-3">
+                    @foreach ($page['props']['faqs'] ?? [] as $faq)
+                        <details name="faq" @if ($loop->first) open @endif class="group rounded-2xl border border-plum/10 bg-white/60 transition-colors duration-300 open:border-rose/30 open:bg-white open:shadow-sm hover:border-rose/30 dark:border-border dark:bg-card/50 dark:open:bg-card">
+                            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 rounded-2xl px-5 py-4 outline-none focus-visible:ring-2 focus-visible:ring-rose/50 sm:px-6 [&::-webkit-details-marker]:hidden">
+                                <h3 class="font-display text-lg leading-snug sm:text-xl">{{ $faq['question'] }}</h3>
+                                <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-blush-light text-plum transition duration-300 group-open:rotate-45 group-open:bg-plum group-open:text-white dark:bg-plum/30 dark:text-blush">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
+                                </span>
+                            </summary>
+                            <p class="px-5 pb-5 leading-relaxed text-charcoal/75 group-open:animate-fade-up sm:px-6 dark:text-foreground/75">{{ $faq['answer'] }}</p>
+                        </details>
+                    @endforeach
+                </div>
             </div>
         </section>
     </main>

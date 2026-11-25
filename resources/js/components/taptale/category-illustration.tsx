@@ -20,6 +20,59 @@ function Shadow({
     );
 }
 
+/**
+ * Animates its children around their own bounding box, so CSS keyframes work
+ * on SVG shapes without clobbering any `transform` attribute inside.
+ */
+function Motion({
+    className,
+    delay = 0,
+    origin = 'center',
+    children,
+}: {
+    className: string;
+    delay?: number;
+    origin?: string;
+    children: ReactNode;
+}) {
+    return (
+        <g
+            className={className}
+            style={{
+                transformBox: 'fill-box',
+                transformOrigin: origin,
+                animationDelay: `${delay}s`,
+            }}
+        >
+            {children}
+        </g>
+    );
+}
+
+function Twinkle({
+    x,
+    y,
+    size = 6,
+    delay = 0,
+    color = '#fff',
+}: {
+    x: number;
+    y: number;
+    size?: number;
+    delay?: number;
+    color?: string;
+}) {
+    return (
+        <Motion className="animate-twinkle" delay={delay}>
+            <path
+                transform={`translate(${x} ${y})`}
+                d={`M0 ${-size} Q0 0 ${size} 0 Q0 0 0 ${size} Q0 0 ${-size} 0 Q0 0 0 ${-size} Z`}
+                fill={color}
+            />
+        </Motion>
+    );
+}
+
 function Hearts(id: IdFactory): ReactNode {
     return (
         <>
@@ -41,20 +94,28 @@ function Hearts(id: IdFactory): ReactNode {
             {[
                 'translate(68 56) rotate(-14) scale(0.92)',
                 'translate(104 66) rotate(12) scale(1.05)',
-            ].map((transform) => (
-                <g key={transform} transform={transform}>
-                    <path d={HEART_PATH} fill={`url(#${id('heart')})`} />
-                    <ellipse
-                        cx={-16}
-                        cy={-17}
-                        rx={8}
-                        ry={4.5}
-                        transform="rotate(-35 -16 -17)"
-                        fill="#fff"
-                        opacity={0.5}
-                    />
-                </g>
+            ].map((transform, index) => (
+                <Motion
+                    key={transform}
+                    className="animate-heartbeat"
+                    delay={index * 0.35}
+                >
+                    <g transform={transform}>
+                        <path d={HEART_PATH} fill={`url(#${id('heart')})`} />
+                        <ellipse
+                            cx={-16}
+                            cy={-17}
+                            rx={8}
+                            ry={4.5}
+                            transform="rotate(-35 -16 -17)"
+                            fill="#fff"
+                            opacity={0.5}
+                        />
+                    </g>
+                </Motion>
             ))}
+            <Twinkle x={134} y={28} size={6} />
+            <Twinkle x={40} y={34} size={4} delay={1.2} />
         </>
     );
 }
@@ -111,6 +172,8 @@ function Rings(id: IdFactory): ReactNode {
                 strokeWidth={0.8}
             />
             <path d="M100 44 L112 44" stroke="#9fc1de" strokeWidth={0.6} />
+            <Twinkle x={120} y={32} size={7} />
+            <Twinkle x={34} y={52} size={4} delay={1.4} />
         </>
     );
 }
@@ -156,38 +219,40 @@ function TeddyBear(id: IdFactory): ReactNode {
             />
             <ellipse cx={90} cy={80} rx={26} ry={24} fill={fur} />
             <ellipse cx={90} cy={85} rx={15} ry={13} fill="#fff8f0" />
-            <circle cx={70} cy={26} r={10} fill={fur} />
-            <circle cx={110} cy={26} r={10} fill={fur} />
-            <circle cx={70} cy={26} r={5} fill="#ecd3bd" />
-            <circle cx={110} cy={26} r={5} fill="#ecd3bd" />
-            <circle cx={90} cy={44} r={24} fill={fur} />
-            <ellipse cx={90} cy={51} rx={10} ry={8} fill="#fff8f0" />
-            <ellipse cx={90} cy={47.5} rx={4} ry={3} fill="#4a3a35" />
-            <path
-                d="M86 53 Q90 57 94 53"
-                fill="none"
-                stroke="#4a3a35"
-                strokeWidth={1.4}
-                strokeLinecap="round"
-            />
-            <circle cx={81} cy={40} r={2.6} fill="#3a2e2a" />
-            <circle cx={99} cy={40} r={2.6} fill="#3a2e2a" />
-            <ellipse
-                cx={75}
-                cy={49}
-                rx={4}
-                ry={2.5}
-                fill="#f2a7b5"
-                opacity={0.5}
-            />
-            <ellipse
-                cx={105}
-                cy={49}
-                rx={4}
-                ry={2.5}
-                fill="#f2a7b5"
-                opacity={0.5}
-            />
+            <Motion className="animate-sway" origin="50% 100%">
+                <circle cx={70} cy={26} r={10} fill={fur} />
+                <circle cx={110} cy={26} r={10} fill={fur} />
+                <circle cx={70} cy={26} r={5} fill="#ecd3bd" />
+                <circle cx={110} cy={26} r={5} fill="#ecd3bd" />
+                <circle cx={90} cy={44} r={24} fill={fur} />
+                <ellipse cx={90} cy={51} rx={10} ry={8} fill="#fff8f0" />
+                <ellipse cx={90} cy={47.5} rx={4} ry={3} fill="#4a3a35" />
+                <path
+                    d="M86 53 Q90 57 94 53"
+                    fill="none"
+                    stroke="#4a3a35"
+                    strokeWidth={1.4}
+                    strokeLinecap="round"
+                />
+                <circle cx={81} cy={40} r={2.6} fill="#3a2e2a" />
+                <circle cx={99} cy={40} r={2.6} fill="#3a2e2a" />
+                <ellipse
+                    cx={75}
+                    cy={49}
+                    rx={4}
+                    ry={2.5}
+                    fill="#f2a7b5"
+                    opacity={0.5}
+                />
+                <ellipse
+                    cx={105}
+                    cy={49}
+                    rx={4}
+                    ry={2.5}
+                    fill="#f2a7b5"
+                    opacity={0.5}
+                />
+            </Motion>
             <path d="M90 66 L76 58 L76 74 Z" fill="#86b9de" />
             <path d="M90 66 L104 58 L104 74 Z" fill="#86b9de" />
             <circle cx={90} cy={66} r={4} fill="#5f9cc9" />
@@ -268,15 +333,17 @@ function Cake(id: IdFactory): ReactNode {
                     transform={`rotate(${angle} ${x} ${y})`}
                 />
             ))}
-            {candles.map(([x, base]) => (
+            {candles.map(([x, base], index) => (
                 <g key={x}>
-                    <circle
-                        cx={x}
-                        cy={base - 30}
-                        r={8}
-                        fill="#ffd27a"
-                        opacity={0.35}
-                    />
+                    <Motion className="animate-pulse" delay={index * 0.3}>
+                        <circle
+                            cx={x}
+                            cy={base - 30}
+                            r={8}
+                            fill="#ffd27a"
+                            opacity={0.35}
+                        />
+                    </Motion>
                     <rect
                         x={x - 2.5}
                         y={base - 22}
@@ -295,10 +362,16 @@ function Cake(id: IdFactory): ReactNode {
                         stroke="#5a4a42"
                         strokeWidth={1}
                     />
-                    <path
-                        d={`M${x} ${base - 37} C${x + 4} ${base - 31} ${x + 3.5} ${base - 25} ${x} ${base - 25} C${x - 3.5} ${base - 25} ${x - 4} ${base - 31} ${x} ${base - 37} Z`}
-                        fill={`url(#${id('flame')})`}
-                    />
+                    <Motion
+                        className="animate-flicker"
+                        delay={index * 0.17}
+                        origin="50% 100%"
+                    >
+                        <path
+                            d={`M${x} ${base - 37} C${x + 4} ${base - 31} ${x + 3.5} ${base - 25} ${x} ${base - 25} C${x - 3.5} ${base - 25} ${x - 4} ${base - 31} ${x} ${base - 37} Z`}
+                            fill={`url(#${id('flame')})`}
+                        />
+                    </Motion>
                 </g>
             ))}
         </>
@@ -345,21 +418,25 @@ function GraduationCap(id: IdFactory): ReactNode {
                 d="M76 28 L130 50 L76 72 L22 50 Z"
                 fill={`url(#${id('board')})`}
             />
-            <path
-                d="M76 50 Q98 56 110 58 L110 80"
-                fill="none"
-                stroke={`url(#${id('tassel')})`}
-                strokeWidth={2}
-            />
+            <Motion className="animate-sway" origin="0% 0%">
+                <path
+                    d="M76 50 Q98 56 110 58 L110 80"
+                    fill="none"
+                    stroke={`url(#${id('tassel')})`}
+                    strokeWidth={2}
+                />
+                <rect
+                    x={107}
+                    y={78}
+                    width={6}
+                    height={15}
+                    rx={2}
+                    fill={`url(#${id('tassel')})`}
+                />
+            </Motion>
             <ellipse cx={76} cy={50} rx={4} ry={2.5} fill="#e3b45a" />
-            <rect
-                x={107}
-                y={78}
-                width={6}
-                height={15}
-                rx={2}
-                fill={`url(#${id('tassel')})`}
-            />
+            <Twinkle x={138} y={30} size={6} />
+            <Twinkle x={26} y={84} size={4} delay={1.3} />
         </>
     );
 }
@@ -423,12 +500,15 @@ function Chalkboard(id: IdFactory): ReactNode {
                 >
                     you!
                 </text>
-                <path
-                    d={HEART_PATH}
-                    transform="translate(108 72) scale(0.14)"
-                    fill="#f28ca4"
-                />
+                <Motion className="animate-heartbeat">
+                    <path
+                        d={HEART_PATH}
+                        transform="translate(108 72) scale(0.14)"
+                        fill="#f28ca4"
+                    />
+                </Motion>
             </g>
+            <Twinkle x={142} y={24} size={5} delay={0.6} />
             <rect x={28} y={98} width={24} height={10} rx={2} fill="#8b5e3c" />
             <rect x={28} y={98} width={24} height={5} rx={2} fill="#f5e6d0" />
             <rect
@@ -453,6 +533,23 @@ function Mugs(id: IdFactory): ReactNode {
 
         return (
             <g>
+                {[x + 12, x + 24].map((wispX, index) => (
+                    <Motion
+                        key={wispX}
+                        className="animate-steam"
+                        delay={index * 1.1 + (handle === 'right' ? 0.5 : 0)}
+                        origin="50% 100%"
+                    >
+                        <path
+                            d={`M${wispX} ${y - 4} q-4 -6 0 -11 q4 -5 0 -11`}
+                            fill="none"
+                            stroke="#fff"
+                            strokeOpacity={0.8}
+                            strokeWidth={2}
+                            strokeLinecap="round"
+                        />
+                    </Motion>
+                ))}
                 <path
                     d={handlePath}
                     fill="none"
@@ -574,17 +671,22 @@ function Calendar(id: IdFactory): ReactNode {
                         fill="#e7d9d2"
                     />
                 ))}
+                <Motion className="animate-heartbeat">
+                    <path
+                        d={HEART_PATH}
+                        transform="translate(86 70) scale(0.55)"
+                        fill={`url(#${id('heart')})`}
+                    />
+                </Motion>
+            </g>
+            <Motion className="animate-bob" delay={0.8}>
                 <path
                     d={HEART_PATH}
-                    transform="translate(86 70) scale(0.55)"
-                    fill={`url(#${id('heart')})`}
+                    transform="translate(134 34) rotate(14) scale(0.22)"
+                    fill="#f0658c"
                 />
-            </g>
-            <path
-                d={HEART_PATH}
-                transform="translate(134 34) rotate(14) scale(0.22)"
-                fill="#f0658c"
-            />
+            </Motion>
+            <Twinkle x={36} y={40} size={5} delay={1.1} />
         </>
     );
 }
@@ -617,6 +719,9 @@ function Crown(id: IdFactory): ReactNode {
                     fill={x === 85 ? '#f28ca4' : '#8fc5e8'}
                 />
             ))}
+            <Twinkle x={98} y={24} size={6} />
+            <Twinkle x={142} y={64} size={4} delay={0.9} />
+            <Twinkle x={28} y={70} size={4} delay={1.7} />
         </>
     );
 }
@@ -657,25 +762,29 @@ function Gift(id: IdFactory): ReactNode {
                 d="M107.3 55.9 L117.7 50.1 L117.7 100.1 L107.3 105.9 Z"
                 fill="#9e2a45"
             />
-            <path d="M80 53 L70 68 L75 65 L77 70 L83 55 Z" fill="#b2344f" />
-            <path d="M85 53 L95 68 L90 65 L88 70 L82 55 Z" fill="#b2344f" />
-            <path
-                d="M82.5 51 C66 30 50 42 64 52 C71 56 78 54 82.5 51 Z"
-                fill={`url(#${id('ribbon')})`}
-            />
-            <path
-                d="M82.5 51 C99 30 115 42 101 52 C94 56 87 54 82.5 51 Z"
-                fill={`url(#${id('ribbon')})`}
-            />
-            <ellipse cx={82.5} cy={51} rx={5} ry={4} fill="#b8364f" />
-            <path
-                d="M68 40 C72 38 76 42 78 46"
-                fill="none"
-                stroke="#fff"
-                strokeOpacity={0.45}
-                strokeWidth={1.5}
-                strokeLinecap="round"
-            />
+            <Motion className="animate-wiggle" origin="50% 70%">
+                <path d="M80 53 L70 68 L75 65 L77 70 L83 55 Z" fill="#b2344f" />
+                <path d="M85 53 L95 68 L90 65 L88 70 L82 55 Z" fill="#b2344f" />
+                <path
+                    d="M82.5 51 C66 30 50 42 64 52 C71 56 78 54 82.5 51 Z"
+                    fill={`url(#${id('ribbon')})`}
+                />
+                <path
+                    d="M82.5 51 C99 30 115 42 101 52 C94 56 87 54 82.5 51 Z"
+                    fill={`url(#${id('ribbon')})`}
+                />
+                <ellipse cx={82.5} cy={51} rx={5} ry={4} fill="#b8364f" />
+                <path
+                    d="M68 40 C72 38 76 42 78 46"
+                    fill="none"
+                    stroke="#fff"
+                    strokeOpacity={0.45}
+                    strokeWidth={1.5}
+                    strokeLinecap="round"
+                />
+            </Motion>
+            <Twinkle x={138} y={34} size={6} color="#f6c453" />
+            <Twinkle x={28} y={52} size={4} delay={1.2} color="#f6c453" />
         </>
     );
 }

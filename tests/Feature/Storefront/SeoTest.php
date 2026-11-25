@@ -40,7 +40,7 @@ test('the homepage tells search engines which towns the shop delivers to', funct
         ->assertSee('"@type":"Store"', false)
         ->assertSee('"addressLocality":"Binalonan"', false)
         ->assertSee('{"@type":"City","name":"Urdaneta City, Pangasinan"}', false)
-        ->assertSee('<h3 class="font-display text-xl">Where do you deliver?</h3>', false)
+        ->assertSee('<h3 class="font-display text-lg leading-snug sm:text-xl">Where do you deliver?</h3>', false)
         ->assertSee('"@type":"FAQPage"', false)
         ->assertSee('"text":"For now we deliver to Binalonan and nearby towns and cities in Pangasinan: Urdaneta City.', false)
         ->assertSee('<a href="'.route('categories.show', $occasion).'"', false)
