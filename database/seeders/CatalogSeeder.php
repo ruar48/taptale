@@ -91,11 +91,8 @@ class CatalogSeeder extends Seeder
                 'art' => 'qr', 'price' => 19900, 'fee' => 5000, 'days' => [3, 5],
                 'featured' => true, 'bestseller' => false, 'photos' => 2, 'experience' => true,
                 'options' => [
-                    [OptionGroup::Size, 'Card (85 × 55 mm)', 0, true],
-                    [OptionGroup::Size, 'Tabletop stand (100 × 150 mm)', 10000],
-                    [OptionGroup::Material, 'Clear acrylic', 0, true],
-                    [OptionGroup::Material, 'Frosted acrylic', 3000],
-                    ...$this->packagingOptions(),
+                    [OptionGroup::Size, 'Small', 0, true],
+                    [OptionGroup::Size, 'Large', 10000],
                 ],
             ],
             'acrylic-photo-stand' => [
@@ -104,14 +101,9 @@ class CatalogSeeder extends Seeder
                 'art' => 'photo', 'price' => 29900, 'fee' => 8000, 'days' => [4, 6],
                 'featured' => true, 'bestseller' => true, 'photos' => 3, 'experience' => false,
                 'options' => [
-                    [OptionGroup::Size, '4 × 6 in', 0, true],
-                    [OptionGroup::Size, '5 × 7 in', 8000],
-                    [OptionGroup::Size, '8 × 10 in', 20000],
-                    [OptionGroup::Thickness, '5 mm', 0, true],
-                    [OptionGroup::Thickness, '10 mm premium block', 12000],
-                    [OptionGroup::AddOn, 'Engraved name base', 6000],
-                    [OptionGroup::AddOn, 'Warm LED light base', 18000],
-                    ...$this->packagingOptions(),
+                    [OptionGroup::Size, 'Small', 0, true],
+                    [OptionGroup::Size, 'Medium', 8000],
+                    [OptionGroup::Size, 'Large', 20000],
                 ],
             ],
             'couple-keychain-pair' => [
@@ -128,16 +120,8 @@ class CatalogSeeder extends Seeder
                 'featured' => true, 'bestseller' => false, 'photos' => 2, 'experience' => true,
                 'min' => 20, 'max' => 1000,
                 'options' => [
-                    [OptionGroup::Size, 'Small (40 mm)', 0, true],
-                    [OptionGroup::Size, 'Medium (50 mm)', 1000],
-                    [OptionGroup::Shape, 'Circle', 0, true],
-                    [OptionGroup::Shape, 'Heart', 0],
-                    [OptionGroup::Shape, 'Custom cut-out', 1500],
-                    [OptionGroup::Color, 'Rose gold ring', 0, true, '#B76E79'],
-                    [OptionGroup::Color, 'Silver ring', 0, false, '#C0C0C0'],
-                    [OptionGroup::Color, 'Gold ring', 0, false, '#D4AF37'],
-                    [OptionGroup::Packaging, 'Individually bagged', 0, true],
-                    [OptionGroup::Packaging, 'Thank-you tag & ribbon', 1500],
+                    [OptionGroup::Size, 'Small', 0, true],
+                    [OptionGroup::Size, 'Large', 1000],
                 ],
             ],
             'teacher-plaque' => [
@@ -146,11 +130,8 @@ class CatalogSeeder extends Seeder
                 'art' => 'photo', 'price' => 24900, 'fee' => 6000, 'days' => [4, 6],
                 'featured' => false, 'bestseller' => false, 'photos' => 1, 'experience' => false,
                 'options' => [
-                    [OptionGroup::Size, '5 × 7 in', 0, true],
-                    [OptionGroup::Size, '8 × 10 in', 12000],
-                    [OptionGroup::Material, 'Clear acrylic', 0, true],
-                    [OptionGroup::Material, 'Wood-backed acrylic', 9000],
-                    ...$this->packagingOptions(),
+                    [OptionGroup::Size, 'Small', 0, true],
+                    [OptionGroup::Size, 'Large', 12000],
                 ],
             ],
             'mini-cd' => [
@@ -159,13 +140,8 @@ class CatalogSeeder extends Seeder
                 'art' => 'cd', 'price' => 15900, 'fee' => 6000, 'days' => [4, 6],
                 'featured' => true, 'bestseller' => true, 'photos' => 3, 'experience' => true,
                 'options' => [
-                    [OptionGroup::Size, 'Mini case (45 × 40 mm)', 0, true],
-                    [OptionGroup::Size, 'Large case (60 × 54 mm)', 4000],
-                    [OptionGroup::Color, 'Silver ball chain', 0, true, '#C0C0C0'],
-                    [OptionGroup::Color, 'Black ball chain', 0, false, '#343039'],
-                    [OptionGroup::Color, 'Pastel pink chain', 1000, false, '#E9C9C9'],
-                    [OptionGroup::AddOn, 'Extra printed disc', 2000],
-                    ...$this->packagingOptions(),
+                    [OptionGroup::Size, 'Small', 0, true],
+                    [OptionGroup::Size, 'Large', 4000],
                 ],
             ],
             'music-player' => [
@@ -174,14 +150,8 @@ class CatalogSeeder extends Seeder
                 'art' => 'music', 'price' => 9900, 'fee' => 4000, 'days' => [3, 5],
                 'featured' => true, 'bestseller' => true, 'photos' => 1, 'experience' => true,
                 'options' => [
-                    [OptionGroup::Size, 'Standard (54 × 86 mm)', 0, true],
-                    [OptionGroup::Size, 'Large (63 × 100 mm)', 3000],
-                    [OptionGroup::Thickness, '3 mm', 0, true],
-                    [OptionGroup::Thickness, '5 mm', 1500],
-                    [OptionGroup::Color, 'Silver ring', 0, true, '#C0C0C0'],
-                    [OptionGroup::Color, 'Gold ring', 0, false, '#D4AF37'],
-                    [OptionGroup::Color, 'Rose gold ring', 0, false, '#B76E79'],
-                    ...$this->packagingOptions(),
+                    [OptionGroup::Size, 'Small', 0, true],
+                    [OptionGroup::Size, 'Large', 3000],
                 ],
             ],
             'photo-strip' => [
@@ -190,13 +160,8 @@ class CatalogSeeder extends Seeder
                 'art' => 'strip', 'price' => 4900, 'fee' => 3000, 'days' => [3, 5],
                 'featured' => false, 'bestseller' => true, 'photos' => 4, 'experience' => true,
                 'options' => [
-                    [OptionGroup::Size, 'Mini strip (25 × 75 mm)', 0, true],
-                    [OptionGroup::Size, 'Classic strip (35 × 105 mm)', 2000],
-                    [OptionGroup::Material, 'Single-sided print', 0, true],
-                    [OptionGroup::Material, 'Double-sided print', 1500],
-                    [OptionGroup::Color, 'Silver ring', 0, true, '#C0C0C0'],
-                    [OptionGroup::Color, 'Gold ring', 0, false, '#D4AF37'],
-                    ...$this->packagingOptions(),
+                    [OptionGroup::Size, 'Small', 0, true],
+                    [OptionGroup::Size, 'Large', 2000],
                 ],
             ],
             'tap-tag' => [
@@ -204,31 +169,14 @@ class CatalogSeeder extends Seeder
                 'short' => 'A round tap tag that opens your page, socials or memories on any phone — no app needed.',
                 'art' => 'tag', 'price' => 8900, 'fee' => 3000, 'days' => [3, 5],
                 'featured' => false, 'bestseller' => false, 'photos' => 1, 'experience' => true,
-                'options' => [
-                    [OptionGroup::Shape, 'Circle (30 mm)', 0, true],
-                    [OptionGroup::Shape, 'Rounded square (30 mm)', 0],
-                    [OptionGroup::Color, 'Matte black base', 0, true, '#343039'],
-                    [OptionGroup::Color, 'Blush base', 0, false, '#E9C9C9'],
-                    [OptionGroup::Color, 'White base', 0, false, '#F8F3ED'],
-                    [OptionGroup::AddOn, 'Epoxy dome finish', 2000],
-                    ...$this->packagingOptions(),
-                ],
+                'options' => [],
             ],
             'wooden-keychain' => [
                 'name' => 'Engraved Wooden Keychain',
                 'short' => 'Your photo and a heartfelt line, laser-engraved on real wood.',
                 'art' => 'wood', 'price' => 8800, 'fee' => 4000, 'days' => [3, 6],
                 'featured' => true, 'bestseller' => true, 'photos' => 1, 'experience' => true,
-                'options' => [
-                    [OptionGroup::Material, 'Maple (light)', 0, true],
-                    [OptionGroup::Material, 'Walnut (dark)', 2000],
-                    [OptionGroup::Shape, 'Rectangle', 0, true],
-                    [OptionGroup::Shape, 'Rounded tag', 0],
-                    [OptionGroup::AddOn, 'Engraving on the back', 2500],
-                    [OptionGroup::AddOn, 'Leather strap', 3000],
-                    [OptionGroup::Packaging, 'Kraft pouch', 0, true],
-                    [OptionGroup::Packaging, 'Gold-ribbon gift box', 6000],
-                ],
+                'options' => [],
             ],
             'die-cut' => [
                 'name' => 'Die-cut Photo Keychain',
@@ -236,14 +184,8 @@ class CatalogSeeder extends Seeder
                 'art' => 'diecut', 'price' => 6900, 'fee' => 3000, 'days' => [3, 5],
                 'featured' => false, 'bestseller' => false, 'photos' => 2, 'experience' => true,
                 'options' => [
-                    [OptionGroup::Size, 'Small (50 mm)', 0, true],
-                    [OptionGroup::Size, 'Large (70 mm)', 2500],
-                    [OptionGroup::Material, 'Clear acrylic', 0, true],
-                    [OptionGroup::Material, 'Holographic acrylic', 2500],
-                    [OptionGroup::Color, 'Silver ring', 0, true, '#C0C0C0'],
-                    [OptionGroup::Color, 'Lobster clasp (gold)', 1000, false, '#D4AF37'],
-                    [OptionGroup::AddOn, 'Double-sided print', 1500],
-                    ...$this->packagingOptions(),
+                    [OptionGroup::Size, 'Small', 0, true],
+                    [OptionGroup::Size, 'Large', 2500],
                 ],
             ],
             'calendar-keychain' => [
@@ -252,14 +194,8 @@ class CatalogSeeder extends Seeder
                 'art' => 'calendar', 'price' => 9900, 'fee' => 4000, 'days' => [3, 5],
                 'featured' => true, 'bestseller' => true, 'photos' => 1, 'experience' => true,
                 'options' => [
-                    [OptionGroup::Size, 'Standard (45 × 60 mm)', 0, true],
-                    [OptionGroup::Size, 'Large (54 × 72 mm)', 2500],
-                    [OptionGroup::Material, 'Single-sided print', 0, true],
-                    [OptionGroup::Material, 'Double-sided print', 1500],
-                    [OptionGroup::Color, 'Gold ring', 0, true, '#D4AF37'],
-                    [OptionGroup::Color, 'Silver ring', 0, false, '#C0C0C0'],
-                    [OptionGroup::AddOn, 'Matching pair (2 pcs)', 8000],
-                    ...$this->packagingOptions(),
+                    [OptionGroup::Size, 'Small', 0, true],
+                    [OptionGroup::Size, 'Large', 2500],
                 ],
             ],
         ];
@@ -312,42 +248,16 @@ class CatalogSeeder extends Seeder
     }
 
     /**
-     * @return list<array{0: OptionGroup, 1: string, 2: int, 3?: bool, 4?: string|null, 5?: bool}>
+     * Keychains keep it simple: just pick a size.
+     *
+     * @return list<array{0: OptionGroup, 1: string, 2: int, 3?: bool}>
      */
     private function keychainOptions(): array
     {
-        $options = [
-            [OptionGroup::Size, 'Petite (45 mm)', 0, true],
-            [OptionGroup::Size, 'Classic (55 mm)', 2000],
-            [OptionGroup::Size, 'Statement (70 mm)', 4500],
-            [OptionGroup::Shape, 'Rounded rectangle', 0, true],
-            [OptionGroup::Shape, 'Circle', 0],
-            [OptionGroup::Shape, 'Heart', 1000],
-            [OptionGroup::Shape, 'Custom cut-out', 2500],
-            [OptionGroup::Material, 'Clear acrylic', 0, true],
-            [OptionGroup::Material, 'Frosted acrylic', 1500],
-            [OptionGroup::Material, 'Glitter acrylic', 2500],
-            [OptionGroup::Thickness, '3 mm', 0, true],
-            [OptionGroup::Thickness, '5 mm', 1500],
-            [OptionGroup::Color, 'Rose gold ring', 0, true, '#B76E79'],
-            [OptionGroup::Color, 'Silver ring', 0, false, '#C0C0C0'],
-            [OptionGroup::Color, 'Gold ring', 0, false, '#D4AF37'],
-            [OptionGroup::AddOn, 'Initial charm', 3500],
-            [OptionGroup::AddOn, 'Tassel', 2500],
-        ];
-
-        return [...$options, ...$this->packagingOptions()];
-    }
-
-    /**
-     * @return list<array{0: OptionGroup, 1: string, 2: int, 3?: bool}>
-     */
-    private function packagingOptions(): array
-    {
         return [
-            [OptionGroup::Packaging, 'Kraft pouch', 0, true],
-            [OptionGroup::Packaging, 'Blush gift box with ribbon', 6000],
-            [OptionGroup::Packaging, 'Premium keepsake box & handwritten card', 12000],
+            [OptionGroup::Size, 'Small', 0, true],
+            [OptionGroup::Size, 'Medium', 2000],
+            [OptionGroup::Size, 'Large', 4500],
         ];
     }
 
