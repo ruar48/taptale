@@ -29,6 +29,7 @@ class ExperienceSectionController extends Controller
     public const TYPES = [
         'timeline' => 4,
         'film_strip' => 3,
+        'film_standing' => 6,
         'scrapbook' => 4,
         'album' => 6,
         'note' => 0,

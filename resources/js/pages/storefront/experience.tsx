@@ -181,26 +181,32 @@ export default function Experience({
         );
 
     /*
-     * Each frame shows its own photo, never one already shown in another
-     * frame, a moment or an extra section. Empty frames are where whoever
-     * edits the page taps to add a picture.
+     * Each frame shows only the photo added into it. Empty frames are where
+     * whoever edits the page taps to add a picture.
      */
     const frameLayout = layoutPhotoFrames({
         sections: frameSections,
         photoCount: photos.length,
         chosen: experience.photo_frames ?? {},
-        placed: [
-            ...experience.moments.map((moment) => moment.photo),
-            ...(experience.custom_sections ?? []).flatMap((customSection) =>
-                customSection.slots.map((slot) => slot.photo),
-            ),
-        ],
     });
 
     const framePhotos = (section: PhotoFrameSection): (string | null)[] =>
         (frameLayout[section] ?? []).map((photo) =>
             photo !== null ? (photos[photo] ?? null) : null,
         );
+
+    /*
+     * The album shows only the photos that have no other place on the page
+     * (not in a frame, a moment or an extra section).
+     */
+    const placedPhotos = new Set<number | null>([
+        ...Object.values(frameLayout).flat(),
+        ...experience.moments.map((moment) => moment.photo),
+        ...(experience.custom_sections ?? []).flatMap((customSection) =>
+            customSection.slots.map((slot) => slot.photo),
+        ),
+    ]);
+    const albumPhotos = photos.filter((_, index) => !placedPhotos.has(index));
 
     const coverPhoto =
         frameSections
@@ -438,6 +444,7 @@ export default function Experience({
                 preset,
                 theme,
                 photos,
+                albumPhotos,
                 framePhotos,
                 coverPhoto,
                 moments: experience.moments,

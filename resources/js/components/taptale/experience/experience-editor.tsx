@@ -52,6 +52,7 @@ import type {
     FlowerRain,
     FlowerStyle,
     PhotoRainLayer,
+    PhotoRainSource,
     VideoBackground,
     VideoFrame,
 } from "@/types";
@@ -124,6 +125,7 @@ type ExperienceForm = {
     flower_style: FlowerStyle;
     flower_rain: FlowerRain;
     photo_rain_layer: PhotoRainLayer;
+    photo_rain_source: PhotoRainSource;
     event_date: string;
     video_url: string;
     video_frame: VideoFrame;
@@ -174,6 +176,7 @@ export function ExperienceEditor({
         flower_style: experience.flower_style,
         flower_rain: experience.flower_rain,
         photo_rain_layer: experience.photo_rain_layer,
+        photo_rain_source: experience.photo_rain_source ?? "all",
         event_date: experience.event_date ?? "",
         video_url: experience.video_url ?? "",
         video_frame: experience.video_frame ?? "plain",
@@ -586,11 +589,32 @@ export function ExperienceEditor({
                             )}
 
                             {hasPhotoRain && (
+                                <label className="flex items-center gap-2 text-sm">
+                                    <Checkbox
+                                        checked={
+                                            data.photo_rain_source === "all"
+                                        }
+                                        onCheckedChange={(checked) =>
+                                            setData(
+                                                "photo_rain_source",
+                                                checked === true
+                                                    ? "all"
+                                                    : "picked",
+                                            )
+                                        }
+                                    />
+                                    Let all my page photos fall too
+                                </label>
+                            )}
+
+                            {hasPhotoRain && (
                                 <div>
                                     <p className="mb-2 text-sm text-muted-foreground">
                                         {experience.rain_photos.length > 0
                                             ? `These ${experience.rain_photos.length} photos rain down in a random order.`
-                                            : "Pick the photos that rain down. Until you do, your page photos fall."}
+                                            : data.photo_rain_source === "all"
+                                                ? "Your page photos rain down. Add more photos just for the rain here."
+                                                : "Pick the photos that rain down. Only these photos fall."}
                                     </p>
                                     <div className="flex flex-wrap gap-2">
                                         {experience.rain_photos.map((photo) => (

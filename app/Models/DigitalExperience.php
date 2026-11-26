@@ -6,6 +6,7 @@ use App\Enums\ExperienceTemplate;
 use App\Enums\FlowerRain;
 use App\Enums\FlowerStyle;
 use App\Enums\PhotoRainLayer;
+use App\Enums\PhotoRainSource;
 use App\Jobs\FetchSongDetails;
 use Database\Factories\DigitalExperienceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -36,6 +37,7 @@ use Illuminate\Support\Str;
  * @property FlowerRain $flower_rain What falls from the sky over the flowers
  * @property bool $flower_addon Flowers bought at checkout for a design that lacks them
  * @property PhotoRainLayer $photo_rain_layer
+ * @property PhotoRainSource $photo_rain_source Whether all the page's photos rain down or only those added to the rain
  * @property string|null $event_date
  * @property string|null $video_url
  * @property string|null $video_path A short video file uploaded to the page
@@ -66,7 +68,7 @@ use Illuminate\Support\Str;
 #[RouteKey('code')]
 #[Fillable([
     'template', 'title', 'subtitle', 'recipient_name', 'sender_name', 'message', 'quote', 'flowers_note', 'flower_style', 'flower_rain', 'flower_addon',
-    'photo_rain_layer', 'event_date', 'video_url', 'video_path', 'video_frame', 'video_background', 'music_url', 'song_title', 'song_artist', 'song_ornament', 'song_background', 'photos', 'rain_photos', 'moments', 'custom_sections', 'photo_frames', 'theme',
+    'photo_rain_layer', 'photo_rain_source', 'event_date', 'video_url', 'video_path', 'video_frame', 'video_background', 'music_url', 'song_title', 'song_artist', 'song_ornament', 'song_background', 'photos', 'rain_photos', 'moments', 'custom_sections', 'photo_frames', 'theme',
     'nfc_tag_uid', 'is_published', 'unlocks_at',
 ])]
 class DigitalExperience extends Model
@@ -166,6 +168,7 @@ class DigitalExperience extends Model
         'video_frame' => 'plain',
         'video_background' => 'theme',
         'photo_rain_layer' => 'front',
+        'photo_rain_source' => 'all',
         'song_ornament' => 'none',
         'song_background' => 'theme',
         'is_published' => false,
@@ -204,6 +207,7 @@ class DigitalExperience extends Model
             'flower_rain' => FlowerRain::class,
             'flower_addon' => 'boolean',
             'photo_rain_layer' => PhotoRainLayer::class,
+            'photo_rain_source' => PhotoRainSource::class,
             'photos' => 'array',
             'rain_photos' => 'array',
             'moments' => 'array',

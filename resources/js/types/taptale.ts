@@ -184,6 +184,9 @@ export type Payment = {
 /** Whether raining photos fall in front of the garden flowers or behind them. */
 export type PhotoRainLayer = 'front' | 'back';
 
+/** Which photos rain down: only those added to the rain, or all the page's photos too. */
+export type PhotoRainSource = 'picked' | 'all';
+
 /** The flowers on a bouquet page: the wrapped bouquet or glowing garden flowers. */
 export type FlowerStyle =
     | 'bouquet'
@@ -259,6 +262,7 @@ export type ExperienceMoment = {
 export type ExperienceSectionType =
     | 'timeline'
     | 'film_strip'
+    | 'film_standing'
     | 'scrapbook'
     | 'album'
     | 'note'
@@ -318,6 +322,7 @@ export type DigitalExperience = {
     /** Flowers bought at checkout for a design that does not include them. */
     flower_addon: boolean;
     photo_rain_layer: PhotoRainLayer;
+    photo_rain_source: PhotoRainSource;
     event_date: string | null;
     video_url: string | null;
     /** A short video file uploaded to the page (or kept in a demo draft). */

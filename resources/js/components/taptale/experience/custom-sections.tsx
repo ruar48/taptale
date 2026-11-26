@@ -1,6 +1,7 @@
 import { router } from "@inertiajs/react";
 import {
     BookHeart,
+    Columns2,
     Crown,
     Film,
     Flower2,
@@ -29,6 +30,11 @@ import type { CSSProperties, ComponentType } from "react";
 import { toast } from "sonner";
 import ExperienceSectionController from "@/actions/App/Http/Controllers/Account/ExperienceSectionController";
 import type { SectionKey } from "@/components/taptale/experience/config";
+import {
+    FilmRoll,
+    StandingFilmRolls,
+} from "@/components/taptale/experience/film-strip";
+import type { FilmFrame } from "@/components/taptale/experience/film-strip";
 import {
     ExperienceSection,
     FlowersSection,
@@ -83,6 +89,14 @@ const SECTION_STYLES: {
         titlePlaceholder: "My favorite person",
         icon: Film,
         looksLike: "film_strip",
+    },
+    {
+        type: "film_standing",
+        label: "Standing film strips",
+        description:
+            "Two upright film strips side by side, slowly rolling past.",
+        titlePlaceholder: "Frames of us",
+        icon: Columns2,
     },
     {
         type: "scrapbook",
@@ -336,7 +350,8 @@ export function CustomSection({
             {section.type === "timeline" && (
                 <TimelineBody section={section} slots={slots} />
             )}
-            {section.type === "film_strip" && (
+            {(section.type === "film_strip" ||
+                section.type === "film_standing") && (
                 <FilmStripBody section={section} slots={slots} />
             )}
             {section.type === "scrapbook" && (
@@ -391,7 +406,8 @@ function SectionTitle({ section }: { section: ExperienceCustomSection }) {
 
     return (
         <Reveal className="text-center">
-            {section.type === "film_strip" ? (
+            {section.type === "film_strip" ||
+            section.type === "film_standing" ? (
                 <h2 className="font-display text-3xl font-semibold tracking-wide uppercase">
                     {title}
                 </h2>
@@ -466,6 +482,7 @@ function TimelineBody({
     );
 }
 
+/** The film strip styles: one roll across, or two standing side by side. */
 function FilmStripBody({
     section,
     slots,
@@ -473,57 +490,20 @@ function FilmStripBody({
     section: ExperienceCustomSection;
     slots: SlotView[];
 }) {
-    const { openPhoto } = useExperience();
-    const sprockets =
-        "repeating-linear-gradient(90deg, transparent 0 10px, #F5F0E8 10px 22px, transparent 22px 34px)";
+    const frames: FilmFrame[] = slots.map((slot) => ({
+        key: slot.index,
+        src: slot.photo_url,
+        slot: { section: section.id, slot: slot.index },
+    }));
 
     return (
         <>
             <Reveal delay={150}>
-                <div className="-mx-5 mt-10 scrollbar-none overflow-x-auto px-5 pb-4">
-                    <div className="relative mx-auto w-max -rotate-1 bg-[#141414] px-4 py-7 shadow-[0_24px_50px_-20px_rgb(0_0_0/0.7)]">
-                        <div
-                            className="absolute inset-x-0 top-2 h-3 opacity-90"
-                            style={{
-                                backgroundImage: sprockets,
-                                backgroundSize: "34px 12px",
-                            }}
-                        />
-                        <div className="flex gap-3">
-                            {slots.map((slot, position) => (
-                                <div key={slot.index} className="w-44 sm:w-56">
-                                    <p className="mb-1 flex justify-between font-mono text-[9px] tracking-widest text-[#E8A33D]">
-                                        <span>TAPTALE 400</span>
-                                        <span>{position + 1}A</span>
-                                    </p>
-                                    <PhotoFill
-                                        src={slot.photo_url}
-                                        className="aspect-[4/3] w-full"
-                                        slot={{
-                                            section: section.id,
-                                            slot: slot.index,
-                                        }}
-                                        onClick={
-                                            slot.photo_url
-                                                ? () =>
-                                                      openPhoto(
-                                                          slot.photo_url ?? "",
-                                                      )
-                                                : undefined
-                                        }
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                        <div
-                            className="absolute inset-x-0 bottom-2 h-3 opacity-90"
-                            style={{
-                                backgroundImage: sprockets,
-                                backgroundSize: "34px 12px",
-                            }}
-                        />
-                    </div>
-                </div>
+                {section.type === "film_standing" ? (
+                    <StandingFilmRolls frames={frames} />
+                ) : (
+                    <FilmRoll frames={frames} />
+                )}
             </Reveal>
             <Reveal className="mt-6 text-center">
                 <SectionText

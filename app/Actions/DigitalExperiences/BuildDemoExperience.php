@@ -48,6 +48,7 @@ class BuildDemoExperience
             'flower_rain' => $flowerRain->value,
             'flower_addon' => false,
             'photo_rain_layer' => 'front',
+            'photo_rain_source' => 'all',
             'event_date' => $copy['date'],
             'video_url' => null,
             'video_file_url' => null,

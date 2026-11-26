@@ -8,11 +8,16 @@ import {
 import { useExperience } from '@/components/taptale/experience/shared';
 import { MAX_RAIN_PHOTOS } from '@/lib/page-draft';
 import { cn } from '@/lib/utils';
-import type { PhotoRainLayer } from '@/types';
+import type { PhotoRainLayer, PhotoRainSource } from '@/types';
 
 const PHOTO_LAYERS: { value: PhotoRainLayer; label: string }[] = [
     { value: 'front', label: 'In front' },
     { value: 'back', label: 'Behind flowers' },
+];
+
+const PHOTO_SOURCES: { value: PhotoRainSource; label: string }[] = [
+    { value: 'all', label: 'All my photos' },
+    { value: 'picked', label: 'Only ones I add' },
 ];
 
 function Choice({
@@ -58,6 +63,7 @@ export function FlowerPicker({ onRemove }: { onRemove?: () => void }) {
     const [saving, setSaving] = useState<string | null>(null);
     const rain = experience.flower_rain ?? 'none';
     const hasPhotoRain = rain === 'photos' || rain === 'both';
+    const rainSource = experience.photo_rain_source ?? 'all';
 
     const choose = async (field: string, value: string, current: string) => {
         if (value === current || saving) {
@@ -213,10 +219,37 @@ export function FlowerPicker({ onRemove }: { onRemove?: () => void }) {
                                     </Choice>
                                 ))}
                             </div>
+                            <p className="mt-4 mb-2 text-xs tracking-wide text-white/60 uppercase">
+                                Photos that fall
+                            </p>
+                            <div
+                                className="flex flex-wrap gap-2"
+                                role="radiogroup"
+                                aria-label="Photos that fall"
+                            >
+                                {PHOTO_SOURCES.map((option) => (
+                                    <Choice
+                                        key={option.value}
+                                        selected={rainSource === option.value}
+                                        disabled={saving !== null}
+                                        onClick={() =>
+                                            choose(
+                                                'photo_rain_source',
+                                                option.value,
+                                                rainSource,
+                                            )
+                                        }
+                                    >
+                                        {option.label}
+                                    </Choice>
+                                ))}
+                            </div>
                             <p className="mt-3 text-xs text-white/60">
-                                {rainPhotos.length > 0
-                                    ? `These ${rainPhotos.length} photos rain down in a random order.`
-                                    : 'Pick the photos that rain down. Until you do, your page photos fall.'}
+                                {rainSource === 'all'
+                                    ? 'Your page photos rain down. Add more photos just for the rain here.'
+                                    : rainPhotos.length > 0
+                                      ? `These ${rainPhotos.length} photos rain down in a random order.`
+                                      : 'Pick the photos that rain down. Only these photos fall.'}
                             </p>
                             <div className="mt-2 flex flex-wrap gap-2">
                                 {rainPhotos.map((photo) => (

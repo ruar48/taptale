@@ -35,6 +35,27 @@
     --animate-shimmer: shimmer 2.5s linear infinite;
     --animate-heart-rise: heart-rise 9s linear infinite;
     --animate-wiggle: wiggle 2.4s ease-in-out infinite;
+    --animate-film-x: film-x var(--film-duration, 40s) linear infinite;
+    --animate-film-y: film-y var(--film-duration, 40s) linear infinite;
+
+    /* Film strips loop by sliding a doubled roll by exactly one copy. */
+    @keyframes film-x {
+        from {
+            transform: translateX(0);
+        }
+        to {
+            transform: translateX(-50%);
+        }
+    }
+
+    @keyframes film-y {
+        from {
+            transform: translateY(0);
+        }
+        to {
+            transform: translateY(-50%);
+        }
+    }
 
     @keyframes heart-rise {
         0% {

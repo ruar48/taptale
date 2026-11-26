@@ -17,6 +17,8 @@ import {
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { BloomingBouquet } from '@/components/taptale/experience/blooming-bouquet';
+import { FilmRoll } from '@/components/taptale/experience/film-strip';
+import type { FilmFrame } from '@/components/taptale/experience/film-strip';
 import { FlowerPicker } from '@/components/taptale/experience/flower-picker';
 import { FlowerScene } from '@/components/taptale/experience/flower-scenes';
 import { NightGarden } from '@/components/taptale/experience/night-garden';
@@ -658,14 +660,15 @@ function PolaroidWall() {
 }
 
 function FilmStrip() {
-    const { experience, preset, framePhotos, openPhoto, editable } =
-        useExperience();
+    const { experience, preset, framePhotos, editable } = useExperience();
     // Visitors only see the frames that hold a photo.
-    const frames = framePhotos('film_strip')
-        .map((src, index) => ({ src, index }))
+    const frames: FilmFrame[] = framePhotos('film_strip')
+        .map((src, index) => ({
+            key: index,
+            src,
+            frame: { section: 'film_strip' as const, index },
+        }))
         .filter((frame) => editable || frame.src);
-    const sprockets =
-        'repeating-linear-gradient(90deg, transparent 0 10px, #F5F0E8 10px 22px, transparent 22px 34px)';
 
     if (frames.length === 0) {
         return null;
@@ -679,45 +682,7 @@ function FilmStrip() {
                 </h2>
             </Reveal>
             <Reveal delay={150}>
-                <div className="-mx-5 mt-10 scrollbar-none overflow-x-auto px-5 pb-4">
-                    <div className="relative mx-auto w-max -rotate-1 bg-[#141414] px-4 py-7 shadow-[0_24px_50px_-20px_rgb(0_0_0/0.7)]">
-                        <div
-                            className="absolute inset-x-0 top-2 h-3 opacity-90"
-                            style={{
-                                backgroundImage: sprockets,
-                                backgroundSize: '34px 12px',
-                                borderRadius: 2,
-                            }}
-                        />
-                        <div className="flex gap-3">
-                            {frames.map(({ src, index }, position) => (
-                                <div key={index} className="w-44 sm:w-56">
-                                    <p className="mb-1 flex justify-between font-mono text-[9px] tracking-widest text-[#E8A33D]">
-                                        <span>TAPTALE 400</span>
-                                        <span>{position + 1}A</span>
-                                    </p>
-                                    <PhotoFill
-                                        src={src}
-                                        className="aspect-[4/3] w-full"
-                                        frame={{ section: 'film_strip', index }}
-                                        onClick={
-                                            src
-                                                ? () => openPhoto(src)
-                                                : undefined
-                                        }
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                        <div
-                            className="absolute inset-x-0 bottom-2 h-3 opacity-90"
-                            style={{
-                                backgroundImage: sprockets,
-                                backgroundSize: '34px 12px',
-                            }}
-                        />
-                    </div>
-                </div>
+                <FilmRoll frames={frames} />
             </Reveal>
             <Reveal className="mt-6 text-center">
                 <p className="font-display text-2xl font-semibold uppercase">
@@ -1260,7 +1225,12 @@ function Scrapbook() {
 }
 
 function Gallery() {
-    const { preset, photos, openPhoto, editable } = useExperience();
+    const {
+        preset,
+        albumPhotos: photos,
+        openPhoto,
+        editable,
+    } = useExperience();
 
     if (photos.length === 0 && !editable) {
         return null;
@@ -1293,6 +1263,13 @@ function Gallery() {
                     <div className="break-inside-avoid">
                         <PhotoFill
                             src={null}
+                            multiple
+                            label={
+                                photos.length === 0
+                                    ? 'Add photos'
+                                    : 'Add more photos'
+                            }
+                            hint="You can pick several at once"
                             className="aspect-[4/3] w-full rounded-2xl"
                         />
                     </div>

@@ -48,6 +48,7 @@ test('the owner adds a section in the chosen style between the template sections
 })->with([
     'polaroid timeline' => ['timeline', 4],
     'film strip' => ['film_strip', 3],
+    'standing film strips' => ['film_standing', 6],
     'scrapbook board' => ['scrapbook', 4],
     'photo album' => ['album', 6, 'anniversary'],
     'text note' => ['note', 0],

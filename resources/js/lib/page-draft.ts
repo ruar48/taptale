@@ -5,6 +5,7 @@ import type {
     FlowerRain,
     FlowerStyle,
     PhotoRainLayer,
+    PhotoRainSource,
     VideoBackground,
     VideoFrame,
 } from '@/types';
@@ -40,6 +41,7 @@ export const MAX_SECTION_SLOTS = 12;
 export const SECTION_SLOT_COUNTS: Record<ExperienceSectionType, number> = {
     timeline: 4,
     film_strip: 3,
+    film_standing: 6,
     scrapbook: 4,
     album: 6,
     note: 0,
@@ -91,6 +93,7 @@ export type PageDraftContent = {
     /** Flowers added to a design without them, charged at checkout. */
     flower_addon: boolean;
     photo_rain_layer: PhotoRainLayer;
+    photo_rain_source: PhotoRainSource;
     song_ornament: 'none' | 'hearts';
     song_background: 'theme' | 'hearts';
     moments: PageDraftMoment[];
@@ -146,6 +149,7 @@ export const PAGE_CHOICES = {
     ],
     flower_rain: ['none', 'petals', 'photos', 'both'],
     photo_rain_layer: ['front', 'back'],
+    photo_rain_source: ['picked', 'all'],
     song_ornament: ['none', 'hearts'],
     song_background: ['theme', 'hearts'],
     video_frame: [
@@ -193,6 +197,7 @@ export function pageContentFrom(
         flower_rain: experience.flower_rain,
         flower_addon: experience.flower_addon,
         photo_rain_layer: experience.photo_rain_layer,
+        photo_rain_source: experience.photo_rain_source,
         song_ornament: experience.song_ornament,
         song_background: experience.song_background,
         moments: experience.moments.map((moment) => ({

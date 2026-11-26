@@ -31,6 +31,7 @@ class ExperienceContentController extends Controller
         'flower_style' => ['required', 'string', 'in:bouquet,lotus,heart,crimson,teal,pink,lavender,golden,red,white,blue,peach,mixed'],
         'flower_rain' => ['required', 'string', 'in:none,petals,photos,both'],
         'photo_rain_layer' => ['required', 'string', 'in:front,back'],
+        'photo_rain_source' => ['required', 'string', 'in:picked,all'],
         'event_date' => ['nullable', 'string', 'max:60'],
         'video_url' => ['nullable', 'url:https', 'max:500'],
         'video_frame' => ['required', 'string', 'in:plain,polaroid,film,tv,hearts,cinema,phone'],

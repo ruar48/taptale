@@ -5,6 +5,7 @@ use App\Enums\FlowerRain;
 use App\Enums\FlowerStyle;
 use App\Enums\OrderStatus;
 use App\Enums\PhotoRainLayer;
+use App\Enums\PhotoRainSource;
 use App\Models\DigitalExperience;
 use App\Models\Order;
 use App\Models\User;
@@ -543,6 +544,24 @@ test('the owner chooses whether raining photos fall in front of or behind the fl
         ->assertSessionHasErrors('value');
 
     expect($experience->fresh()->photo_rain_layer)->toBe(PhotoRainLayer::Back);
+});
+
+test('the owner chooses whether all page photos rain down or only the ones added to the rain', function () {
+    $experience = DigitalExperience::factory()->create(['template' => 'digital_bouquet', 'flower_rain' => 'both']);
+
+    expect($experience->fresh()->photo_rain_source)->toBe(PhotoRainSource::All);
+
+    $this->actingAs($experience->user)
+        ->patch(route('account.experiences.content', $experience), ['field' => 'photo_rain_source', 'value' => 'picked'])
+        ->assertSessionHasNoErrors();
+
+    expect($experience->fresh()->photo_rain_source)->toBe(PhotoRainSource::Picked);
+
+    $this->actingAs($experience->user)
+        ->patch(route('account.experiences.content', $experience), ['field' => 'photo_rain_source', 'value' => 'everyone'])
+        ->assertSessionHasErrors('value');
+
+    expect($experience->fresh()->photo_rain_source)->toBe(PhotoRainSource::Picked);
 });
 
 test('the owner changes the flowers and what rains over them on the page', function () {

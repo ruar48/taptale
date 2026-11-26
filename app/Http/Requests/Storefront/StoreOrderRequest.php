@@ -8,6 +8,7 @@ use App\Enums\FlowerRain;
 use App\Enums\FlowerStyle;
 use App\Enums\OrderStatus;
 use App\Enums\PhotoRainLayer;
+use App\Enums\PhotoRainSource;
 use App\Http\Controllers\Account\ExperienceSectionController;
 use App\Http\Controllers\Account\ExperienceVideoController;
 use App\Models\Category;
@@ -81,6 +82,7 @@ class StoreOrderRequest extends FormRequest
             'page.flower_style' => ['nullable', Rule::enum(FlowerStyle::class)],
             'page.flower_rain' => ['nullable', Rule::enum(FlowerRain::class)],
             'page.photo_rain_layer' => ['nullable', Rule::enum(PhotoRainLayer::class)],
+            'page.photo_rain_source' => ['nullable', Rule::enum(PhotoRainSource::class)],
             'page.song_ornament' => ['nullable', 'string', 'in:none,hearts'],
             'page.song_background' => ['nullable', 'string', 'in:theme,hearts'],
             'page.moments' => ['array', 'max:'.DigitalExperience::MAX_MOMENTS],

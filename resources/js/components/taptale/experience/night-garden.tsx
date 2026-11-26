@@ -467,11 +467,12 @@ export function FallingFlowers({
     const { experience, photos, openPhoto } = useExperience();
     const showPetals = rain === "petals" || rain === "both";
     const showPhotos = rain === "photos" || rain === "both";
-    // The photos picked to rain down, or else the page photos.
-    const rainPhotos = (experience.rain_photos ?? []).map(
-        (photo) => photo.url,
-    );
-    const pool = rainPhotos.length > 0 ? rainPhotos : photos;
+    // The photos added to the rain, plus the page's photos when the owner lets them all fall.
+    const rainPhotos = (experience.rain_photos ?? []).map((photo) => photo.url);
+    const pool =
+        (experience.photo_rain_source ?? "all") === "all"
+            ? [...rainPhotos, ...photos]
+            : rainPhotos;
 
     // Shuffled once in the browser; every bloom remounts and reshuffles.
     const [seed, setSeed] = useState<number | null>(null);

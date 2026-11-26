@@ -6,6 +6,7 @@ use App\Enums\ExperienceTemplate;
 use App\Enums\FlowerRain;
 use App\Enums\FlowerStyle;
 use App\Enums\PhotoRainLayer;
+use App\Enums\PhotoRainSource;
 use App\Models\DigitalExperience;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -43,6 +44,7 @@ class UpdateExperienceRequest extends FormRequest
             'flower_style' => [Rule::excludeIf(! $this->showsFlowers()), 'sometimes', Rule::enum(FlowerStyle::class)],
             'flower_rain' => [Rule::excludeIf(! $this->showsFlowers()), 'sometimes', Rule::enum(FlowerRain::class)],
             'photo_rain_layer' => [Rule::excludeIf(! $this->showsFlowers()), 'sometimes', Rule::enum(PhotoRainLayer::class)],
+            'photo_rain_source' => [Rule::excludeIf(! $this->showsFlowers()), 'sometimes', Rule::enum(PhotoRainSource::class)],
             'event_date' => ['nullable', 'string', 'max:60'],
             'video_url' => ['nullable', 'url:https', 'max:500'],
             'video_frame' => ['sometimes', 'string', Rule::in(DigitalExperience::VIDEO_FRAMES)],

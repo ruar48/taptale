@@ -45,6 +45,8 @@ export type ExperienceContextValue = {
     preset: ExperiencePreset;
     theme: ExperienceTheme;
     photos: string[];
+    /** Photos added to the album: those not shown in a frame, a moment or an extra section. */
+    albumPhotos: string[];
     /** The photo in each frame of a design section, in order (null is an empty frame). */
     framePhotos: (section: PhotoFrameSection) => (string | null)[];
     /** The photo behind the opening gate: the page's first framed photo. */
@@ -338,6 +340,9 @@ export function PhotoFill({
     moment,
     slot,
     frame,
+    multiple = false,
+    label = 'Add photo',
+    hint,
 }: {
     src: string | null;
     className?: string;
@@ -349,6 +354,11 @@ export function PhotoFill({
     slot?: PhotoSlot;
     /** Keep a photo added into this frame in a design section's frame. */
     frame?: PhotoFrame;
+    /** Let the empty frame pick several photos at once. */
+    multiple?: boolean;
+    label?: string;
+    /** A short line under the label, shown on the empty frame. */
+    hint?: string;
 }) {
     const context = useContext(ExperienceContext);
 
@@ -358,6 +368,8 @@ export function PhotoFill({
                 moment={moment}
                 slot={slot}
                 frame={frame}
+                multiple={multiple}
+                label={label}
                 className={cn(
                     'group/add relative isolate flex flex-col items-center justify-center gap-2 overflow-hidden border-2 border-dashed border-white/80 text-white transition hover:brightness-105',
                     className,
@@ -378,8 +390,13 @@ export function PhotoFill({
                     )}
                 </span>
                 <span className="rounded-full bg-black/25 px-3 py-1 text-xs font-semibold tracking-wide text-white backdrop-blur-sm">
-                    {context.uploading ? 'Uploading…' : 'Add photo'}
+                    {context.uploading ? 'Uploading…' : label}
                 </span>
+                {hint && !context.uploading && (
+                    <span className="px-4 text-center text-[11px] font-medium text-[#3A2A30]/70">
+                        {hint}
+                    </span>
+                )}
             </AddPhotoButton>
         );
     }

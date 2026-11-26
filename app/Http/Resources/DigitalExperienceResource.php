@@ -45,6 +45,7 @@ class DigitalExperienceResource extends JsonResource
             'flower_rain' => $this->flower_rain->value,
             'flower_addon' => $this->flower_addon,
             'photo_rain_layer' => $this->photo_rain_layer->value,
+            'photo_rain_source' => $this->photo_rain_source->value,
             'event_date' => $this->event_date,
             'video_url' => $this->video_url,
             'video_file_url' => $this->video_path !== null ? route('experiences.video', $this->resource) : null,

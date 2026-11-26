@@ -42,64 +42,39 @@ export function isPhotoFrameSection(
 export type FrameLayout = Partial<Record<PhotoFrameSection, (number | null)[]>>;
 
 /**
- * Gives every frame of the page design's sections its own photo, so one
- * photo never fills the first frame of every section. A frame the owner put
- * a photo in keeps it. The other frames, in page order, take the photos
- * that have no place yet (not in a frame, a moment or an extra section):
- * first every section's minimum frames, then the sections that can grow.
+ * Shows in every frame of the page design's sections only the photo the
+ * owner put there. A photo added somewhere else (another frame, the album,
+ * a moment or an extra section) never fills a frame on its own, so empty
+ * frames stay empty until someone adds a picture to them.
  */
 export function layoutPhotoFrames({
     sections,
     photoCount,
     chosen,
-    placed,
 }: {
     /** The page's sections with photo frames, in page order. */
     sections: PhotoFrameSection[];
     photoCount: number;
     /** The photo the owner put in each frame. */
     chosen: Partial<Record<string, (number | null)[]>>;
-    /** Photos already shown in a moment or an extra section. */
-    placed: (number | null)[];
 }): FrameLayout {
     const order = [...new Set(sections)];
     const isPhoto = (photo: number | null | undefined): photo is number =>
         typeof photo === 'number' && photo >= 0 && photo < photoCount;
-    const chosenFor = (section: PhotoFrameSection) =>
-        (chosen[section] ?? []).slice(0, PHOTO_FRAME_COUNTS[section].max);
-
-    const taken = new Set(placed.filter(isPhoto));
-    order.forEach((section) =>
-        chosenFor(section)
-            .filter(isPhoto)
-            .forEach((photo) => taken.add(photo)),
-    );
-
-    const spare = Array.from(
-        { length: photoCount },
-        (_, index) => index,
-    ).filter((photo) => !taken.has(photo));
     const layout: FrameLayout = {};
 
-    const fill = (section: PhotoFrameSection, from: number, to: number) => {
-        const frames = (layout[section] ??= []);
+    order.forEach((section) => {
+        const chosenFrames = chosen[section] ?? [];
 
-        for (let index = from; index < to; index++) {
-            const photo = chosenFor(section)[index];
-            frames[index] = isPhoto(photo) ? photo : (spare.shift() ?? null);
-        }
-    };
+        layout[section] = Array.from(
+            { length: PHOTO_FRAME_COUNTS[section].max },
+            (_, index) => {
+                const photo = chosenFrames[index];
 
-    order.forEach((section) =>
-        fill(section, 0, PHOTO_FRAME_COUNTS[section].min),
-    );
-    order.forEach((section) =>
-        fill(
-            section,
-            PHOTO_FRAME_COUNTS[section].min,
-            PHOTO_FRAME_COUNTS[section].max,
-        ),
-    );
+                return isPhoto(photo) ? photo : null;
+            },
+        );
+    });
 
     // Frames past the minimum show only when they, or a later frame, have a photo.
     order.forEach((section) => {
