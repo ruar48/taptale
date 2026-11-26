@@ -30,6 +30,7 @@ type Props = {
     paymentMethods: PaymentMethod[];
     defaultDeliveryFee: number;
     templates: { value: string; label: string; description: string }[];
+    initialTemplate: string | null;
 };
 
 type ManualOrderForm = {
@@ -67,15 +68,24 @@ export default function AdminOrderCreate({
     paymentMethods,
     defaultDeliveryFee,
     templates,
+    initialTemplate,
 }: Props) {
     const money = useMoney();
+    /*
+     * The customer already picked their keychain at the counter or in chat,
+     * so the form starts on the usual one and the website comes first.
+     */
+    const defaultProduct =
+        products.find((candidate) => candidate.is_active) ?? products[0];
     const form = useForm<ManualOrderForm>({
         channel: "messenger",
-        product_id: "",
-        option_ids: [],
+        product_id: defaultProduct ? String(defaultProduct.id) : "",
+        option_ids: (defaultProduct?.options ?? [])
+            .filter((option) => option.is_default && !option.multiple)
+            .map((option) => option.id),
         quantity: "1",
         charge_design_fee: false,
-        experience_template: templates[0]?.value ?? "",
+        experience_template: initialTemplate ?? templates[0]?.value ?? "",
         delivery_fee: toPesoInput(defaultDeliveryFee),
         personalization: { names: "", date: "", message: "", design_brief: "" },
         customer_name: "",
@@ -185,6 +195,51 @@ export default function AdminOrderCreate({
                     }}
                 >
                     <div className="space-y-6">
+                        <Panel
+                            title="Website template"
+                            description="The website the keychain opens. After saving, send the customer the edit link so they can add their photos and words."
+                        >
+                            <div className="grid gap-2 sm:grid-cols-2">
+                                {templates.map((template) => {
+                                    const isChosen =
+                                        form.data.experience_template ===
+                                        template.value;
+
+                                    return (
+                                        <button
+                                            key={template.value}
+                                            type="button"
+                                            onClick={() =>
+                                                form.setData(
+                                                    "experience_template",
+                                                    template.value,
+                                                )
+                                            }
+                                            aria-pressed={isChosen}
+                                            className={cn(
+                                                "rounded-xl border p-3 text-left transition",
+                                                isChosen
+                                                    ? "border-plum bg-blush-light/60 ring-1 ring-plum dark:bg-plum/20"
+                                                    : "hover:border-plum/40",
+                                            )}
+                                        >
+                                            <p className="text-sm font-medium">
+                                                {template.label}
+                                            </p>
+                                            <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                                                {template.description}
+                                            </p>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            {errors.experience_template && (
+                                <p className="mt-2 text-sm text-destructive">
+                                    {errors.experience_template}
+                                </p>
+                            )}
+                        </Panel>
+
                         <Panel title="Customer">
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <FormField
@@ -371,51 +426,6 @@ export default function AdminOrderCreate({
                                         </p>
                                     )}
                                 </div>
-                            )}
-                        </Panel>
-
-                        <Panel
-                            title="Website template"
-                            description="The website the keychain opens. After saving, send the customer the edit link so they can add their photos and words."
-                        >
-                            <div className="grid gap-2 sm:grid-cols-2">
-                                {templates.map((template) => {
-                                    const isChosen =
-                                        form.data.experience_template ===
-                                        template.value;
-
-                                    return (
-                                        <button
-                                            key={template.value}
-                                            type="button"
-                                            onClick={() =>
-                                                form.setData(
-                                                    "experience_template",
-                                                    template.value,
-                                                )
-                                            }
-                                            aria-pressed={isChosen}
-                                            className={cn(
-                                                "rounded-xl border p-3 text-left transition",
-                                                isChosen
-                                                    ? "border-plum bg-blush-light/60 ring-1 ring-plum dark:bg-plum/20"
-                                                    : "hover:border-plum/40",
-                                            )}
-                                        >
-                                            <p className="text-sm font-medium">
-                                                {template.label}
-                                            </p>
-                                            <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
-                                                {template.description}
-                                            </p>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                            {errors.experience_template && (
-                                <p className="mt-2 text-sm text-destructive">
-                                    {errors.experience_template}
-                                </p>
                             )}
                         </Panel>
 

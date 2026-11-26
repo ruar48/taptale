@@ -222,3 +222,21 @@ test('an admin creates a website for an order that has none', function () {
         ->and($order->experience->title)->toBe('Zen & Megi')
         ->and($order->websiteEditUrl())->not->toBeNull();
 });
+
+test('an admin opening the shop wizard goes straight to the walk-in order form', function () {
+    $this->actingAs($this->admin)
+        ->get(route('orders.create', ['page' => 'digital_bouquet']))
+        ->assertRedirect(route('admin.orders.create', ['template' => 'digital_bouquet']));
+
+    $this->actingAs($this->admin)
+        ->get(route('admin.orders.create', ['template' => 'digital_bouquet']))
+        ->assertInertia(fn ($page) => $page
+            ->component('admin/orders/create')
+            ->where('initialTemplate', 'digital_bouquet'));
+});
+
+test('an unknown website template on the walk-in order form is ignored', function () {
+    $this->actingAs($this->admin)
+        ->get(route('admin.orders.create', ['template' => ['nope']]))
+        ->assertInertia(fn ($page) => $page->where('initialTemplate', null));
+});

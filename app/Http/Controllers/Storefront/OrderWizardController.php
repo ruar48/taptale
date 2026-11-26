@@ -15,6 +15,7 @@ use App\Models\Category;
 use App\Models\DigitalExperience;
 use App\Models\PaymentMethod;
 use App\Models\Product;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
@@ -27,9 +28,18 @@ class OrderWizardController extends Controller
     /**
      * Show the step-by-step personalization and checkout wizard. Occasions
      * are optional gift ideas that only narrow the list of gifts.
+     *
+     * The studio never buys through the shop: an admin here is taking a
+     * walk-in or chat order, so they go straight to the studio's order form.
      */
-    public function create(Request $request): Response
+    public function create(Request $request): Response|RedirectResponse
     {
+        if ($request->user()?->isAdmin() === true) {
+            return to_route('admin.orders.create', array_filter([
+                'template' => ExperienceTemplate::tryFrom((string) $this->queryText($request, 'page'))?->value,
+            ]));
+        }
+
         $categorySlug = $this->queryText($request, 'category');
         $productSlug = $this->queryText($request, 'product');
 

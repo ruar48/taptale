@@ -83,8 +83,10 @@ class OrderController extends Controller
      * The form for an order taken outside the online shop: a walk-in, or a
      * customer who ordered over Messenger.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        $template = $request->query('template');
+
         return Inertia::render('admin/orders/create', [
             'channels' => OrderChannel::manualOptions(),
             'products' => ProductResource::collection(
@@ -98,6 +100,7 @@ class OrderController extends Controller
             'paymentMethods' => PaymentMethodResource::collection(PaymentMethod::active()->get()),
             'defaultDeliveryFee' => (int) config('taptale.delivery_fee'),
             'templates' => ExperienceTemplate::options(),
+            'initialTemplate' => is_string($template) ? ExperienceTemplate::tryFrom($template)?->value : null,
         ]);
     }
 
