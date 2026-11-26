@@ -427,7 +427,6 @@ export default function CreateGift({
                 ? draft.data.payment_method_id
                 : current.payment_method_id,
         }));
-        setCustomDesign(Boolean(draft.customDesign));
         setIsEditingPage(
             Boolean(
                 draft.data.experience_template &&
@@ -435,8 +434,8 @@ export default function CreateGift({
                     draft.data.personalization?.message),
             ),
         );
-        setStep(Math.min(Math.max(0, draft.step), lastStep));
-        setFurthest(Math.min(Math.max(0, draft.furthest), lastStep));
+        setStep(Math.min(Math.max(initialStep, draft.step), lastStep));
+        setFurthest(Math.min(Math.max(initialStep, draft.furthest), lastStep));
         setWasRestored(true);
 
         void loadPhotos()
@@ -942,29 +941,8 @@ export default function CreateGift({
                                     <div className="mb-10">
                                         <ProductShowcase
                                             product={selectedProduct}
-                                            customSelected={customDesign}
                                             hasTapPage={hasTapPage}
                                             loading={loadingSelection !== null}
-                                            onSelectAsShown={() => {
-                                                setData((current) => ({
-                                                    ...current,
-                                                    design_mode:
-                                                        current.design_mode ===
-                                                        "assisted"
-                                                            ? ""
-                                                            : current.design_mode,
-                                                }));
-                                                setCustomDesign(false);
-                                                setStepError(null);
-                                            }}
-                                            onSelectCustom={() => {
-                                                setData((current) => ({
-                                                    ...current,
-                                                    design_mode: "assisted",
-                                                }));
-                                                setCustomDesign(true);
-                                                setStepError(null);
-                                            }}
                                             preview={
                                                 <DesignPreview
                                                     product={selectedProduct}

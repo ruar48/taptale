@@ -1,4 +1,4 @@
-import { Camera, Check, Clock, Nfc, Package, Wand2 } from 'lucide-react';
+import { Clock, Nfc, Package } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useMoney } from '@/hooks/use-money';
 import { cn } from '@/lib/utils';
@@ -6,22 +6,15 @@ import type { Product } from '@/types';
 
 /**
  * Shopee-style product view: a big live sample on the left, and on the
- * right the price, key facts and how the design gets made: the gift as
- * shown with the customer's photos, or a custom design by the studio.
+ * right the price and key facts. The customer designs the website next.
  */
 export function ProductShowcase({
     product,
-    customSelected,
-    onSelectAsShown,
-    onSelectCustom,
     preview,
     hasTapPage,
     loading,
 }: {
     product: Product;
-    customSelected: boolean;
-    onSelectAsShown: () => void;
-    onSelectCustom: () => void;
     preview: ReactNode;
     hasTapPage: boolean;
     loading: boolean;
@@ -86,55 +79,6 @@ export function ProductShowcase({
                     )}
                 </dl>
 
-                <div className="mt-6">
-                    <p className="mb-2 text-sm font-semibold">Design</p>
-                    <div className="flex flex-wrap gap-2">
-                        <button
-                            type="button"
-                            onClick={onSelectAsShown}
-                            className={cn(
-                                'relative inline-flex items-center gap-2 rounded-xl border-2 bg-background py-1 pr-3 pl-1 text-sm transition',
-                                customSelected
-                                    ? 'border-border hover:border-rose/50'
-                                    : 'border-rose text-plum dark:text-blush',
-                            )}
-                            aria-pressed={!customSelected}
-                        >
-                            <span className="flex size-9 items-center justify-center rounded-lg bg-blush-light text-rose dark:bg-rose/20">
-                                <Camera className="size-4" />
-                            </span>
-                            As shown, with my photos
-                            {!customSelected && (
-                                <span className="absolute -right-1.5 -bottom-1.5 flex size-4 items-center justify-center rounded-full bg-rose text-white">
-                                    <Check className="size-2.5" strokeWidth={4} />
-                                </span>
-                            )}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={onSelectCustom}
-                            className={cn(
-                                'relative inline-flex items-center gap-2 rounded-xl border-2 border-dashed py-1 pr-3 pl-1 text-sm transition',
-                                customSelected
-                                    ? 'border-rose bg-blush-light/40 text-plum dark:bg-rose/10 dark:text-blush'
-                                    : 'border-plum/25 hover:border-rose/50',
-                            )}
-                            aria-pressed={customSelected}
-                        >
-                            <span className="flex size-9 items-center justify-center rounded-lg bg-blush-light text-rose dark:bg-rose/20">
-                                <Wand2 className="size-4" />
-                            </span>
-                            Custom design{' '}
-                            <span className="text-xs text-muted-foreground">
-                                +{money(product.design_fee)}
-                            </span>
-                        </button>
-                    </div>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                        Add your own photos and words next, or let our
-                        designers create something just for you.
-                    </p>
-                </div>
             </div>
         </div>
     );
