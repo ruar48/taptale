@@ -481,3 +481,17 @@ test('the owner swaps the song file right from the page', function () {
 
     expect($experience->fresh()->audio_path)->toBeNull();
 });
+
+test('the owner adds a YouTube link for the full song right from the page', function () {
+    $experience = DigitalExperience::factory()->create(['music_url' => null]);
+
+    $this->actingAs($experience->user)
+        ->patch(route('account.experiences.content', $experience), ['field' => 'music_url', 'value' => 'https://www.youtube.com/watch?v=abc123'])
+        ->assertSessionHasNoErrors();
+
+    expect($experience->fresh()->music_url)->toBe('https://www.youtube.com/watch?v=abc123');
+
+    $this->actingAs($experience->user)
+        ->patch(route('account.experiences.content', $experience), ['field' => 'music_url', 'value' => 'not a link'])
+        ->assertSessionHasErrors();
+});

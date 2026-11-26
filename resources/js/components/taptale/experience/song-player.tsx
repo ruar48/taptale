@@ -812,6 +812,8 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                         <ChangeSongFile
                             experienceCode={experience.code}
                             hasFile={pageAudio.available}
+                            musicUrl={experience.music_url}
+                            playsPreview={source === 'preview'}
                         />
                         {muted && playing && (
                             <button
@@ -971,9 +973,13 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
 function ChangeSongFile({
     experienceCode,
     hasFile,
+    musicUrl,
+    playsPreview,
 }: {
     experienceCode: string;
     hasFile: boolean;
+    musicUrl: string | null;
+    playsPreview: boolean;
 }) {
     const context = useContext(ExperienceContext);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -1033,6 +1039,22 @@ function ChangeSongFile({
                       ? 'Change song file'
                       : 'Upload song file (MP3)'}
             </button>
+            <EditableText
+                field="music_url"
+                value={musicUrl}
+                placeholder="+ Paste a YouTube link instead"
+                label="YouTube link for the full song"
+                className="mt-1.5 text-xs font-semibold opacity-80"
+            >
+                {musicUrl ? 'YouTube link added · change' : null}
+            </EditableText>
+            {playsPreview && !hasFile && (
+                <p className="mt-1.5 max-w-xs text-xs opacity-60">
+                    Only a 30-second preview plays now, so the lyrics can't
+                    follow along. Upload the song or add its YouTube link for
+                    the full song with moving lyrics.
+                </p>
+            )}
             {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
         </div>
     );
