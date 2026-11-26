@@ -146,7 +146,7 @@ class ExperienceController extends Controller
 
             return redirect()->route('experiences.show', [
                 ...$request->except(['k', 'm']),
-                'experience' => $experience,
+                'experience' => $experience->readableKey(),
             ]);
         }
 

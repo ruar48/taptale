@@ -57,6 +57,7 @@ use Illuminate\Support\Str;
  * @property array<string, list<int|null>>|null $photo_frames The photo the owner put in each frame of the page design's sections (see PHOTO_FRAMES)
  * @property string $theme
  * @property string|null $nfc_tag_uid Chip ID of the genuine tag, saved by an admin or on its first mirrored tap
+ * @property string|null $slug Readable address made from the title, e.g. zen-and-megi
  * @property int|null $nfc_tap_counter Last tap count the genuine tag reported; once set, only that tag opens the page through the tag link
  * @property bool $is_published
  * @property Carbon|null $unlocks_at Before this moment visitors see a countdown instead of the page
@@ -186,6 +187,13 @@ class DigitalExperience extends Model
             $experience->access_key ??= Str::random(32);
         });
 
+        // The readable address follows the page title.
+        static::saving(function (DigitalExperience $experience): void {
+            if ($experience->slug === null || $experience->isDirty('title')) {
+                $experience->slug = static::uniqueSlug((string) $experience->title, $experience->id);
+            }
+        });
+
         static::saved(function (DigitalExperience $experience): void {
             if ($experience->wasChanged(['song_title', 'song_artist'])
                 || ($experience->wasRecentlyCreated && filled($experience->song_title))) {
@@ -220,6 +228,51 @@ class DigitalExperience extends Model
             'view_count' => 'integer',
             'heart_count' => 'integer',
         ];
+    }
+
+    /**
+     * A readable address made from the page title, e.g. "Zen & Megi" becomes
+     * "zen-and-megi", with "-2", "-3"… added when another page has it. It is
+     * only an address: the page still opens only for those allowed to see it.
+     */
+    public static function uniqueSlug(string $title, ?int $ignoreId = null): string
+    {
+        $base = Str::limit(Str::slug(str_replace('&', ' and ', $title)), 70, '');
+        $base = trim($base, '-') !== '' ? trim($base, '-') : 'memory';
+        $slug = $base;
+        $suffix = 2;
+
+        while (static::query()
+            ->when($ignoreId !== null, fn (Builder $query) => $query->whereKeyNot($ignoreId))
+            ->where(fn (Builder $query) => $query->where('slug', $slug)->orWhere('code', $slug))
+            ->exists()) {
+            $slug = "{$base}-{$suffix}";
+            $suffix++;
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Pages open by their readable slug or by their random code (the code is
+     * what tags and earlier links carry).
+     */
+    public function resolveRouteBinding($value, $field = null): ?self
+    {
+        if ($field !== null) {
+            return parent::resolveRouteBinding($value, $field);
+        }
+
+        return static::query()->where('code', $value)->first()
+            ?? static::query()->where('slug', $value)->first();
+    }
+
+    /**
+     * The readable address of the page, falling back to its code.
+     */
+    public function readableKey(): string
+    {
+        return $this->slug ?? $this->code;
     }
 
     /**
@@ -418,7 +471,7 @@ class DigitalExperience extends Model
      */
     public function publicUrl(): string
     {
-        return route('experiences.show', $this);
+        return route('experiences.show', $this->readableKey());
     }
 
     /**

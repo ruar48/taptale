@@ -108,7 +108,7 @@ test('a keychain order ends with a published page that only its genuine tag open
     switchToAnotherPhone();
 
     $this->get(tapWrittenTag($tagLink, '04A1B2C3D4E5F6x000001'))
-        ->assertRedirect(route('experiences.show', $experience));
+        ->assertRedirect($experience->fresh()->publicUrl());
 
     $this->get(route('experiences.show', $experience))
         ->assertOk()
@@ -130,7 +130,7 @@ test('a keychain order ends with a published page that only its genuine tag open
     $this->get(route('experiences.show', $experience))->assertNotFound();
     $this->get(tapWrittenTag($tagLink, '04A1B2C3D4E5F6x000001'))->assertNotFound();
     $this->get(tapWrittenTag($tagLink, '04A1B2C3D4E5F6x000002'))
-        ->assertRedirect(route('experiences.show', $experience));
+        ->assertRedirect($experience->fresh()->publicUrl());
 });
 
 test('a tap before the page is published opens nothing and does not use up the tag', function () {
@@ -144,7 +144,7 @@ test('a tap before the page is published opens nothing and does not use up the t
 
     $experience->update(['is_published' => true]);
 
-    tapTag($experience, '04A1B2C3D4E5F6x000002')->assertRedirect(route('experiences.show', $experience));
+    tapTag($experience, '04A1B2C3D4E5F6x000002')->assertRedirect($experience->fresh()->publicUrl());
 });
 
 test('the studio activates the tag from a signed-in phone before the page is published', function () {
@@ -152,7 +152,7 @@ test('the studio activates the tag from a signed-in phone before the page is pub
     $experience = DigitalExperience::factory()->unpublished()->create(['view_count' => 0]);
 
     $this->actingAs($admin);
-    tapTag($experience, '04A1B2C3D4E5F6x000001')->assertRedirect(route('experiences.show', $experience));
+    tapTag($experience, '04A1B2C3D4E5F6x000001')->assertRedirect($experience->fresh()->publicUrl());
 
     expect($experience->fresh())
         ->nfc_tag_uid->toBe('04:A1:B2:C3:D4:E5:F6')

@@ -13,7 +13,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 test('tapping the tag opens the page at a clean URL and counts one view per session', function () {
     $experience = DigitalExperience::factory()->create(['view_count' => 0]);
 
-    tapTag($experience)->assertRedirect(route('experiences.show', $experience));
+    tapTag($experience)->assertRedirect($experience->fresh()->publicUrl());
 
     $this->get(route('experiences.show', $experience))
         ->assertOk()
@@ -146,7 +146,7 @@ test('the QR code stops opening the page once the genuine tag is live', function
     $admin = User::factory()->admin()->create();
     $experience = DigitalExperience::factory()->create();
 
-    $this->get($experience->qrCodeUrl())->assertRedirect(route('experiences.show', $experience));
+    $this->get($experience->qrCodeUrl())->assertRedirect($experience->fresh()->publicUrl());
     $this->actingAs($experience->user)->get(route('experiences.show', $experience))
         ->assertInertia(fn (Assert $page) => $page->whereNot('experience.qr_url', null));
 
@@ -167,7 +167,7 @@ test('the QR code stops opening the page once the genuine tag is live', function
 test('the first mirrored tap registers the genuine tag, and copies of it are refused', function () {
     $experience = DigitalExperience::factory()->create();
 
-    tapTag($experience, '04A1B2C3D4E5F6x000005')->assertRedirect(route('experiences.show', $experience));
+    tapTag($experience, '04A1B2C3D4E5F6x000005')->assertRedirect($experience->fresh()->publicUrl());
 
     expect($experience->fresh())
         ->nfc_tag_uid->toBe('04:A1:B2:C3:D4:E5:F6')
@@ -181,7 +181,7 @@ test('the first mirrored tap registers the genuine tag, and copies of it are ref
     tapTag($experience)->assertNotFound();
     tapTag($experience, 'not-a-mirror')->assertNotFound();
 
-    tapTag($experience, '04a1b2c3d4e5f6x000006')->assertRedirect(route('experiences.show', $experience));
+    tapTag($experience, '04a1b2c3d4e5f6x000006')->assertRedirect($experience->fresh()->publicUrl());
 
     expect($experience->fresh()->nfc_tap_counter)->toBe(6);
 });
@@ -190,7 +190,7 @@ test('a tag only opens the page when its chip matches the one the admin saved', 
     $experience = DigitalExperience::factory()->create(['nfc_tag_uid' => '04:A1:B2:C3:D4:E5:F6']);
 
     tapTag($experience, '04FFFFFFFFFFFFx000001')->assertNotFound();
-    tapTag($experience, '04A1B2C3D4E5F6x000001')->assertRedirect(route('experiences.show', $experience));
+    tapTag($experience, '04A1B2C3D4E5F6x000001')->assertRedirect($experience->fresh()->publicUrl());
 });
 
 test('a tag written without turning on the mirror is refused', function () {
@@ -408,7 +408,7 @@ test('an admin swapping the tag starts its tap count over', function () {
 
     expect($experience->fresh()->nfc_tap_counter)->toBeNull();
 
-    tapTag($experience, '04112233445566x000001')->assertRedirect(route('experiences.show', $experience));
+    tapTag($experience, '04112233445566x000001')->assertRedirect($experience->fresh()->publicUrl());
 });
 
 test('experience photos on object storage redirect to a signed url', function () {
@@ -494,4 +494,22 @@ test('the owner adds a YouTube link for the full song right from the page', func
     $this->actingAs($experience->user)
         ->patch(route('account.experiences.content', $experience), ['field' => 'music_url', 'value' => 'not a link'])
         ->assertSessionHasErrors();
+});
+
+test('a page gets a readable address from its title and still opens by its code', function () {
+    $first = DigitalExperience::factory()->create(['title' => 'Zen & Megi', 'is_published' => true]);
+    $second = DigitalExperience::factory()->create(['title' => 'Zen & Megi']);
+
+    expect($first->slug)->toBe('zen-and-megi')
+        ->and($second->slug)->toBe('zen-and-megi-2')
+        ->and($first->publicUrl())->toEndWith('/t/zen-and-megi');
+
+    tapTag($first)->assertRedirect(route('experiences.show', 'zen-and-megi'));
+
+    $this->get(route('experiences.show', 'zen-and-megi'))->assertOk();
+    $this->get(route('experiences.show', $first->code))->assertOk();
+
+    $first->update(['title' => 'Zen & Megi Forever']);
+
+    expect($first->fresh()->slug)->toBe('zen-and-megi-forever');
 });

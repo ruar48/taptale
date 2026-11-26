@@ -77,7 +77,7 @@ describe('Tita Baby, the recipient who shares everything on Messenger', function
     test('the address she copies opens nothing, but the week-long link she shares opens for her cousin', function () {
         $experience = DigitalExperience::factory()->create();
 
-        tapTag($experience)->assertRedirect(route('experiences.show', $experience));
+        tapTag($experience)->assertRedirect($experience->fresh()->publicUrl());
         $shared = $this->postJson(route('experiences.share-links.store', $experience), ['days' => 7])->json('url');
 
         $this->flushSession();
