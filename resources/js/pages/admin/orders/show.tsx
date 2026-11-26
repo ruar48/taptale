@@ -1115,12 +1115,32 @@ function ExperiencePanel({ order }: { order: Order }) {
                     className="size-24 shrink-0 rounded-lg border bg-white p-1"
                 />
                 <div className="min-w-0 space-y-1 text-sm">
-                    <p className="flex items-center gap-1.5 font-medium">
-                        <Nfc className="size-4 text-rose" />{" "}
-                        {experience.is_published
-                            ? "Published"
-                            : "Not published yet"}
-                    </p>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="flex items-center gap-1.5 font-medium">
+                            <Nfc className="size-4 text-rose" />{" "}
+                            {experience.is_published
+                                ? "Published — taps open it"
+                                : "Not published — taps open nothing"}
+                        </p>
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant={
+                                experience.is_published ? "outline" : "default"
+                            }
+                            onClick={() =>
+                                router.put(
+                                    ExperienceController.publish.url(
+                                        experience.code,
+                                    ),
+                                    { is_published: !experience.is_published },
+                                    { preserveScroll: true },
+                                )
+                            }
+                        >
+                            {experience.is_published ? "Unpublish" : "Publish"}
+                        </Button>
+                    </div>
                     <p className="text-xs text-muted-foreground">
                         Link to write on the tag:
                     </p>

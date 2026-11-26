@@ -210,6 +210,12 @@ Route::prefix('account')->name('account.')->middleware(RecordAdminAudit::class)-
     Route::delete('experiences/{experience}/video', [Account\ExperienceVideoController::class, 'destroy'])
         ->middleware('throttle:30,1,memory-page-video-removals')
         ->name('experiences.video.destroy');
+    Route::post('experiences/{experience}/audio', [Account\ExperienceAudioController::class, 'store'])
+        ->middleware('throttle:10,1,memory-page-audio-uploads')
+        ->name('experiences.audio.store');
+    Route::delete('experiences/{experience}/audio', [Account\ExperienceAudioController::class, 'destroy'])
+        ->middleware('throttle:30,1,memory-page-audio-removals')
+        ->name('experiences.audio.destroy');
     Route::post('experiences/{experience}/rain-photos', [Account\ExperienceRainPhotoController::class, 'store'])
         ->middleware('throttle:30,1,memory-page-rain-photo-uploads')
         ->name('experiences.rain-photos.store');
@@ -302,6 +308,7 @@ Route::middleware(['auth', 'verified', 'can:admin', RecordAdminAudit::class])->p
     Route::put('customers/{customer}', [Admin\CustomerController::class, 'update'])->name('customers.update');
 
     Route::put('experiences/{experience}', [Admin\ExperienceController::class, 'update'])->name('experiences.update');
+    Route::put('experiences/{experience}/publish', [Admin\ExperienceController::class, 'publish'])->name('experiences.publish');
 });
 
 require __DIR__.'/settings.php';

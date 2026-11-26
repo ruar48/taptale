@@ -1,9 +1,12 @@
-import { Music, Pause, Play, VolumeX } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { router } from '@inertiajs/react';
+import { Loader2, Music, Pause, Play, Upload, VolumeX } from 'lucide-react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { MouseEvent, RefObject } from 'react';
+import ExperienceAudioController from '@/actions/App/Http/Controllers/Account/ExperienceAudioController';
 import { embedFor, youTubeIdFor } from '@/components/taptale/experience/config';
 import {
     EditableText,
+    ExperienceContext,
     useExperience,
     useExperienceAudio,
 } from '@/components/taptale/experience/shared';
@@ -806,6 +809,10 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                         >
                             {experience.song_artist}
                         </EditableText>
+                        <ChangeSongFile
+                            experienceCode={experience.code}
+                            hasFile={pageAudio.available}
+                        />
                         {muted && playing && (
                             <button
                                 type="button"
@@ -953,6 +960,80 @@ export function SongPlayer({ compact = false }: { compact?: boolean }) {
                     )}
                 </div>
             </div>
+        </div>
+    );
+}
+
+/**
+ * Lets the owner (or the studio) swap the song file right on the page.
+ * Visitors never see it.
+ */
+function ChangeSongFile({
+    experienceCode,
+    hasFile,
+}: {
+    experienceCode: string;
+    hasFile: boolean;
+}) {
+    const context = useContext(ExperienceContext);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [uploading, setUploading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    if (!context?.editable) {
+        return null;
+    }
+
+    const upload = (file: File) => {
+        setError(null);
+        router.post(
+            ExperienceAudioController.store.url(experienceCode),
+            { audio: file },
+            {
+                forceFormData: true,
+                preserveScroll: true,
+                onStart: () => setUploading(true),
+                onFinish: () => setUploading(false),
+                onError: (errors) => setError(errors.audio ?? null),
+            },
+        );
+    };
+
+    return (
+        <div className="mt-2">
+            <input
+                ref={inputRef}
+                type="file"
+                accept="audio/*,.mp3,.m4a,.aac,.ogg,.wav"
+                className="hidden"
+                onChange={(event) => {
+                    const file = event.target.files?.[0];
+
+                    if (file) {
+                        upload(file);
+                    }
+
+                    event.target.value = '';
+                }}
+            />
+            <button
+                type="button"
+                disabled={uploading}
+                onClick={() => inputRef.current?.click()}
+                className="inline-flex items-center gap-1.5 rounded-full border border-current/20 px-3 py-1 text-xs font-semibold opacity-80 transition hover:opacity-100 disabled:opacity-50"
+            >
+                {uploading ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                    <Upload className="size-3.5" />
+                )}
+                {uploading
+                    ? 'Uploading…'
+                    : hasFile
+                      ? 'Change song file'
+                      : 'Upload song file (MP3)'}
+            </button>
+            {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
         </div>
     );
 }

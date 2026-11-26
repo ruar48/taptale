@@ -58,7 +58,7 @@ class DigitalExperienceResource extends JsonResource
             'song_details' => $this->song_details,
             'song_ornament' => $this->song_ornament,
             'song_background' => $this->song_background,
-            'audio_url' => $this->audio_path !== null ? route('experiences.audio', $this->resource) : null,
+            'audio_url' => $this->audio_path !== null ? route('experiences.audio', [$this->resource, 'v' => substr(md5((string) $this->audio_path), 0, 8)]) : null,
             'photos' => collect($this->photos ?? [])->keys()->map(fn (int $index): array => [
                 'index' => $index,
                 'url' => $photoUrl($index),

@@ -435,3 +435,49 @@ test('experience photos on a local disk are streamed through the app', function 
         ->assertOk()
         ->assertStreamedContent('image');
 });
+
+test('an admin publishes and unpublishes a website from the order', function () {
+    $admin = User::factory()->admin()->create();
+    $experience = DigitalExperience::factory()->create(['is_published' => false]);
+
+    $this->actingAs($admin)
+        ->put(route('admin.experiences.publish', $experience), ['is_published' => true])
+        ->assertSessionHasNoErrors();
+
+    expect($experience->fresh()->is_published)->toBeTrue();
+
+    $this->actingAs($admin)
+        ->put(route('admin.experiences.publish', $experience), ['is_published' => false]);
+
+    expect($experience->fresh()->is_published)->toBeFalse();
+
+    $this->actingAs($experience->user)
+        ->put(route('admin.experiences.publish', $experience), ['is_published' => true])
+        ->assertForbidden();
+});
+
+test('the owner swaps the song file right from the page', function () {
+    Storage::fake((string) config('taptale.uploads_disk'));
+    $experience = DigitalExperience::factory()->create();
+
+    $this->actingAs($experience->user)
+        ->post(route('account.experiences.audio.store', $experience), ['audio' => UploadedFile::fake()->create('song.mp3', 500, 'audio/mpeg')])
+        ->assertSessionHasNoErrors();
+
+    $firstPath = $experience->fresh()->audio_path;
+    Storage::disk((string) config('taptale.uploads_disk'))->assertExists($firstPath);
+
+    $this->actingAs($experience->user)
+        ->post(route('account.experiences.audio.store', $experience), ['audio' => UploadedFile::fake()->create('other.mp3', 500, 'audio/mpeg')]);
+
+    Storage::disk((string) config('taptale.uploads_disk'))->assertMissing($firstPath);
+
+    $this->actingAs(User::factory()->create())
+        ->post(route('account.experiences.audio.store', $experience), ['audio' => UploadedFile::fake()->create('x.mp3', 500, 'audio/mpeg')])
+        ->assertForbidden();
+
+    $this->actingAs($experience->user)
+        ->delete(route('account.experiences.audio.destroy', $experience));
+
+    expect($experience->fresh()->audio_path)->toBeNull();
+});

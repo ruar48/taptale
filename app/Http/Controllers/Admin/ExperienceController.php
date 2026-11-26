@@ -42,4 +42,21 @@ class ExperienceController extends Controller
 
         return back();
     }
+
+    /**
+     * Publish the website (taps open it) or take it offline (only the
+     * customer and the studio can preview it).
+     */
+    public function publish(Request $request, DigitalExperience $experience): RedirectResponse
+    {
+        $validated = $request->validate(['is_published' => ['required', 'boolean']]);
+
+        $experience->update(['is_published' => (bool) $validated['is_published']]);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => $experience->is_published
+            ? __('Website published. Taps on the keychain open it now.')
+            : __('Website unpublished. Taps no longer open it.')]);
+
+        return back();
+    }
 }
