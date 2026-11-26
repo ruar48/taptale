@@ -3,28 +3,22 @@ import {
     AlertTriangle,
     BadgeCheck,
     Banknote,
-    Check,
-    Copy,
     ExternalLink,
     FileText,
     Gift,
-    Link2,
     Loader2,
     Mail,
     Nfc,
     Phone,
     Printer,
-    Send,
     ShieldAlert,
 } from "lucide-react";
 import { useState } from "react";
-import DesignProofController from "@/actions/App/Http/Controllers/Admin/DesignProofController";
 import ExperienceController from "@/actions/App/Http/Controllers/Admin/ExperienceController";
 import OrderController from "@/actions/App/Http/Controllers/Admin/OrderController";
 import PaymentController from "@/actions/App/Http/Controllers/Admin/PaymentController";
 import InputError from "@/components/input-error";
 import { AdminPage, FormField } from "@/components/taptale/admin-ui";
-import { FileDropzone } from "@/components/taptale/file-dropzone";
 import {
     OrderPriceBreakdown,
     OrderSpecs,
@@ -35,7 +29,6 @@ import {
 import {
     StatusBadge,
     paymentTone,
-    proofTone,
 } from "@/components/taptale/status-badge";
 import {
     productPalette,
@@ -52,8 +45,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useClipboard } from "@/hooks/use-clipboard";
-import { useConfirm } from "@/hooks/use-confirm";
 import { useMoney } from "@/hooks/use-money";
 import { formatDate, formatFileSize, toPesoInput } from "@/lib/money";
 import { edit as experienceEdit } from "@/routes/account/experiences";
@@ -72,11 +63,9 @@ const PRODUCTION_STATUSES = [
 export default function AdminOrderShow({
     order,
     statuses,
-    approvalUrl,
 }: {
     order: Order;
     statuses: StatusOption[];
-    approvalUrl: string | null;
 }) {
     setLayoutProps({
         breadcrumbs: [
@@ -257,7 +246,6 @@ export default function AdminOrderShow({
                             )}
                         </Panel>
 
-                        <ProofsPanel order={order} />
 
                         <Panel title="Timeline & notes">
                             <NoteForm order={order} />
@@ -272,10 +260,6 @@ export default function AdminOrderShow({
 
                     <div className="space-y-6">
                         <StatusPanel order={order} statuses={statuses} />
-                        <ApprovalLinkPanel
-                            order={order}
-                            approvalUrl={approvalUrl}
-                        />
                         <PaymentsPanel order={order} />
                         {order.experience && <ExperiencePanel order={order} />}
 
@@ -377,129 +361,6 @@ export default function AdminOrderShow({
     );
 }
 
-function ApprovalLinkPanel({
-    order,
-    approvalUrl,
-}: {
-    order: Order;
-    approvalUrl: string | null;
-}) {
-    const [copiedText, copy] = useClipboard();
-    const [processing, setProcessing] = useState(false);
-    const { confirm, confirmDialog } = useConfirm();
-    const visitOptions = {
-        preserveScroll: true,
-        onStart: () => setProcessing(true),
-        onFinish: () => setProcessing(false),
-    };
-    const issueLink = () =>
-        router.post(
-            OrderController.issueApprovalLink.url(order.reference),
-            {},
-            visitOptions,
-        );
-
-    return (
-        <Panel
-            title="Approval link"
-            description="Send this to the customer on Messenger. They can see the design and approve it or ask for changes, no account needed."
-        >
-            {approvalUrl ? (
-                <div className="space-y-3">
-                    <div className="flex gap-2">
-                        <Input
-                            readOnly
-                            value={approvalUrl}
-                            onFocus={(event) => event.target.select()}
-                            className="font-mono text-xs"
-                            aria-label="Approval link"
-                        />
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            onClick={() => void copy(approvalUrl)}
-                            aria-label="Copy approval link"
-                        >
-                            {copiedText === approvalUrl ? (
-                                <Check className="size-4 text-emerald-600" />
-                            ) : (
-                                <Copy className="size-4" />
-                            )}
-                        </Button>
-                    </div>
-                    {(order.proofs?.length ?? 0) === 0 && (
-                        <p className="text-xs text-muted-foreground">
-                            No design sent yet. Until you send one, the link
-                            tells the customer their design is on its way.
-                        </p>
-                    )}
-                    <div className="flex flex-wrap gap-2">
-                        <Button asChild variant="outline" size="sm">
-                            <a
-                                href={approvalUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                            >
-                                <ExternalLink className="size-4" /> Open
-                            </a>
-                        </Button>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            disabled={processing}
-                            onClick={async () => {
-                                const isConfirmed = await confirm({
-                                    title: "Create a new link?",
-                                    description:
-                                        "The link you already sent will stop working.",
-                                    confirmLabel: "Create new link",
-                                });
-
-                                if (isConfirmed) {
-                                    issueLink();
-                                }
-                            }}
-                        >
-                            New link
-                        </Button>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            disabled={processing}
-                            className="text-destructive"
-                            onClick={() =>
-                                router.delete(
-                                    OrderController.revokeApprovalLink.url(
-                                        order.reference,
-                                    ),
-                                    visitOptions,
-                                )
-                            }
-                        >
-                            Turn off
-                        </Button>
-                    </div>
-                </div>
-            ) : (
-                <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    disabled={processing}
-                    onClick={issueLink}
-                >
-                    <Link2 className="size-4" /> Create approval link
-                </Button>
-            )}
-
-            {confirmDialog}
-        </Panel>
-    );
-}
-
 function StatusPanel({
     order,
     statuses,
@@ -582,129 +443,6 @@ function StatusPanel({
                     Update status
                 </Button>
             </form>
-        </Panel>
-    );
-}
-
-function ProofsPanel({ order }: { order: Order }) {
-    const form = useForm<{ proof: File | null; designer_notes: string }>({
-        proof: null,
-        designer_notes: "",
-    });
-    const latest = order.proofs?.[0];
-    const isClosed =
-        order.status === "completed" || order.status === "cancelled";
-
-    return (
-        <Panel
-            title="Design proofs"
-            description="Upload the prepared design and send it to the customer for approval."
-        >
-            {latest?.status === "revision_requested" && (
-                <div className="mb-4 rounded-xl border border-rose/30 bg-blush-light/50 p-4 text-sm dark:bg-rose/10">
-                    <p className="font-medium text-plum dark:text-blush">
-                        Revision requested on v{latest.version}
-                    </p>
-                    <p className="mt-1 whitespace-pre-line">
-                        {latest.customer_comment}
-                    </p>
-                </div>
-            )}
-
-            {(order.proofs?.length ?? 0) > 0 && (
-                <ul className="mb-6 grid gap-4 sm:grid-cols-2">
-                    {order.proofs?.map((proof) => (
-                        <li
-                            key={proof.id}
-                            className="flex gap-3 rounded-xl border p-3"
-                        >
-                            <a
-                                href={proof.image_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="size-20 shrink-0 overflow-hidden rounded-lg border bg-muted"
-                            >
-                                <img
-                                    src={proof.image_url}
-                                    alt={`Version ${proof.version}`}
-                                    className="size-full object-cover"
-                                />
-                            </a>
-                            <div className="min-w-0 text-sm">
-                                <div className="flex items-center gap-2">
-                                    <p className="font-medium">
-                                        v{proof.version}
-                                    </p>
-                                    <StatusBadge tone={proofTone(proof.status)}>
-                                        {proof.status_label}
-                                    </StatusBadge>
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                    Sent {formatDate(proof.created_at, true)}
-                                </p>
-                                {proof.customer_comment && (
-                                    <p className="mt-1 line-clamp-2 text-xs">
-                                        “{proof.customer_comment}”
-                                    </p>
-                                )}
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            )}
-
-            {!isClosed && (
-                <form
-                    className="space-y-3 rounded-xl bg-muted/40 p-4"
-                    onSubmit={(event) => {
-                        event.preventDefault();
-                        form.post(
-                            DesignProofController.store.url(order.reference),
-                            {
-                                forceFormData: true,
-                                preserveScroll: true,
-                                onSuccess: () => form.reset(),
-                            },
-                        );
-                    }}
-                >
-                    <p className="text-sm font-medium">
-                        {latest
-                            ? `Send revised design (v${(latest.version ?? 0) + 1})`
-                            : "Send first design (v1)"}
-                    </p>
-                    <FileDropzone
-                        id="proof"
-                        files={form.data.proof ? [form.data.proof] : []}
-                        onChange={(files) =>
-                            form.setData("proof", files[0] ?? null)
-                        }
-                        maxFiles={1}
-                        maxKilobytes={10240}
-                        label="Upload design image"
-                        error={form.errors.proof}
-                    />
-                    <Textarea
-                        value={form.data.designer_notes}
-                        onChange={(event) =>
-                            form.setData("designer_notes", event.target.value)
-                        }
-                        placeholder="Message to the customer about this design"
-                        rows={2}
-                    />
-                    <Button
-                        type="submit"
-                        disabled={form.processing || !form.data.proof}
-                    >
-                        {form.processing ? (
-                            <Loader2 className="size-4 animate-spin" />
-                        ) : (
-                            <Send className="size-4" />
-                        )}{" "}
-                        Send for approval
-                    </Button>
-                </form>
-            )}
         </Panel>
     );
 }

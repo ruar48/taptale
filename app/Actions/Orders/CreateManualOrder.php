@@ -82,7 +82,7 @@ class CreateManualOrder
 
             $order->recordActivity(
                 ActivityType::Placed,
-                "Order taken by the studio ({$channel->label()}). We will design it and send it to you for approval before anything is made.",
+                "Order taken by the studio ({$channel->label()}).",
                 $admin,
             );
 
@@ -114,7 +114,7 @@ class CreateManualOrder
             } elseif ($order->total === 0) {
                 $order->advanceAfterPayment($admin);
             } elseif ($paymentMethod?->isCashOnDelivery() === true) {
-                $order->moveTo($order->designStatus(), $admin, 'Cash on delivery: please have the exact amount ready for the courier when your gift arrives.');
+                $order->moveTo(OrderStatus::PendingDesign, $admin, 'Cash on delivery: please have the exact amount ready for the courier when your gift arrives.');
             }
 
             return $order;

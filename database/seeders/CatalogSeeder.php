@@ -134,15 +134,19 @@ class CatalogSeeder extends Seeder
                     [OptionGroup::Size, 'Large', 12000],
                 ],
             ],
+            'mini-polaroid' => [
+                'name' => 'Mini Polaroid Keychain',
+                'short' => 'Your favorite photo as a tiny polaroid, sealed in clear acrylic.',
+                'art' => 'acrylic', 'price' => 14900, 'fee' => 0, 'days' => [3, 5],
+                'featured' => true, 'bestseller' => true, 'photos' => 1, 'experience' => true,
+                'active' => true, 'options' => [],
+            ],
             'mini-cd' => [
                 'name' => 'Mini CD Album Keychain',
                 'short' => 'A tiny jewel case with your own album cover, tracklist and a printed mini disc inside.',
                 'art' => 'cd', 'price' => 15900, 'fee' => 6000, 'days' => [4, 6],
                 'featured' => true, 'bestseller' => true, 'photos' => 3, 'experience' => true,
-                'options' => [
-                    [OptionGroup::Size, 'Small', 0, true],
-                    [OptionGroup::Size, 'Large', 4000],
-                ],
+                'active' => true, 'options' => [],
             ],
             'music-player' => [
                 'name' => 'Music Player Acrylic Keychain',
@@ -159,10 +163,7 @@ class CatalogSeeder extends Seeder
                 'short' => 'Four of your favorite shots in a classic photobooth strip, sealed in clear acrylic.',
                 'art' => 'strip', 'price' => 4900, 'fee' => 3000, 'days' => [3, 5],
                 'featured' => false, 'bestseller' => true, 'photos' => 4, 'experience' => true,
-                'options' => [
-                    [OptionGroup::Size, 'Small', 0, true],
-                    [OptionGroup::Size, 'Large', 2000],
-                ],
+                'active' => true, 'options' => [],
             ],
             'tap-tag' => [
                 'name' => 'NFC Social Tap Tag',
@@ -216,7 +217,7 @@ class CatalogSeeder extends Seeder
                 'max_quantity' => $definition['max'] ?? 200,
                 'max_photos' => $definition['photos'],
                 'has_digital_experience' => $definition['experience'],
-                'is_active' => true,
+                'is_active' => $definition['active'] ?? false,
                 'is_featured' => $definition['featured'],
                 'is_bestseller' => $definition['bestseller'],
                 'sort_order' => $index,
@@ -267,7 +268,7 @@ class CatalogSeeder extends Seeder
      */
     private function assignProducts(array $categories, array $products): void
     {
-        $everyday = ['personalized-acrylic-keychain', 'nfc-memory-keychain', 'personalized-qr-keepsake', 'acrylic-photo-souvenir'];
+        $everyday = ['mini-polaroid-keychain', 'personalized-acrylic-keychain', 'nfc-memory-keychain', 'personalized-qr-keepsake', 'acrylic-photo-souvenir'];
         $music = ['mini-cd-album-keychain', 'music-player-acrylic-keychain'];
         $fun = ['photobooth-strip-keychain', 'die-cut-photo-keychain', 'pinoy-calendar-keychain'];
 

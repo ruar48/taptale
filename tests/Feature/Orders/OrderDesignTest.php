@@ -152,8 +152,7 @@ test('an unpaid order keeps waiting for payment after its design is approved', f
 
     expect($order->fresh())
         ->status->toBe(OrderStatus::AwaitingPayment)
-        ->isDesignApproved()->toBeTrue()
-        ->designStatus()->toBe(OrderStatus::DesignApproved);
+        ->isDesignApproved()->toBeTrue();
 });
 
 test('a customer sends their photos and details to the studio instead', function () {

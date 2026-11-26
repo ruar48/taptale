@@ -84,25 +84,14 @@ test('an outdated proof cannot be approved', function () {
         ->assertSessionHasErrors(['proof' => 'This design is no longer awaiting your response.']);
 });
 
-test('production cannot start before the design is approved', function () {
-    $order = Order::factory()->status(OrderStatus::AwaitingCustomerApproval)->create();
-    DesignProof::factory()->for($order)->create();
+test('production can start without a design approval', function () {
+    $order = Order::factory()->status(OrderStatus::PendingDesign)->create();
 
     $this->actingAs($this->admin)
         ->put(route('admin.orders.status', $order), ['status' => OrderStatus::InProduction->value])
-        ->assertSessionHasErrors('status');
+        ->assertSessionHasNoErrors();
 
-    expect($order->fresh()->status)->toBe(OrderStatus::AwaitingCustomerApproval);
-});
-
-test('a newer proof replaces an earlier approval', function () {
-    $order = Order::factory()->status(OrderStatus::DesignApproved)->create();
-    DesignProof::factory()->for($order)->approved()->create(['version' => 1]);
-    DesignProof::factory()->for($order)->create(['version' => 2]);
-
-    $this->actingAs($this->admin)
-        ->put(route('admin.orders.status', $order), ['status' => OrderStatus::InProduction->value])
-        ->assertSessionHasErrors('status');
+    expect($order->fresh()->status)->toBe(OrderStatus::InProduction);
 });
 
 test('production starts once the latest proof is approved', function () {

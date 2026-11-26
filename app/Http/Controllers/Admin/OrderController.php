@@ -71,7 +71,6 @@ class OrderController extends Controller
         return Inertia::render('admin/orders/show', [
             'order' => new OrderResource($order),
             'statuses' => OrderStatus::options(),
-            'approvalUrl' => $order->approvalUrl(),
         ]);
     }
 

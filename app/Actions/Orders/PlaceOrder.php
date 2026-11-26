@@ -98,13 +98,7 @@ class PlaceOrder
 
             $order->recordActivity(
                 ActivityType::Placed,
-                match (true) {
-                    $personalizeLater && $designMode === DesignMode::SelfCustomized => 'Order placed. Finish your design from this page: customize it yourself with the live preview, or send us your photos and details and we will put it together for you. Nothing is made until you approve it.',
-                    $personalizeLater => 'Order placed. Send us your photos and a short description from this page — we will design it and send it to you for approval before anything is made.',
-                    $designMode === DesignMode::SelfCustomized => 'Order placed. You approved your live design preview at checkout.',
-                    $isCashOnDelivery => 'Order placed. Our designers will prepare your design and send it to you for approval.',
-                    default => 'Order placed. Our designers will prepare your design for approval after payment is verified.',
-                },
+                'Order placed. Edit your website from this page anytime — your changes save straight to your keychain.',
                 $customer,
             );
 
@@ -142,7 +136,7 @@ class PlaceOrder
             } elseif ($isCashOnDelivery) {
                 // Cash on delivery: the courier collects the payment, so work
                 // starts now and the team records the cash once it comes in.
-                $order->moveTo($order->designStatus(), note: 'Cash on delivery: please have the exact amount ready for the courier when your gift arrives.');
+                $order->moveTo(OrderStatus::PendingDesign, note: 'Cash on delivery: please have the exact amount ready for the courier when your gift arrives.');
             }
 
             return $order;

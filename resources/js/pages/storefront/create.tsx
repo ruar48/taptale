@@ -13,7 +13,6 @@ import {
     Nfc,
     PenLine,
     Plus,
-    ShieldCheck,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
@@ -178,7 +177,9 @@ export default function CreateGift({
     const isGuest = !auth.user;
     const isEmailVerified = Boolean(auth.user?.email_verified_at);
 
-    const initialStep = 0;
+    // The keychain is already chosen when arriving from its page, so start
+    // right at its website.
+    const initialStep = selectedProduct ? 1 : 0;
     const [step, setStep] = useState(initialStep);
     const [furthest, setFurthest] = useState(initialStep);
     const [customDesign, setCustomDesign] = useState(false);
@@ -1410,8 +1411,8 @@ export default function CreateGift({
 
                         {stepKey === "specs" && selectedProduct && (
                             <StepShell
-                                title="Size, finish & quantity"
-                                description="Your price updates as you choose."
+                                title="Quantity"
+                                description="How many would you like?"
                             >
                                 <OptionPicker
                                     options={selectedProduct.options ?? []}
@@ -1498,21 +1499,6 @@ export default function CreateGift({
                                         className="mt-2"
                                     />
                                 </fieldset>
-                                <div className="mt-10 flex gap-4 rounded-2xl border border-plum/15 bg-card p-5">
-                                    <ShieldCheck className="size-6 shrink-0 text-rose" />
-                                    <p className="text-sm text-muted-foreground">
-                                        <span className="block font-medium text-foreground">
-                                            You'll approve your design before we
-                                            make it
-                                        </span>
-                                        After you order, finish your design from
-                                        your order page: customize it yourself
-                                        with a live preview, or send us your
-                                        photos and we'll put it together.
-                                        Nothing is made until you approve, and
-                                        an approved design is final.
-                                    </p>
-                                </div>
                             </StepShell>
                         )}
 
@@ -1958,11 +1944,6 @@ export default function CreateGift({
                                     />
                                 </div>
                             </div>
-                            <p className="flex items-center gap-2 px-2 text-xs text-muted-foreground">
-                                <BadgeCheck className="size-4 text-rose" />{" "}
-                                Nothing is produced until your design is
-                                approved.
-                            </p>
                         </div>
                     </aside>
                 </div>
@@ -2330,7 +2311,7 @@ function GuestAccount({
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
                         Everything you've made stays right here. Your account
-                        lets you track your gift and approve your design.
+                        lets you track your gift and edit your website.
                     </p>
                 </div>
             </div>

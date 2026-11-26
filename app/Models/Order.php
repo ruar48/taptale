@@ -21,7 +21,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 
 /**
  * @property int $id
@@ -376,13 +375,11 @@ class Order extends Model
     /**
      * After a payment is verified, move an order that was waiting on payment
      * forward: back to "Awaiting Payment" while a balance remains, otherwise
-     * on to design (or straight to production when the design is approved).
-     *
-     * @throws ValidationException
+     * on to "Pending", ready for production.
      */
     public function advanceAfterPayment(?User $actor = null): void
     {
-        $this->load(['payments', 'latestProof']);
+        $this->load('payments');
 
         if (! $this->status->isPaymentStage()) {
             return;
@@ -394,22 +391,7 @@ class Order extends Model
             return;
         }
 
-        $this->moveTo($this->designStatus(), $actor);
-    }
-
-    /**
-     * Where a paid order stands on its design: approved, a proof waiting for
-     * the customer, a revision to make, or not started. A design proof may
-     * already have gone out (and even been approved) before payment.
-     */
-    public function designStatus(): OrderStatus
-    {
-        return match (true) {
-            $this->isDesignApproved() => OrderStatus::DesignApproved,
-            $this->latestProof?->status === ProofStatus::AwaitingResponse => OrderStatus::AwaitingCustomerApproval,
-            $this->latestProof?->status === ProofStatus::RevisionRequested => OrderStatus::RevisionRequested,
-            default => OrderStatus::PendingDesign,
-        };
+        $this->moveTo(OrderStatus::PendingDesign, $actor);
     }
 
     /**
@@ -421,19 +403,10 @@ class Order extends Model
     }
 
     /**
-     * Move the order to a new status, enforcing the design approval gate,
-     * and record the change on the timeline.
-     *
-     * @throws ValidationException
+     * Move the order to a new status and record the change on the timeline.
      */
     public function moveTo(OrderStatus $status, ?User $actor = null, ?string $note = null): void
     {
-        if ($status->requiresDesignApproval() && ! $this->isDesignApproved()) {
-            throw ValidationException::withMessages([
-                'status' => 'This order cannot move to "'.$status->label().'" until the customer has approved the design.',
-            ]);
-        }
-
         if ($this->status === $status) {
             return;
         }

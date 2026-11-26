@@ -83,13 +83,13 @@ test('verifying full payment moves a Taptale-designed order to pending design', 
         ->and($order->fresh()->status)->toBe(OrderStatus::PendingDesign);
 });
 
-test('verifying full payment for an approved self-design moves it to design approved', function () {
+test('verifying full payment for an approved self-design moves it to pending', function () {
     $order = Order::factory()->selfCustomizedAndApproved()->status(OrderStatus::PaymentVerification)->create(['total' => 60000]);
     $payment = Payment::factory()->for($order)->create(['amount' => 60000]);
 
     $this->actingAs($this->admin)->post(route('admin.payments.verify', $payment));
 
-    expect($order->fresh()->status)->toBe(OrderStatus::DesignApproved);
+    expect($order->fresh()->status)->toBe(OrderStatus::PendingDesign);
 });
 
 test('a partial payment keeps the order awaiting payment', function () {

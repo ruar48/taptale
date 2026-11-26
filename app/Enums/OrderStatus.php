@@ -27,7 +27,7 @@ enum OrderStatus: string
             self::PendingOrder => 'Pending Order',
             self::AwaitingPayment => 'Awaiting Payment',
             self::PaymentVerification => 'Payment Verification',
-            self::PendingDesign => 'Pending Design',
+            self::PendingDesign => 'Pending',
             self::DesignInProgress => 'Design in Progress',
             self::AwaitingCustomerApproval => 'Awaiting Your Approval',
             self::RevisionRequested => 'Revision Requested',
@@ -70,15 +70,16 @@ enum OrderStatus: string
     }
 
     /**
-     * Whether moving into this status requires a recorded design approval.
+     * Old design-proof steps. Customers now design only their website, so
+     * these are no longer offered; orders already in them still display.
      */
-    public function requiresDesignApproval(): bool
+    public function isRetiredDesignStep(): bool
     {
         return in_array($this, [
-            self::InProduction,
-            self::ReadyForShipment,
-            self::Shipped,
-            self::Completed,
+            self::DesignInProgress,
+            self::AwaitingCustomerApproval,
+            self::RevisionRequested,
+            self::DesignApproved,
         ], true);
     }
 
@@ -146,6 +147,9 @@ enum OrderStatus: string
             'value' => $status->value,
             'label' => $status->label(),
             'tone' => $status->tone(),
-        ], self::cases());
+        ], array_values(array_filter(
+            self::cases(),
+            fn (self $status): bool => ! $status->isRetiredDesignStep(),
+        )));
     }
 }

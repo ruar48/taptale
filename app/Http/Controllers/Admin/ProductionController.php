@@ -9,7 +9,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * The workshop board: approved designs waiting to be made, orders being
+ * The workshop board: paid orders waiting to be made, orders being
  * made, and packed orders waiting for the courier.
  */
 class ProductionController extends Controller
@@ -20,7 +20,7 @@ class ProductionController extends Controller
      * @var array<string, string|null>
      */
     private const COLUMNS = [
-        'design_approved' => 'in_production',
+        'pending_design' => 'in_production',
         'in_production' => 'ready_for_shipment',
         'ready_for_shipment' => null,
     ];

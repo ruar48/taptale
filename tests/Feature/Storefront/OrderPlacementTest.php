@@ -293,7 +293,7 @@ test('personalization can be skipped and added after ordering', function () {
     expect($order->preview_approved_at)->toBeNull()
         ->and($order->isDesignApproved())->toBeFalse()
         ->and($order->customization_fee)->toBe(0)
-        ->and($order->activities()->sole()->body)->toContain('Finish your design from this page');
+        ->and($order->activities()->sole()->body)->toContain('Edit your website from this page');
 });
 
 test('without skipping, a self-designed order still needs names and approval', function () {
@@ -642,7 +642,7 @@ test('choosing a Taptale QR method shows the QR payment page after ordering', fu
         ->assertRedirect(route('account.orders.qrph.show', Order::sole()));
 });
 
-test('choosing cash on delivery starts the design without waiting for payment', function () {
+test('choosing cash on delivery readies the order without waiting for payment', function () {
     Notification::fake();
     $admin = User::factory()->admin()->create();
     $cashOnDelivery = PaymentMethod::factory()->create(['driver' => 'cod']);
@@ -653,7 +653,7 @@ test('choosing cash on delivery starts the design without waiting for payment', 
 
     $order = Order::sole()->load('payments');
 
-    expect($order->status)->toBe(OrderStatus::DesignApproved)
+    expect($order->status)->toBe(OrderStatus::PendingDesign)
         ->and($order->balanceDue())->toBe($order->total);
 
     Notification::assertSentTo($admin, AdminOrderAlert::class, fn (AdminOrderAlert $alert) => $alert->order->is($order)

@@ -62,8 +62,8 @@ test('customers cannot use the admin tools', function () {
     $this->actingAs($customer)->get(route('admin.audit-log'))->assertForbidden();
 });
 
-test('the production board groups approved orders by workshop stage', function () {
-    $approved = Order::factory()->selfCustomizedAndApproved()->status(OrderStatus::DesignApproved)->create();
+test('the production board groups paid orders by workshop stage', function () {
+    $approved = Order::factory()->selfCustomizedAndApproved()->status(OrderStatus::PendingDesign)->create();
     $making = Order::factory()->selfCustomizedAndApproved()->status(OrderStatus::InProduction)->create();
     Order::factory()->status(OrderStatus::AwaitingPayment)->create();
 
@@ -71,7 +71,7 @@ test('the production board groups approved orders by workshop stage', function (
         ->get(route('admin.production'))
         ->assertInertia(fn (Assert $page) => $page
             ->component('admin/production')
-            ->where('columns.0.status', 'design_approved')
+            ->where('columns.0.status', 'pending_design')
             ->where('columns.0.next_status', 'in_production')
             ->where('columns.0.orders.0.reference', $approved->reference)
             ->where('columns.1.orders.0.reference', $making->reference)

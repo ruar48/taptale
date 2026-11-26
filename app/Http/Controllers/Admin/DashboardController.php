@@ -36,10 +36,7 @@ class DashboardController extends Controller
             ],
             'queues' => [
                 ['label' => 'Payments to verify', 'status' => OrderStatus::PaymentVerification->value, 'count' => $count(OrderStatus::PaymentVerification)],
-                ['label' => 'Designs to prepare', 'status' => OrderStatus::PendingDesign->value, 'count' => $count(OrderStatus::PendingDesign, OrderStatus::DesignInProgress)],
-                ['label' => 'Revisions requested', 'status' => OrderStatus::RevisionRequested->value, 'count' => $count(OrderStatus::RevisionRequested)],
-                ['label' => 'Awaiting customer approval', 'status' => OrderStatus::AwaitingCustomerApproval->value, 'count' => $count(OrderStatus::AwaitingCustomerApproval)],
-                ['label' => 'Ready for production', 'status' => OrderStatus::DesignApproved->value, 'count' => $count(OrderStatus::DesignApproved)],
+                ['label' => 'Ready for production', 'status' => OrderStatus::PendingDesign->value, 'count' => $count(OrderStatus::PendingDesign)],
                 ['label' => 'In production', 'status' => OrderStatus::InProduction->value, 'count' => $count(OrderStatus::InProduction)],
                 ['label' => 'Ready to ship', 'status' => OrderStatus::ReadyForShipment->value, 'count' => $count(OrderStatus::ReadyForShipment)],
             ],

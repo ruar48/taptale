@@ -130,7 +130,7 @@ describe('Marites, who approves a design before paying', function () {
             ->and($order->status)->toBe(OrderStatus::AwaitingPayment);
     });
 
-    test('once she pays in full, the approved design goes straight to production', function () {
+    test('once she pays in full, the order is ready for production', function () {
         $order = Order::factory()->status(OrderStatus::PaymentVerification)->create(['total' => 75000]);
         DesignProof::factory()->for($order)->create(['status' => ProofStatus::Approved]);
         $payment = Payment::factory()->for($order)->create(['amount' => 75000, 'status' => PaymentStatus::Submitted]);
@@ -139,7 +139,7 @@ describe('Marites, who approves a design before paying', function () {
             ->post(route('admin.payments.verify', $payment))
             ->assertSessionHasNoErrors();
 
-        expect($order->fresh()->status)->toBe(OrderStatus::DesignApproved);
+        expect($order->fresh()->status)->toBe(OrderStatus::PendingDesign);
     });
 });
 
@@ -236,9 +236,9 @@ describe('Workflow skipper, trying to get an unpaid order made', function () {
     });
 
     test('the production board marks orders that still owe money', function () {
-        $paid = Order::factory()->selfCustomizedAndApproved()->status(OrderStatus::DesignApproved)->create(['total' => 75000]);
+        $paid = Order::factory()->selfCustomizedAndApproved()->status(OrderStatus::PendingDesign)->create(['total' => 75000]);
         Payment::factory()->verified()->for($paid)->create(['amount' => 75000]);
-        $unpaid = Order::factory()->selfCustomizedAndApproved()->status(OrderStatus::DesignApproved)->create(['total' => 75000]);
+        $unpaid = Order::factory()->selfCustomizedAndApproved()->status(OrderStatus::PendingDesign)->create(['total' => 75000]);
 
         $this->actingAs(User::factory()->admin()->create())
             ->get(route('admin.production'))

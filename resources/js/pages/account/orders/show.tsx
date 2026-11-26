@@ -3,22 +3,17 @@ import {
     Banknote,
     Copy,
     ExternalLink,
-    FileText,
     Gift,
     Loader2,
     Lock,
-    Nfc,
     QrCode,
     ShieldCheck,
     Star,
     Truck,
-    Upload,
 } from "lucide-react";
 import { useState } from "react";
-import DesignProofController from "@/actions/App/Http/Controllers/Account/DesignProofController";
 import OrderController from "@/actions/App/Http/Controllers/Account/OrderController";
 import OnlinePaymentController from "@/actions/App/Http/Controllers/Account/OnlinePaymentController";
-import OrderFileController from "@/actions/App/Http/Controllers/Account/OrderFileController";
 import QrPhPaymentController from "@/actions/App/Http/Controllers/Account/QrPhPaymentController";
 import PaymentController from "@/actions/App/Http/Controllers/Account/PaymentController";
 import ReviewController from "@/actions/App/Http/Controllers/Account/ReviewController";
@@ -28,25 +23,17 @@ import {
     type ExperienceEditorProps,
 } from "@/components/taptale/experience/experience-editor";
 import { FileDropzone } from "@/components/taptale/file-dropzone";
-import { OrderDesignEditor } from "@/components/taptale/order-design-editor";
-import { ProofApproval } from "@/components/taptale/proof-approval";
 import {
     OrderPriceBreakdown,
     OrderProgress,
     OrderSpecs,
     OrderTimeline,
     Panel,
-    PersonalizationDetails,
 } from "@/components/taptale/order-parts";
 import {
     StatusBadge,
     paymentTone,
-    proofTone,
 } from "@/components/taptale/status-badge";
-import {
-    productPalette,
-    TemplatePreview,
-} from "@/components/taptale/template-preview";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -61,7 +48,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useClipboard } from "@/hooks/use-clipboard";
 import { useMoney } from "@/hooks/use-money";
-import { formatDate, formatFileSize, toPesoInput } from "@/lib/money";
+import { formatDate, toPesoInput } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import {
     index as ordersIndex,
@@ -92,9 +79,6 @@ export default function OrderShow({
 
     const money = useMoney();
     const [confirmCancel, setConfirmCancel] = useState(false);
-    const latestProof = order.proofs?.[0] ?? null;
-    const awaitingProof =
-        latestProof?.status === "awaiting_response" ? latestProof : null;
     const pendingPayment = order.payments?.find(
         (payment) =>
             payment.kind === "payment" && payment.status === "submitted",
@@ -108,9 +92,6 @@ export default function OrderShow({
         !order.accepts_payment &&
         order.status !== "cancelled" &&
         (order.balance_due ?? 0) > 0;
-    const designPhoto = order.files?.find(
-        (file) => file.kind === "photo" && file.is_image,
-    );
 
     return (
         <>
@@ -189,210 +170,8 @@ export default function OrderShow({
 
                 {website && <ExperienceEditor {...website} embedded />}
 
-                {order.is_design_editable && (
-                    <OrderDesignEditor
-                        order={order}
-                        maxUploadKilobytes={maxUploadKilobytes}
-                    />
-                )}
-
-                {awaitingProof && (
-                    <ProofApproval
-                        proof={awaitingProof}
-                        approveUrl={DesignProofController.approve.url({
-                            order: order.reference,
-                            proof: awaitingProof.id,
-                        })}
-                        revisionUrl={DesignProofController.requestRevision.url({
-                            order: order.reference,
-                            proof: awaitingProof.id,
-                        })}
-                    />
-                )}
-
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
                     <div className="space-y-6">
-                        <Panel
-                            title="Your design"
-                            description={order.design_mode_label}
-                        >
-                            <div className="grid gap-6 sm:grid-cols-[200px_1fr]">
-                                <div>
-                                    {latestProof ? (
-                                        <a
-                                            href={latestProof.image_url}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="block overflow-hidden rounded-2xl border"
-                                        >
-                                            <img
-                                                src={latestProof.image_url}
-                                                alt={`Design version ${latestProof.version}`}
-                                                className="w-full"
-                                            />
-                                        </a>
-                                    ) : order.design_mode === "self" &&
-                                      order.design_layout ? (
-                                        <div className="overflow-hidden rounded-2xl shadow">
-                                            <TemplatePreview
-                                                layout={order.design_layout}
-                                                palette={productPalette(
-                                                    order.product_art_style,
-                                                )}
-                                                photoUrl={designPhoto?.url}
-                                                photos={order.files
-                                                    ?.filter(
-                                                        (file) =>
-                                                            file.kind ===
-                                                                "photo" &&
-                                                            file.is_image,
-                                                    )
-                                                    .map((file) => file.url)}
-                                                songTitle={
-                                                    order.personalization
-                                                        .song_title
-                                                }
-                                                artist={
-                                                    order.personalization.artist
-                                                }
-                                                names={
-                                                    order.personalization.names
-                                                }
-                                                date={
-                                                    order.personalization.date
-                                                }
-                                                message={
-                                                    order.personalization
-                                                        .message
-                                                }
-                                                accent={
-                                                    order.personalization.color
-                                                }
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div className="flex aspect-[4/5] items-center justify-center rounded-2xl border border-dashed p-4 text-center text-sm text-muted-foreground">
-                                            Our designers will share your design
-                                            here.
-                                        </div>
-                                    )}
-                                    <p className="mt-2 text-center text-xs text-muted-foreground">
-                                        {latestProof
-                                            ? `Design v${latestProof.version} · ${latestProof.status_label}`
-                                            : order.preview_approved_at
-                                              ? `Approved ${formatDate(order.preview_approved_at)} · final`
-                                              : order.design_submitted_at
-                                                ? `Sent to our designers ${formatDate(order.design_submitted_at)}`
-                                                : "Awaiting your design"}
-                                    </p>
-                                </div>
-                                <PersonalizationDetails order={order} />
-                            </div>
-
-                            {(order.proofs?.length ?? 0) > 1 && (
-                                <div className="mt-6 border-t pt-4">
-                                    <p className="mb-3 text-sm font-medium">
-                                        Design history
-                                    </p>
-                                    <ul className="grid gap-3">
-                                        {order.proofs?.slice(1).map((proof) => (
-                                            <li
-                                                key={proof.id}
-                                                className="flex items-center gap-3 text-sm"
-                                            >
-                                                <a
-                                                    href={proof.image_url}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="size-12 shrink-0 overflow-hidden rounded-lg border"
-                                                >
-                                                    <img
-                                                        src={proof.image_url}
-                                                        alt=""
-                                                        className="size-full object-cover"
-                                                    />
-                                                </a>
-                                                <div className="min-w-0 flex-1">
-                                                    <p className="font-medium">
-                                                        Version {proof.version}
-                                                    </p>
-                                                    {proof.customer_comment && (
-                                                        <p className="truncate text-muted-foreground">
-                                                            “
-                                                            {
-                                                                proof.customer_comment
-                                                            }
-                                                            ”
-                                                        </p>
-                                                    )}
-                                                </div>
-                                                <StatusBadge
-                                                    tone={proofTone(
-                                                        proof.status,
-                                                    )}
-                                                >
-                                                    {proof.status_label}
-                                                </StatusBadge>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-                        </Panel>
-
-                        <Panel
-                            title="Photos & files"
-                            description="Everything you've shared with our designers."
-                        >
-                            {(order.files?.length ?? 0) > 0 ? (
-                                <ul className="grid grid-cols-3 gap-3 sm:grid-cols-5">
-                                    {order.files?.map((file) => (
-                                        <li key={file.id}>
-                                            <a
-                                                href={file.url}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="group block"
-                                            >
-                                                <div className="aspect-square overflow-hidden rounded-xl border bg-muted">
-                                                    {file.is_image ? (
-                                                        <img
-                                                            src={file.url}
-                                                            alt={
-                                                                file.original_name
-                                                            }
-                                                            className="size-full object-cover transition group-hover:scale-105"
-                                                            loading="lazy"
-                                                        />
-                                                    ) : (
-                                                        <div className="flex size-full items-center justify-center">
-                                                            <FileText className="size-6 text-muted-foreground" />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <p className="mt-1 truncate text-[11px] text-muted-foreground">
-                                                    {file.kind_label} ·{" "}
-                                                    {formatFileSize(file.size)}
-                                                </p>
-                                            </a>
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <p className="text-sm text-muted-foreground">
-                                    No files uploaded yet.
-                                </p>
-                            )}
-                            {order.status !== "completed" &&
-                                order.status !== "cancelled" &&
-                                !order.is_design_approved && (
-                                    <UploadFiles
-                                        order={order}
-                                        maxUploadKilobytes={maxUploadKilobytes}
-                                    />
-                                )}
-                        </Panel>
-
                         {order.is_reviewable && <ReviewPanel order={order} />}
 
                         <Panel title="Order updates">
@@ -829,89 +608,6 @@ function OnlineCheckout({
                 </p>
             )}
         </div>
-    );
-}
-
-function UploadFiles({
-    order,
-    maxUploadKilobytes,
-}: {
-    order: Order;
-    maxUploadKilobytes: number;
-}) {
-    const [open, setOpen] = useState(false);
-    const form = useForm<{ files: File[]; note: string }>({
-        files: [],
-        note: "",
-    });
-    const fileError = Object.entries(form.errors).find(([key]) =>
-        key.startsWith("files"),
-    )?.[1];
-
-    if (!open) {
-        return (
-            <Button
-                variant="outline"
-                className="mt-4 rounded-full"
-                onClick={() => setOpen(true)}
-            >
-                <Upload className="size-4" /> Upload more photos or files
-            </Button>
-        );
-    }
-
-    return (
-        <form
-            className="mt-5 space-y-3 border-t pt-5"
-            onSubmit={(event) => {
-                event.preventDefault();
-                form.post(OrderFileController.store.url(order.reference), {
-                    forceFormData: true,
-                    preserveScroll: true,
-                    onSuccess: () => {
-                        form.reset();
-                        setOpen(false);
-                    },
-                });
-            }}
-        >
-            <FileDropzone
-                id="additional-files"
-                files={form.data.files}
-                onChange={(files) => form.setData("files", files)}
-                maxFiles={5}
-                maxKilobytes={maxUploadKilobytes}
-                accept="image/jpeg,image/png,image/webp,application/pdf"
-                label="Add photos or PDFs"
-                error={fileError}
-            />
-            <Textarea
-                value={form.data.note}
-                onChange={(event) => form.setData("note", event.target.value)}
-                placeholder="Add a note for our designers (optional)"
-                rows={2}
-            />
-            <div className="flex gap-2">
-                <Button
-                    type="submit"
-                    disabled={form.processing || form.data.files.length === 0}
-                    className="rounded-full"
-                >
-                    {form.processing && (
-                        <Loader2 className="size-4 animate-spin" />
-                    )}{" "}
-                    Upload
-                </Button>
-                <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => setOpen(false)}
-                    className="rounded-full"
-                >
-                    Cancel
-                </Button>
-            </div>
-        </form>
     );
 }
 
