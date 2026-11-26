@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\ExperienceTemplate;
 use App\Enums\OrderChannel;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -24,6 +25,7 @@ class StoreManualOrderRequest extends FormRequest
         return [
             'channel' => ['required', Rule::in(array_column(OrderChannel::manualOptions(), 'value'))],
             'product_id' => ['required', 'integer', Rule::exists('products', 'id')],
+            'experience_template' => ['required', Rule::enum(ExperienceTemplate::class)],
             'option_ids' => ['array'],
             'option_ids.*' => ['integer'],
             'quantity' => ['required', 'integer', 'min:1', 'max:1000'],
@@ -57,6 +59,7 @@ class StoreManualOrderRequest extends FormRequest
         return [
             'customer_phone.required_without' => 'Add a phone number or an email so you can reach the customer.',
             'product_id.required' => 'Please choose a product.',
+            'experience_template.required' => 'Please choose a website template.',
         ];
     }
 }

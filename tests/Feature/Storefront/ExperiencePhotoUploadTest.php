@@ -373,12 +373,12 @@ test('another customer cannot add photos to someone else\'s page', function () {
     expect($experience->fresh()->photos)->toBe([]);
 });
 
-test('guests must sign in to add photos', function () {
+test('a guest without the edit link cannot add photos', function () {
     $experience = DigitalExperience::factory()->create();
 
     $this->post(route('account.experiences.photos.store', $experience), [
         'photos' => [UploadedFile::fake()->image('us.jpg')],
-    ])->assertRedirect(route('login'));
+    ])->assertForbidden();
 });
 
 test('only images can be added', function () {

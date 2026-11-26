@@ -42,6 +42,9 @@ class StoreOrderRequest extends FormRequest
             'option_ids' => ['array'],
             'option_ids.*' => ['integer'],
             'quantity' => ['required', 'integer', 'min:'.($product->min_quantity ?? 1), 'max:'.($product->max_quantity ?? 500)],
+            'extra_items' => ['array', 'max:10'],
+            'extra_items.*.product_id' => ['required', 'integer', 'distinct'],
+            'extra_items.*.quantity' => ['required', 'integer', 'min:1', 'max:500'],
 
             'personalization' => ['array'],
             'personalization.names' => [Rule::requiredIf($isSelf && ! $later), 'nullable', 'string', 'max:120'],

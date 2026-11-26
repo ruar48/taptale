@@ -79,6 +79,26 @@ export default function PackingSlip({ order }: { order: Order }) {
                             </tr>
                         </thead>
                         <tbody>
+                            {(order.items?.length ?? 0) > 1 ? (
+                                order.items?.map((item) => (
+                                    <tr
+                                        key={item.id}
+                                        className="border-b align-top"
+                                    >
+                                        <td className="py-3 font-medium">
+                                            {item.product_name}
+                                        </td>
+                                        <td className="py-3 text-right">
+                                            {item.quantity}
+                                        </td>
+                                        {showPrices && (
+                                            <td className="py-3 text-right">
+                                                {money(item.subtotal)}
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))
+                            ) : (
                             <tr className="border-b align-top">
                                 <td className="py-3">
                                     <p className="font-medium">
@@ -109,6 +129,7 @@ export default function PackingSlip({ order }: { order: Order }) {
                                     </td>
                                 )}
                             </tr>
+                            )}
                         </tbody>
                         {showPrices && (
                             <tfoot>

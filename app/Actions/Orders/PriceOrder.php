@@ -22,10 +22,15 @@ class PriceOrder
      * comes with a memory page. Like the design fee it sits outside the items
      * subtotal, so promo codes and the free delivery threshold ignore it.
      *
+     * Extra keychains (another type in the same checkout) are charged at
+     * their base price and count towards the items subtotal.
+     *
      * @param  list<int>  $optionIds
+     * @param  list<array{product_id: int, quantity: int}>  $extraItems
      * @return array{
      *     unit_price: int,
      *     subtotal: int,
+     *     items: list<array{product_id: int, product_name: string, quantity: int, unit_price: int, subtotal: int}>,
      *     customization_fee: int,
      *     flowers_fee: int,
      *     delivery_fee: int,
@@ -37,7 +42,7 @@ class PriceOrder
      *
      * @throws ValidationException
      */
-    public function handle(Product $product, array $optionIds, int $quantity, DesignMode $designMode, ?PromoCode $promoCode = null, ?User $customer = null, ?string $phone = null, bool $withFlowers = false): array
+    public function handle(Product $product, array $optionIds, int $quantity, DesignMode $designMode, ?PromoCode $promoCode = null, ?User $customer = null, ?string $phone = null, bool $withFlowers = false, array $extraItems = []): array
     {
         $available = $product->activeOptions()->get();
         $selected = $this->resolveSelection($available, $optionIds);
@@ -45,7 +50,8 @@ class PriceOrder
             || $selected->contains(fn (ProductOption $option): bool => $option->enables_digital_experience);
 
         $unitPrice = max(0, $product->base_price + (int) $selected->sum('price_modifier'));
-        $subtotal = $unitPrice * $quantity;
+        $items = [$this->item($product, $quantity, $unitPrice), ...$this->extraItems($product, $extraItems)];
+        $subtotal = array_sum(array_column($items, 'subtotal'));
         $customizationFee = $designMode === DesignMode::TaptaleDesigned ? $product->design_fee : 0;
         $flowersFee = $withFlowers && $enablesDigitalExperience ? max(0, (int) config('taptale.flowers_addon_price')) : 0;
         $deliveryFee = $this->deliveryFee($subtotal);
@@ -54,6 +60,7 @@ class PriceOrder
         return [
             'unit_price' => $unitPrice,
             'subtotal' => $subtotal,
+            'items' => $items,
             'customization_fee' => $customizationFee,
             'flowers_fee' => $flowersFee,
             'delivery_fee' => $deliveryFee,
@@ -68,6 +75,60 @@ class PriceOrder
             ])->all()),
             'enables_digital_experience' => $enablesDigitalExperience,
         ];
+    }
+
+    /**
+     * @return array{product_id: int, product_name: string, quantity: int, unit_price: int, subtotal: int}
+     */
+    private function item(Product $product, int $quantity, int $unitPrice): array
+    {
+        return [
+            'product_id' => $product->id,
+            'product_name' => $product->name,
+            'quantity' => $quantity,
+            'unit_price' => $unitPrice,
+            'subtotal' => $unitPrice * $quantity,
+        ];
+    }
+
+    /**
+     * Price the other keychain types added to the checkout. Each must be on
+     * sale, differ from the main keychain and appear once.
+     *
+     * @param  list<array{product_id: int, quantity: int}>  $extraItems
+     * @return list<array{product_id: int, product_name: string, quantity: int, unit_price: int, subtotal: int}>
+     *
+     * @throws ValidationException
+     */
+    private function extraItems(Product $mainProduct, array $extraItems): array
+    {
+        if ($extraItems === []) {
+            return [];
+        }
+
+        $productIds = array_map(fn (array $item): int => (int) $item['product_id'], $extraItems);
+        $products = Product::active()->whereKey($productIds)->get()->keyBy('id');
+
+        if (count(array_unique($productIds)) !== count($productIds)
+            || in_array($mainProduct->id, $productIds, true)
+            || $products->count() !== count(array_unique($productIds))) {
+            throw ValidationException::withMessages([
+                'extra_items' => 'One of the keychains you added is no longer available. Please review your order.',
+            ]);
+        }
+
+        return array_map(function (array $item) use ($products): array {
+            $product = $products->get((int) $item['product_id']);
+            $quantity = (int) $item['quantity'];
+
+            if ($quantity < $product->min_quantity || $quantity > $product->max_quantity) {
+                throw ValidationException::withMessages([
+                    'extra_items' => "{$product->name}: quantity must be between {$product->min_quantity} and {$product->max_quantity}.",
+                ]);
+            }
+
+            return $this->item($product, $quantity, $product->base_price);
+        }, $extraItems);
     }
 
     /**

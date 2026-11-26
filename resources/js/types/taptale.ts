@@ -386,7 +386,16 @@ export type SelectedOption = {
     price_modifier: number;
 };
 
+export type OrderItem = {
+    id: number;
+    product_name: string;
+    quantity: number;
+    unit_price: number;
+    subtotal: number;
+};
+
 export type Order = {
+    items?: OrderItem[];
     id: number;
     reference: string;
     channel: 'website' | 'walk_in' | 'messenger' | 'other';

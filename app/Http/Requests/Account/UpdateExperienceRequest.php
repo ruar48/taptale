@@ -10,6 +10,7 @@ use App\Enums\PhotoRainSource;
 use App\Models\DigitalExperience;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
 use Illuminate\Validation\Validator;
@@ -21,7 +22,7 @@ class UpdateExperienceRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()?->can('update', $this->experience()) ?? false;
+        return Gate::allows('update', $this->experience());
     }
 
     /**

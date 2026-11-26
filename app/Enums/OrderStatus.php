@@ -56,16 +56,18 @@ enum OrderStatus: string
     }
 
     /**
-     * The customer-facing journey stage (1-5) this status belongs to.
+     * The customer-facing journey stage (1-4) this status belongs to. Once
+     * paid, the order is with the workshop: the customer designs only their
+     * website, so there is no separate design stage.
      */
     public function stage(): int
     {
         return match ($this) {
             self::PendingOrder, self::AwaitingPayment, self::PaymentVerification, self::Cancelled => 1,
-            self::PendingDesign, self::DesignInProgress, self::AwaitingCustomerApproval, self::RevisionRequested => 2,
-            self::DesignApproved, self::InProduction => 3,
-            self::ReadyForShipment, self::Shipped => 4,
-            self::Completed => 5,
+            self::PendingDesign, self::DesignInProgress, self::AwaitingCustomerApproval, self::RevisionRequested,
+            self::DesignApproved, self::InProduction => 2,
+            self::ReadyForShipment, self::Shipped => 3,
+            self::Completed => 4,
         };
     }
 

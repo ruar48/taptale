@@ -29,6 +29,7 @@ type Props = {
     products: Product[];
     paymentMethods: PaymentMethod[];
     defaultDeliveryFee: number;
+    templates: { value: string; label: string; description: string }[];
 };
 
 type ManualOrderForm = {
@@ -37,6 +38,7 @@ type ManualOrderForm = {
     option_ids: number[];
     quantity: string;
     charge_design_fee: boolean;
+    experience_template: string;
     delivery_fee: string;
     personalization: {
         names: string;
@@ -64,6 +66,7 @@ export default function AdminOrderCreate({
     products,
     paymentMethods,
     defaultDeliveryFee,
+    templates,
 }: Props) {
     const money = useMoney();
     const form = useForm<ManualOrderForm>({
@@ -71,7 +74,8 @@ export default function AdminOrderCreate({
         product_id: "",
         option_ids: [],
         quantity: "1",
-        charge_design_fee: true,
+        charge_design_fee: false,
+        experience_template: templates[0]?.value ?? "",
         delivery_fee: toPesoInput(defaultDeliveryFee),
         personalization: { names: "", date: "", message: "", design_brief: "" },
         customer_name: "",
@@ -118,15 +122,6 @@ export default function AdminOrderCreate({
         (Number.parseFloat(form.data.delivery_fee) || 0) * 100,
     );
     const total = unitPrice * quantity + designFee + deliveryFee;
-
-    const setPersonalization = (
-        field: keyof ManualOrderForm["personalization"],
-        value: string,
-    ) =>
-        form.setData("personalization", {
-            ...form.data.personalization,
-            [field]: value,
-        });
 
     const chooseProduct = (productId: string) => {
         const next = products.find(
@@ -380,89 +375,48 @@ export default function AdminOrderCreate({
                         </Panel>
 
                         <Panel
-                            title="Design details"
-                            description="What the customer told you in chat. You can change these later from the order."
+                            title="Website template"
+                            description="The website the keychain opens. After saving, send the customer the edit link so they can add their photos and words."
                         >
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <FormField
-                                    label="Names"
-                                    htmlFor="names"
-                                    error={errors["personalization.names"]}
-                                >
-                                    <Input
-                                        id="names"
-                                        value={form.data.personalization.names}
-                                        onChange={(event) =>
-                                            setPersonalization(
-                                                "names",
-                                                event.target.value,
-                                            )
-                                        }
-                                        placeholder="e.g. Ana & Leo"
-                                    />
-                                </FormField>
-                                <FormField
-                                    label="Date"
-                                    htmlFor="date"
-                                    error={errors["personalization.date"]}
-                                >
-                                    <Input
-                                        id="date"
-                                        value={form.data.personalization.date}
-                                        onChange={(event) =>
-                                            setPersonalization(
-                                                "date",
-                                                event.target.value,
-                                            )
-                                        }
-                                        placeholder="e.g. 14 February 2026"
-                                    />
-                                </FormField>
-                                <FormField
-                                    label="Message"
-                                    htmlFor="message"
-                                    error={errors["personalization.message"]}
-                                    className="sm:col-span-2"
-                                >
-                                    <Textarea
-                                        id="message"
-                                        rows={2}
-                                        value={
-                                            form.data.personalization.message
-                                        }
-                                        onChange={(event) =>
-                                            setPersonalization(
-                                                "message",
-                                                event.target.value,
-                                            )
-                                        }
-                                    />
-                                </FormField>
-                                <FormField
-                                    label="Design brief"
-                                    htmlFor="design_brief"
-                                    error={
-                                        errors["personalization.design_brief"]
-                                    }
-                                    className="sm:col-span-2"
-                                >
-                                    <Textarea
-                                        id="design_brief"
-                                        rows={3}
-                                        value={
-                                            form.data.personalization
-                                                .design_brief
-                                        }
-                                        onChange={(event) =>
-                                            setPersonalization(
-                                                "design_brief",
-                                                event.target.value,
-                                            )
-                                        }
-                                        placeholder="Colors, layout, which photos from the chat to use…"
-                                    />
-                                </FormField>
+                            <div className="grid gap-2 sm:grid-cols-2">
+                                {templates.map((template) => {
+                                    const isChosen =
+                                        form.data.experience_template ===
+                                        template.value;
+
+                                    return (
+                                        <button
+                                            key={template.value}
+                                            type="button"
+                                            onClick={() =>
+                                                form.setData(
+                                                    "experience_template",
+                                                    template.value,
+                                                )
+                                            }
+                                            aria-pressed={isChosen}
+                                            className={cn(
+                                                "rounded-xl border p-3 text-left transition",
+                                                isChosen
+                                                    ? "border-plum bg-blush-light/60 ring-1 ring-plum dark:bg-plum/20"
+                                                    : "hover:border-plum/40",
+                                            )}
+                                        >
+                                            <p className="text-sm font-medium">
+                                                {template.label}
+                                            </p>
+                                            <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                                                {template.description}
+                                            </p>
+                                        </button>
+                                    );
+                                })}
                             </div>
+                            {errors.experience_template && (
+                                <p className="mt-2 text-sm text-destructive">
+                                    {errors.experience_template}
+                                </p>
+                            )}
                         </Panel>
 
                         <Panel
@@ -562,21 +516,6 @@ export default function AdminOrderCreate({
                                         required
                                     />
                                 </FormField>
-                                <CheckboxField
-                                    label="Charge the design fee"
-                                    description={
-                                        product
-                                            ? `${money(product.design_fee)} for this product`
-                                            : undefined
-                                    }
-                                    checked={form.data.charge_design_fee}
-                                    onChange={(checked) =>
-                                        form.setData(
-                                            "charge_design_fee",
-                                            checked,
-                                        )
-                                    }
-                                />
                                 <FormField
                                     label="Payment method"
                                     error={errors.payment_method_id}

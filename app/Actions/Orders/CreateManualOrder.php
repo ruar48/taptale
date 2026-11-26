@@ -22,8 +22,8 @@ use Illuminate\Validation\ValidationException;
 /**
  * Creates an order the studio took for a customer outside the online shop: a
  * walk-in, or someone who ordered over Messenger. The order belongs to no
- * account; the studio designs it and shares an approval link with the
- * customer so they can approve the design.
+ * account; the studio picks the website template and sends the customer a
+ * website edit link to add their photos and words.
  */
 class CreateManualOrder
 {
@@ -79,6 +79,7 @@ class CreateManualOrder
             $order->recalculateTotal();
             $order->approval_token = Str::random(40);
             $order->save();
+            $order->items()->createMany($pricing['items']);
 
             $order->recordActivity(
                 ActivityType::Placed,
@@ -86,18 +87,18 @@ class CreateManualOrder
                 $admin,
             );
 
-            if ($pricing['enables_digital_experience']) {
-                $template = ExperienceTemplate::forCategory($category?->slug);
+            // Every keychain opens a website: the studio picks its template
+            // and the customer fills it in through the website edit link.
+            $template = ExperienceTemplate::from($data['experience_template']);
 
-                $order->experience()->save(new DigitalExperience([
-                    'template' => $template,
-                    'theme' => $template->defaultTheme(),
-                    'title' => $personalization['names'] ?? $product->name,
-                    'message' => $personalization['message'] ?? null,
-                    'event_date' => $personalization['date'] ?? null,
-                    'photos' => [],
-                ]));
-            }
+            $order->experience()->save(new DigitalExperience([
+                'template' => $template,
+                'theme' => $template->defaultTheme(),
+                'title' => $personalization['names'] ?? $product->name,
+                'message' => $personalization['message'] ?? null,
+                'event_date' => $personalization['date'] ?? null,
+                'photos' => [],
+            ]));
 
             if (! empty($data['is_paid']) && $order->total > 0) {
                 $order->payments()->create([

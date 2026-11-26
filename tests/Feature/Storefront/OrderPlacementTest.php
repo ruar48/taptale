@@ -806,3 +806,35 @@ test('a gift message is dropped when the order is not a gift', function () {
         ->is_gift->toBeFalse()
         ->gift_message->toBeNull();
 });
+
+test('one checkout can hold several keychain types that share one website', function () {
+    $strip = Product::factory()->create(['name' => 'Photobooth Strip Keychain', 'base_price' => 4900, 'min_quantity' => 1]);
+
+    $this->actingAs($this->customer)
+        ->post(route('orders.store'), orderPayload($this, [
+            'option_ids' => [$this->small->id],
+            'quantity' => 1,
+            'extra_items' => [['product_id' => $strip->id, 'quantity' => 3]],
+        ]))
+        ->assertSessionHasNoErrors();
+
+    $order = Order::sole()->load('items');
+
+    expect($order->items)->toHaveCount(2)
+        ->and($order->items->pluck('subtotal')->all())->toBe([15000, 14700])
+        ->and($order->subtotal)->toBe(29700)
+        ->and($order->product_name)->toBe("{$this->product->name} + Photobooth Strip Keychain");
+});
+
+test('an extra keychain must be on sale and not repeat the main one', function (string $case) {
+    $extra = match ($case) {
+        'hidden' => ['product_id' => Product::factory()->create(['is_active' => false])->id, 'quantity' => 1],
+        'same as main' => ['product_id' => $this->product->id, 'quantity' => 1],
+    };
+
+    $this->actingAs($this->customer)
+        ->post(route('orders.store'), orderPayload($this, ['extra_items' => [$extra]]))
+        ->assertSessionHasErrors('extra_items');
+
+    expect(Order::count())->toBe(0);
+})->with(['hidden', 'same as main']);

@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Order;
+use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -79,6 +80,13 @@ class OrderResource extends JsonResource
                 'is_published' => $this->review->is_published,
             ] : null),
             'payment_method' => $this->whenLoaded('paymentMethod', fn (): ?PaymentMethodResource => $this->paymentMethod ? new PaymentMethodResource($this->paymentMethod) : null),
+            'items' => $this->whenLoaded('items', fn (): array => $this->items->map(fn (OrderItem $item): array => [
+                'id' => $item->id,
+                'product_name' => $item->product_name,
+                'quantity' => $item->quantity,
+                'unit_price' => $item->unit_price,
+                'subtotal' => $item->subtotal,
+            ])->all()),
             'files' => OrderFileResource::collection($this->whenLoaded('files')),
             'proofs' => DesignProofResource::collection($this->whenLoaded('proofs')),
             'activities' => OrderActivityResource::collection($this->whenLoaded('activities')),

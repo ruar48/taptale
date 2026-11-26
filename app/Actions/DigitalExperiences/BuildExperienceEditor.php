@@ -31,14 +31,14 @@ class BuildExperienceEditor
      *     maxUploadKilobytes: int
      * }
      */
-    public function handle(DigitalExperience $experience, User $viewer): array
+    public function handle(DigitalExperience $experience, ?User $viewer): array
     {
         $experience->loadMissing([
             'order:id,reference,product_name,status,customer_name',
             'replies' => fn (HasMany $query) => $query->limit(50),
         ]);
 
-        $isAdminEditing = $experience->user_id !== $viewer->id;
+        $isAdminEditing = $viewer !== null && $experience->user_id !== $viewer->id;
 
         return [
             'experience' => new DigitalExperienceResource($experience),

@@ -324,11 +324,11 @@ test('only the owner can manage sections', function () {
     expect($experience->fresh()->custom_sections)->toBe([timelineSection()]);
 });
 
-test('guests must sign in to add a section', function () {
+test('a guest without the edit link cannot add a section', function () {
     $experience = DigitalExperience::factory()->create();
 
     $this->post(route('account.experiences.sections.store', $experience), ['position' => 1, 'type' => 'timeline'])
-        ->assertRedirect(route('login'));
+        ->assertForbidden();
 
     expect($experience->fresh()->custom_sections)->toBeNull();
 });

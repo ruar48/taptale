@@ -1,6 +1,6 @@
 import { Truck } from 'lucide-react';
 import { useMoney } from '@/hooks/use-money';
-import type { PriceBreakdown, PricingConfig } from '@/lib/pricing';
+import type { ExtraItem, PriceBreakdown, PricingConfig } from '@/lib/pricing';
 import type { Category, Product } from '@/types';
 
 export function OrderSummary({
@@ -11,6 +11,7 @@ export function OrderSummary({
     pricing,
     designModeLabel,
     promoCode = null,
+    extraItems = [],
 }: {
     category: Category | null;
     product: Product | null;
@@ -19,6 +20,7 @@ export function OrderSummary({
     pricing: PricingConfig;
     designModeLabel: string | null;
     promoCode?: string | null;
+    extraItems?: ExtraItem[];
 }) {
     const money = useMoney();
 
@@ -55,12 +57,30 @@ export function OrderSummary({
                         </ul>
                     )}
                     <dl className="mt-4 space-y-2 border-t pt-4 text-sm">
-                        <div className="flex justify-between">
+                        <div className="flex justify-between gap-2">
                             <dt className="text-muted-foreground">
+                                {extraItems.length > 0 && `${product.name} · `}
                                 {money(price.unitPrice)} × {quantity}
                             </dt>
-                            <dd>{money(price.subtotal)}</dd>
+                            <dd>{money(price.mainSubtotal)}</dd>
                         </div>
+                        {extraItems.map((item) => (
+                            <div
+                                key={item.product.id}
+                                className="flex justify-between gap-2"
+                            >
+                                <dt className="text-muted-foreground">
+                                    {item.product.name} ·{' '}
+                                    {money(item.product.base_price)} ×{' '}
+                                    {item.quantity}
+                                </dt>
+                                <dd>
+                                    {money(
+                                        item.product.base_price * item.quantity,
+                                    )}
+                                </dd>
+                            </div>
+                        ))}
                         {price.discount > 0 && (
                             <div className="flex justify-between">
                                 <dt className="text-muted-foreground">

@@ -1,11 +1,13 @@
 import { Head, Link, router, setLayoutProps, useForm } from "@inertiajs/react";
 import {
-    AlertTriangle,
     BadgeCheck,
     Banknote,
+    Check,
+    Copy,
     ExternalLink,
     FileText,
     Gift,
+    Link2,
     Loader2,
     Mail,
     Nfc,
@@ -45,6 +47,8 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useClipboard } from "@/hooks/use-clipboard";
+import { useConfirm } from "@/hooks/use-confirm";
 import { useMoney } from "@/hooks/use-money";
 import { formatDate, formatFileSize, toPesoInput } from "@/lib/money";
 import { edit as experienceEdit } from "@/routes/account/experiences";
@@ -53,19 +57,14 @@ import { index as ordersIndex, show as orderShow } from "@/routes/admin/orders";
 import { index as reviewsIndex } from "@/routes/admin/reviews";
 import type { Order, StatusOption } from "@/types";
 
-const PRODUCTION_STATUSES = [
-    "in_production",
-    "ready_for_shipment",
-    "shipped",
-    "completed",
-];
-
 export default function AdminOrderShow({
     order,
     statuses,
+    websiteEditUrl,
 }: {
     order: Order;
     statuses: StatusOption[];
+    websiteEditUrl: string | null;
 }) {
     setLayoutProps({
         breadcrumbs: [
@@ -260,6 +259,12 @@ export default function AdminOrderShow({
 
                     <div className="space-y-6">
                         <StatusPanel order={order} statuses={statuses} />
+                        {order.experience && (
+                            <WebsiteEditLinkPanel
+                                order={order}
+                                editUrl={websiteEditUrl}
+                            />
+                        )}
                         <PaymentsPanel order={order} />
                         {order.experience && <ExperiencePanel order={order} />}
 
@@ -361,6 +366,123 @@ export default function AdminOrderShow({
     );
 }
 
+function WebsiteEditLinkPanel({
+    order,
+    editUrl,
+}: {
+    order: Order;
+    editUrl: string | null;
+}) {
+    const [copiedText, copy] = useClipboard();
+    const [processing, setProcessing] = useState(false);
+    const { confirm, confirmDialog } = useConfirm();
+    const visitOptions = {
+        preserveScroll: true,
+        onStart: () => setProcessing(true),
+        onFinish: () => setProcessing(false),
+    };
+    const issueLink = () =>
+        router.post(
+            OrderController.issueApprovalLink.url(order.reference),
+            {},
+            visitOptions,
+        );
+
+    return (
+        <Panel
+            title="Website edit link"
+            description="Send this to the customer on Messenger. They add their photos and words to the website, no account needed. When they are done, link the NFC tag below."
+        >
+            {editUrl ? (
+                <div className="space-y-3">
+                    <div className="flex gap-2">
+                        <Input
+                            readOnly
+                            value={editUrl}
+                            onFocus={(event) => event.target.select()}
+                            className="font-mono text-xs"
+                            aria-label="Website edit link"
+                        />
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => void copy(editUrl)}
+                            aria-label="Copy website edit link"
+                        >
+                            {copiedText === editUrl ? (
+                                <Check className="size-4 text-emerald-600" />
+                            ) : (
+                                <Copy className="size-4" />
+                            )}
+                        </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        <Button asChild variant="outline" size="sm">
+                            <a
+                                href={editUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                <ExternalLink className="size-4" /> Open
+                            </a>
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={processing}
+                            onClick={async () => {
+                                const isConfirmed = await confirm({
+                                    title: "Create a new link?",
+                                    description:
+                                        "The link you already sent will stop working.",
+                                    confirmLabel: "Create new link",
+                                });
+
+                                if (isConfirmed) {
+                                    issueLink();
+                                }
+                            }}
+                        >
+                            New link
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={processing}
+                            className="text-destructive"
+                            onClick={() =>
+                                router.delete(
+                                    OrderController.revokeApprovalLink.url(
+                                        order.reference,
+                                    ),
+                                    visitOptions,
+                                )
+                            }
+                        >
+                            Turn off
+                        </Button>
+                    </div>
+                </div>
+            ) : (
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    disabled={processing}
+                    onClick={issueLink}
+                >
+                    <Link2 className="size-4" /> Create website edit link
+                </Button>
+            )}
+
+            {confirmDialog}
+        </Panel>
+    );
+}
+
 function StatusPanel({
     order,
     statuses,
@@ -369,9 +491,6 @@ function StatusPanel({
     statuses: StatusOption[];
 }) {
     const form = useForm({ status: order.status, note: "" });
-    const blocked =
-        PRODUCTION_STATUSES.includes(form.data.status) &&
-        !order.is_design_approved;
 
     return (
         <Panel title="Order status">
@@ -398,27 +517,11 @@ function StatusPanel({
                     <SelectContent>
                         {statuses.map((status) => (
                             <SelectItem key={status.value} value={status.value}>
-                                <span className="flex items-center gap-2">
-                                    {status.label}
-                                    {PRODUCTION_STATUSES.includes(
-                                        status.value,
-                                    ) &&
-                                        !order.is_design_approved && (
-                                            <span className="text-xs text-muted-foreground">
-                                                (needs approval)
-                                            </span>
-                                        )}
-                                </span>
+                                {status.label}
                             </SelectItem>
                         ))}
                     </SelectContent>
                 </Select>
-                {blocked && (
-                    <p className="flex gap-2 rounded-lg bg-amber-50 p-2.5 text-xs text-amber-900 dark:bg-amber-500/10 dark:text-amber-200">
-                        <AlertTriangle className="size-4 shrink-0" /> Production
-                        can't start until the customer approves the design.
-                    </p>
-                )}
                 <Textarea
                     value={form.data.note}
                     onChange={(event) =>
@@ -433,7 +536,6 @@ function StatusPanel({
                     className="w-full"
                     disabled={
                         form.processing ||
-                        blocked ||
                         form.data.status === order.status
                     }
                 >

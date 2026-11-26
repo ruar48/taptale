@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Models\DigitalExperience;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * @mixin DigitalExperience
@@ -27,7 +28,7 @@ class DigitalExperienceResource extends JsonResource
          * secret key. Once the genuine tag is live the QR code no longer
          * opens the page, so the owner stops seeing it.
          */
-        $canManage = $request->user()?->can('view', $this->resource) ?? false;
+        $canManage = Gate::allows('view', $this->resource);
         $isAdmin = $request->user()?->isAdmin() ?? false;
 
         return [

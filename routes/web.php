@@ -176,44 +176,56 @@ Route::middleware('auth')->group(function () {
             ->name('orders.design.submit');
 
         // Administrators can design a customer's memory page; their changes are audited.
-        Route::middleware(RecordAdminAudit::class)->group(function () {
-            Route::get('experiences/{experience}', [Account\ExperienceController::class, 'edit'])->name('experiences.edit');
-            Route::put('experiences/{experience}', [Account\ExperienceController::class, 'update'])->name('experiences.update');
-            Route::patch('experiences/{experience}/content', [Account\ExperienceContentController::class, 'update'])
-                ->middleware('throttle:60,1,memory-page-text')
-                ->name('experiences.content');
-            Route::post('experiences/{experience}/photos/{index}', [Account\ExperiencePhotoController::class, 'replace'])
-                ->whereNumber('index')
-                ->middleware('throttle:30,1,memory-page-photo-swaps')
-                ->name('experiences.photos.replace');
-            Route::put('experiences/{experience}/design', [Account\ExperienceController::class, 'updateDesign'])->name('experiences.design');
-            Route::post('experiences/{experience}/photos', [Account\ExperiencePhotoController::class, 'store'])
-                ->middleware('throttle:30,1,memory-page-photo-uploads')
-                ->name('experiences.photos.store');
-            Route::post('experiences/{experience}/video', [Account\ExperienceVideoController::class, 'store'])
-                ->middleware('throttle:10,1,memory-page-video-uploads')
-                ->name('experiences.video.store');
-            Route::delete('experiences/{experience}/video', [Account\ExperienceVideoController::class, 'destroy'])
-                ->middleware('throttle:30,1,memory-page-video-removals')
-                ->name('experiences.video.destroy');
-            Route::post('experiences/{experience}/rain-photos', [Account\ExperienceRainPhotoController::class, 'store'])
-                ->middleware('throttle:30,1,memory-page-rain-photo-uploads')
-                ->name('experiences.rain-photos.store');
-            Route::delete('experiences/{experience}/rain-photos/{index}', [Account\ExperienceRainPhotoController::class, 'destroy'])
-                ->whereNumber('index')
-                ->middleware('throttle:60,1,memory-page-rain-photo-removals')
-                ->name('experiences.rain-photos.destroy');
-            Route::post('experiences/{experience}/sections', [Account\ExperienceSectionController::class, 'store'])
-                ->middleware('throttle:30,1,memory-page-sections')
-                ->name('experiences.sections.store');
-            Route::patch('experiences/{experience}/sections/{section}', [Account\ExperienceSectionController::class, 'update'])
-                ->middleware('throttle:60,1,memory-page-section-edits')
-                ->name('experiences.sections.update');
-            Route::delete('experiences/{experience}/sections/{section}', [Account\ExperienceSectionController::class, 'destroy'])
-                ->middleware('throttle:30,1,memory-page-section-removals')
-                ->name('experiences.sections.destroy');
-        });
+        Route::get('experiences/{experience}', [Account\ExperienceController::class, 'edit'])
+            ->middleware(RecordAdminAudit::class)
+            ->name('experiences.edit');
     });
+});
+
+/*
+| Saving a website. Owners and administrators are signed in, but a customer
+| the studio sent a website edit link to may have no account, so the policy
+| (not the auth middleware) decides who may edit.
+*/
+Route::get('website/{experience}', Storefront\WebsiteEditLinkController::class)
+    ->middleware('throttle:60,1,website-edit-links')
+    ->name('website-edit.show');
+
+Route::prefix('account')->name('account.')->middleware(RecordAdminAudit::class)->group(function () {
+    Route::put('experiences/{experience}', [Account\ExperienceController::class, 'update'])->name('experiences.update');
+    Route::patch('experiences/{experience}/content', [Account\ExperienceContentController::class, 'update'])
+        ->middleware('throttle:60,1,memory-page-text')
+        ->name('experiences.content');
+    Route::post('experiences/{experience}/photos/{index}', [Account\ExperiencePhotoController::class, 'replace'])
+        ->whereNumber('index')
+        ->middleware('throttle:30,1,memory-page-photo-swaps')
+        ->name('experiences.photos.replace');
+    Route::put('experiences/{experience}/design', [Account\ExperienceController::class, 'updateDesign'])->name('experiences.design');
+    Route::post('experiences/{experience}/photos', [Account\ExperiencePhotoController::class, 'store'])
+        ->middleware('throttle:30,1,memory-page-photo-uploads')
+        ->name('experiences.photos.store');
+    Route::post('experiences/{experience}/video', [Account\ExperienceVideoController::class, 'store'])
+        ->middleware('throttle:10,1,memory-page-video-uploads')
+        ->name('experiences.video.store');
+    Route::delete('experiences/{experience}/video', [Account\ExperienceVideoController::class, 'destroy'])
+        ->middleware('throttle:30,1,memory-page-video-removals')
+        ->name('experiences.video.destroy');
+    Route::post('experiences/{experience}/rain-photos', [Account\ExperienceRainPhotoController::class, 'store'])
+        ->middleware('throttle:30,1,memory-page-rain-photo-uploads')
+        ->name('experiences.rain-photos.store');
+    Route::delete('experiences/{experience}/rain-photos/{index}', [Account\ExperienceRainPhotoController::class, 'destroy'])
+        ->whereNumber('index')
+        ->middleware('throttle:60,1,memory-page-rain-photo-removals')
+        ->name('experiences.rain-photos.destroy');
+    Route::post('experiences/{experience}/sections', [Account\ExperienceSectionController::class, 'store'])
+        ->middleware('throttle:30,1,memory-page-sections')
+        ->name('experiences.sections.store');
+    Route::patch('experiences/{experience}/sections/{section}', [Account\ExperienceSectionController::class, 'update'])
+        ->middleware('throttle:60,1,memory-page-section-edits')
+        ->name('experiences.sections.update');
+    Route::delete('experiences/{experience}/sections/{section}', [Account\ExperienceSectionController::class, 'destroy'])
+        ->middleware('throttle:30,1,memory-page-section-removals')
+        ->name('experiences.sections.destroy');
 });
 
 /*

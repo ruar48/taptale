@@ -56,7 +56,7 @@ class PlaceOrder
         $withFlowers = ! empty($data['flower_addon']) && $pageTemplate !== ExperienceTemplate::DigitalBouquet;
 
         $promoCode = $this->resolvePromoCode($data['promo_code'] ?? null);
-        $pricing = $this->priceOrder->handle($product, $data['option_ids'] ?? [], $quantity, $designMode, $promoCode, $customer, $data['customer_phone'], $withFlowers);
+        $pricing = $this->priceOrder->handle($product, $data['option_ids'] ?? [], $quantity, $designMode, $promoCode, $customer, $data['customer_phone'], $withFlowers, $this->extraItems($data));
 
         $order = DB::transaction(function () use ($customer, $data, $category, $product, $designMode, $personalizeLater, $quantity, $isCashOnDelivery, $pricing, $promoCode, $pageTemplate, $withFlowers): Order {
             if ($promoCode !== null) {
@@ -67,7 +67,7 @@ class PlaceOrder
                 'status' => OrderStatus::AwaitingPayment,
                 'category_id' => $category?->id,
                 'product_id' => $product->id,
-                'product_name' => $product->name,
+                'product_name' => implode(' + ', array_column($pricing['items'], 'product_name')),
                 'selected_options' => $pricing['selected_options'],
                 'design_mode' => $designMode,
                 'personalization' => $this->personalization($data['personalization'] ?? []),
@@ -95,6 +95,8 @@ class PlaceOrder
                 'gift_message' => ! empty($data['is_gift']) && filled($data['gift_message'] ?? null) ? trim((string) $data['gift_message']) : null,
                 'payment_method_id' => $data['payment_method_id'],
             ]);
+
+            $order->items()->createMany($pricing['items']);
 
             $order->recordActivity(
                 ActivityType::Placed,
@@ -373,5 +375,19 @@ class PlaceOrder
             ->mapWithKeys(fn (string $field): array => [$field => isset($input[$field]) ? trim((string) $input[$field]) : ''])
             ->filter(fn (string $value): bool => $value !== '')
             ->all();
+    }
+
+    /**
+     * The other keychain types added to the checkout.
+     *
+     * @param  array<string, mixed>  $data
+     * @return list<array{product_id: int, quantity: int}>
+     */
+    private function extraItems(array $data): array
+    {
+        return array_values(array_map(fn (array $item): array => [
+            'product_id' => (int) $item['product_id'],
+            'quantity' => (int) $item['quantity'],
+        ], $data['extra_items'] ?? []));
     }
 }

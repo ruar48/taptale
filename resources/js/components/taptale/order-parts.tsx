@@ -20,7 +20,6 @@ import type { Order, OrderActivity } from "@/types";
 
 const STAGES = [
     { icon: CreditCard, label: "Order & payment" },
-    { icon: Paintbrush, label: "Design" },
     { icon: Gift, label: "Production" },
     { icon: Truck, label: "Shipping" },
     { icon: CheckCircle2, label: "Delivered" },
@@ -30,7 +29,7 @@ export function OrderProgress({ order }: { order: Order }) {
     const cancelled = order.status === "cancelled";
 
     return (
-        <ol className="grid grid-cols-5 gap-1">
+        <ol className="grid grid-cols-4 gap-1">
             {STAGES.map(({ icon: Icon, label }, index) => {
                 const stage = index + 1;
                 const done =
@@ -194,10 +193,20 @@ export function OrderPriceBreakdown({ order }: { order: Order }) {
 
     return (
         <dl className="space-y-2 text-sm">
-            <Line
-                label={`${money(order.unit_price)} × ${order.quantity}`}
-                value={money(order.subtotal)}
-            />
+            {(order.items?.length ?? 0) > 1 ? (
+                order.items?.map((item) => (
+                    <Line
+                        key={item.id}
+                        label={`${item.product_name} · ${money(item.unit_price)} × ${item.quantity}`}
+                        value={money(item.subtotal)}
+                    />
+                ))
+            ) : (
+                <Line
+                    label={`${money(order.unit_price)} × ${order.quantity}`}
+                    value={money(order.subtotal)}
+                />
+            )}
             {order.discount > 0 && (
                 <Line
                     label={

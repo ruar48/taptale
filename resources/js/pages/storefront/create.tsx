@@ -107,6 +107,8 @@ type WizardForm = {
     design_mode: DesignMode | "";
     option_ids: number[];
     quantity: number;
+    /** Other keychain types in the same checkout; they share the website. */
+    extra_items: { product_id: number; quantity: number }[];
     personalization: Required<Personalization>;
     photos: File[];
     approve_preview: boolean;
@@ -199,6 +201,7 @@ export default function CreateGift({
             ? defaultOptionIds(selectedProduct.options ?? [])
             : [],
         quantity: selectedProduct?.min_quantity ?? 1,
+        extra_items: [],
         personalization: {
             names: "",
             date: "",
@@ -517,6 +520,34 @@ export default function CreateGift({
         data.experience_template !== "" &&
         !pageHasOwnFlowers;
 
+    const extraItems = useMemo(
+        () =>
+            data.extra_items.flatMap((item) => {
+                const product = products.find(
+                    (candidate) => candidate.id === item.product_id,
+                );
+
+                return product ? [{ product, quantity: item.quantity }] : [];
+            }),
+        [data.extra_items, products],
+    );
+    const otherKeychains = products.filter(
+        (product) => product.id !== selectedProduct?.id,
+    );
+    const setExtraQuantity = (productId: number, quantity: number) =>
+        setData(
+            "extra_items",
+            quantity <= 0
+                ? data.extra_items.filter((item) => item.product_id !== productId)
+                : data.extra_items.some((item) => item.product_id === productId)
+                  ? data.extra_items.map((item) =>
+                        item.product_id === productId
+                            ? { ...item, quantity }
+                            : item,
+                    )
+                  : [...data.extra_items, { product_id: productId, quantity }],
+        );
+
     const price = useMemo(
         () =>
             selectedProduct
@@ -528,6 +559,7 @@ export default function CreateGift({
                       pricing,
                       promo,
                       wantsFlowers,
+                      extraItems,
                   )
                 : null,
         [
@@ -538,6 +570,7 @@ export default function CreateGift({
             pricing,
             promo,
             wantsFlowers,
+            extraItems,
         ],
     );
 
@@ -1499,6 +1532,113 @@ export default function CreateGift({
                                         className="mt-2"
                                     />
                                 </fieldset>
+
+                                {otherKeychains.length > 0 && (
+                                    <fieldset className="mt-10">
+                                        <legend className="font-display text-lg">
+                                            Add another keychain
+                                        </legend>
+                                        <p className="mt-1 text-sm text-muted-foreground">
+                                            Same checkout, same website — every
+                                            keychain opens the page you made.
+                                        </p>
+                                        <ul className="mt-4 space-y-2">
+                                            {otherKeychains.map((product) => {
+                                                const quantity =
+                                                    data.extra_items.find(
+                                                        (item) =>
+                                                            item.product_id ===
+                                                            product.id,
+                                                    )?.quantity ?? 0;
+
+                                                return (
+                                                    <li
+                                                        key={product.id}
+                                                        className={cn(
+                                                            "flex items-center justify-between gap-4 rounded-2xl border bg-card p-4 transition",
+                                                            quantity > 0 &&
+                                                                "border-rose bg-blush-light/40 dark:bg-rose/10",
+                                                        )}
+                                                    >
+                                                        <div className="min-w-0">
+                                                            <p className="font-medium">
+                                                                {product.name}
+                                                            </p>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                {money(
+                                                                    product.base_price,
+                                                                )}{" "}
+                                                                each
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex shrink-0 items-center gap-1 rounded-full border bg-background p-1">
+                                                            <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="size-8 rounded-full"
+                                                                disabled={
+                                                                    quantity ===
+                                                                    0
+                                                                }
+                                                                onClick={() =>
+                                                                    setExtraQuantity(
+                                                                        product.id,
+                                                                        quantity <=
+                                                                            product.min_quantity
+                                                                            ? 0
+                                                                            : quantity -
+                                                                                  1,
+                                                                    )
+                                                                }
+                                                                aria-label={`Fewer ${product.name}`}
+                                                            >
+                                                                <Minus className="size-4" />
+                                                            </Button>
+                                                            <span className="w-8 text-center font-semibold">
+                                                                {quantity}
+                                                            </span>
+                                                            <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="size-8 rounded-full"
+                                                                disabled={
+                                                                    quantity >=
+                                                                    product.max_quantity
+                                                                }
+                                                                onClick={() =>
+                                                                    setExtraQuantity(
+                                                                        product.id,
+                                                                        Math.max(
+                                                                            product.min_quantity,
+                                                                            quantity +
+                                                                                1,
+                                                                        ),
+                                                                    )
+                                                                }
+                                                                aria-label={`More ${product.name}`}
+                                                            >
+                                                                <Plus className="size-4" />
+                                                            </Button>
+                                                        </div>
+                                                    </li>
+                                                );
+                                            })}
+                                        </ul>
+                                        <InputError
+                                            message={
+                                                (
+                                                    errors as Record<
+                                                        string,
+                                                        string | undefined
+                                                    >
+                                                ).extra_items
+                                            }
+                                            className="mt-2"
+                                        />
+                                    </fieldset>
+                                )}
                             </StepShell>
                         )}
 
@@ -1909,6 +2049,7 @@ export default function CreateGift({
                                 price={price}
                                 pricing={pricing}
                                 promoCode={promo?.code}
+                                extraItems={extraItems}
                                 designModeLabel={
                                     designMode === "self"
                                         ? "Customized by you"

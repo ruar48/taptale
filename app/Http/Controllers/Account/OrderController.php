@@ -45,6 +45,7 @@ class OrderController extends Controller
             'category:id,name',
             'paymentMethod',
             'files',
+            'items',
             'proofs',
             'latestProof',
             'payments.method',

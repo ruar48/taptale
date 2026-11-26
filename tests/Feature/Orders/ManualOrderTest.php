@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ExperienceTemplate;
 use App\Enums\OrderChannel;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
@@ -26,6 +27,7 @@ function manualOrderData(Product $product, array $overrides = []): array
     return [
         'channel' => 'messenger',
         'product_id' => $product->id,
+        'experience_template' => 'classic',
         'option_ids' => [],
         'quantity' => 2,
         'charge_design_fee' => true,
@@ -83,18 +85,25 @@ test('a walk-in order paid in full moves straight on to design', function () {
         ->and($order->payments->sole()->status)->toBe(PaymentStatus::Verified);
 });
 
-test('a manual order for an NFC gift gets a memory page without an owner', function () {
-    $product = Product::factory()->withDigitalExperience()->create();
+test('a manual order gets the website template the studio picked, without an owner', function () {
+    $product = Product::factory()->create();
 
     $this->actingAs($this->admin)
-        ->post(route('admin.orders.store'), manualOrderData($product))
+        ->post(route('admin.orders.store'), manualOrderData($product, ['experience_template' => 'birthday']))
         ->assertSessionHasNoErrors();
 
-    $experience = Order::query()->sole()->experience;
+    $order = Order::query()->sole();
 
-    expect($experience)->not->toBeNull()
-        ->and($experience->user_id)->toBeNull()
-        ->and($experience->title)->toBe('Ana & Leo');
+    expect($order->experience)->not->toBeNull()
+        ->and($order->experience->template)->toBe(ExperienceTemplate::Birthday)
+        ->and($order->experience->user_id)->toBeNull()
+        ->and($order->websiteEditUrl())->not->toBeNull();
+});
+
+test('a manual order needs a website template', function () {
+    $this->actingAs($this->admin)
+        ->post(route('admin.orders.store'), manualOrderData(Product::factory()->create(), ['experience_template' => '']))
+        ->assertSessionHasErrors(['experience_template' => 'Please choose a website template.']);
 });
 
 test('a manual order needs a phone number or an email', function () {

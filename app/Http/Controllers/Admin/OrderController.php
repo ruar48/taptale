@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Actions\Orders\CreateManualOrder;
 use App\Concerns\ConvertsPesos;
 use App\Enums\ActivityType;
+use App\Enums\ExperienceTemplate;
 use App\Enums\OrderChannel;
 use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
@@ -60,6 +61,7 @@ class OrderController extends Controller
             'category:id,name',
             'paymentMethod',
             'files',
+            'items',
             'proofs',
             'latestProof',
             'payments.method',
@@ -71,6 +73,7 @@ class OrderController extends Controller
         return Inertia::render('admin/orders/show', [
             'order' => new OrderResource($order),
             'statuses' => OrderStatus::options(),
+            'websiteEditUrl' => $order->websiteEditUrl(),
         ]);
     }
 
@@ -92,18 +95,19 @@ class OrderController extends Controller
             ),
             'paymentMethods' => PaymentMethodResource::collection(PaymentMethod::active()->get()),
             'defaultDeliveryFee' => (int) config('taptale.delivery_fee'),
+            'templates' => ExperienceTemplate::options(),
         ]);
     }
 
     /**
-     * Save a walk-in or chat order. It comes with an approval link the
-     * studio can send the customer once a design is ready.
+     * Save a walk-in or chat order. It comes with a website edit link the
+     * studio sends the customer so they can add their photos and words.
      */
     public function store(StoreManualOrderRequest $request, CreateManualOrder $createManualOrder): RedirectResponse
     {
         $order = $createManualOrder->handle($request->user(), $request->validated());
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Order :reference created. Upload a design, then send the customer the approval link.', ['reference' => $order->reference])]);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Order :reference created. Send the customer the website edit link.', ['reference' => $order->reference])]);
 
         return to_route('admin.orders.show', $order);
     }
@@ -116,7 +120,7 @@ class OrderController extends Controller
     {
         $order->issueApprovalToken();
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('New approval link ready to share.')]);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('New website edit link ready to share.')]);
 
         return back();
     }
@@ -128,7 +132,7 @@ class OrderController extends Controller
     {
         $order->revokeApprovalToken();
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Approval link turned off.')]);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Website edit link turned off.')]);
 
         return back();
     }
@@ -139,7 +143,7 @@ class OrderController extends Controller
     public function packingSlip(Order $order): Response
     {
         return Inertia::render('admin/orders/packing-slip', [
-            'order' => new OrderResource($order),
+            'order' => new OrderResource($order->load('items')),
         ]);
     }
 

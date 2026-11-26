@@ -8,8 +8,14 @@ export type PricingConfig = {
     flowers_addon_price: number;
 };
 
+/** Another keychain type added to the same checkout. */
+export type ExtraItem = { product: Product; quantity: number };
+
 export type PriceBreakdown = {
     unitPrice: number;
+    /** The main keychain only (unit price × quantity). */
+    mainSubtotal: number;
+    /** Every keychain in the checkout. */
     subtotal: number;
     customizationFee: number;
     flowersFee: number;
@@ -61,6 +67,7 @@ export function calculatePrice(
     config: PricingConfig,
     promo: AppliedPromo | null = null,
     withFlowers = false,
+    extraItems: ExtraItem[] = [],
 ): PriceBreakdown {
     const selected = (product.options ?? []).filter((option) =>
         optionIds.includes(option.id),
@@ -74,7 +81,13 @@ export function calculatePrice(
     );
     const unitPrice = Math.max(0, product.base_price + modifiers);
     const safeQuantity = Math.max(0, quantity || 0);
-    const subtotal = unitPrice * safeQuantity;
+    const mainSubtotal = unitPrice * safeQuantity;
+    // Extra keychains are charged at their base price.
+    const subtotal = extraItems.reduce(
+        (sum, item) =>
+            sum + item.product.base_price * Math.max(0, item.quantity || 0),
+        mainSubtotal,
+    );
     const customizationFee = designMode === 'assisted' ? product.design_fee : 0;
     // Charged once, outside the items subtotal, so promos never discount it.
     const flowersFee =
@@ -89,6 +102,7 @@ export function calculatePrice(
 
     return {
         unitPrice,
+        mainSubtotal,
         subtotal,
         customizationFee,
         flowersFee,

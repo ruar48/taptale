@@ -189,6 +189,20 @@ class Order extends Model
     }
 
     /**
+     * The private link that lets the customer fill in their website without
+     * an account. It shares the approval key, so turning one off or issuing
+     * a new one changes both.
+     */
+    public function websiteEditUrl(): ?string
+    {
+        $experience = $this->experience;
+
+        return $this->approval_token === null || $experience === null
+            ? null
+            : route('website-edit.show', ['experience' => $experience, 'k' => $this->approval_token]);
+    }
+
+    /**
      * Whether the given key opens this order's approval link.
      */
     public function hasApprovalToken(mixed $key): bool
@@ -245,6 +259,16 @@ class Order extends Model
     public function paymentMethod(): BelongsTo
     {
         return $this->belongsTo(PaymentMethod::class);
+    }
+
+    /**
+     * The keychains in this order, in the order they were added.
+     *
+     * @return HasMany<OrderItem, $this>
+     */
+    public function items(): HasMany
+    {
+        return $this->hasMany(OrderItem::class)->orderBy('id');
     }
 
     /**

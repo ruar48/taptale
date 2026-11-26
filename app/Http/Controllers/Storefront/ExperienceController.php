@@ -16,6 +16,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -170,7 +171,7 @@ class ExperienceController extends Controller
             ]);
         }
 
-        $canEdit = $request->user()?->can('update', $experience) ?? false;
+        $canEdit = Gate::allows('update', $experience);
 
         return Inertia::render('storefront/experience', [
             'experience' => new DigitalExperienceResource($experience),
@@ -345,7 +346,7 @@ class ExperienceController extends Controller
 
     private static function canPreview(Request $request, DigitalExperience $experience): bool
     {
-        return $request->user()?->can('view', $experience) ?? false;
+        return Gate::allows('view', $experience);
     }
 
     /**
