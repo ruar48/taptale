@@ -1,6 +1,6 @@
 /**
  * Keeps a gift that is being crafted in this browser, so it survives a
- * refresh, logging in (including two-factor), a password reset or simply
+ * refresh, logging in, a password reset or simply
  * coming back later. Choices live in localStorage and photos in IndexedDB,
  * which can store real files. Every access is guarded: private windows and
  * blocked storage simply mean nothing is saved.

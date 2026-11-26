@@ -5,7 +5,6 @@ use App\Http\Controllers\Admin;
 use App\Http\Controllers\PrivateFileController;
 use App\Http\Controllers\Storefront;
 use App\Http\Controllers\Webhooks;
-use App\Http\Middleware\EnsureAdminHasTwoFactor;
 use App\Http\Middleware\PreventDuplicateSubmissions;
 use App\Http\Middleware\RecordAdminAudit;
 use App\Http\Middleware\VerifyPayMongoSignature;
@@ -223,7 +222,7 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'verified', 'can:admin', EnsureAdminHasTwoFactor::class, RecordAdminAudit::class])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'can:admin', RecordAdminAudit::class])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', Admin\DashboardController::class)->name('dashboard');
     Route::get('production', Admin\ProductionController::class)->name('production');
     Route::get('audit-log', Admin\AuditLogController::class)->name('audit-log');

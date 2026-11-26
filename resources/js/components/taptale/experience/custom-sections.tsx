@@ -45,6 +45,7 @@ import {
     useExperience,
 } from "@/components/taptale/experience/shared";
 import type { SectionChanges } from "@/components/taptale/experience/shared";
+import { useConfirm } from "@/hooks/use-confirm";
 import { cn } from "@/lib/utils";
 import type { ExperienceCustomSection, ExperienceSectionType } from "@/types";
 
@@ -655,6 +656,7 @@ function SectionToolbar({
     const { experience, sectionActions } = useExperience();
     const sectionsOnPage = useSectionsOnPage(section.id);
     const colorInput = useRef<HTMLInputElement>(null);
+    const { confirm, confirmDialog } = useConfirm();
     const url = ExperienceSectionController.update.url({
         experience: experience.code,
         section: section.id,
@@ -690,12 +692,15 @@ function SectionToolbar({
         return () => input.removeEventListener("change", commit);
     });
 
-    const remove = () => {
-        if (
-            !window.confirm(
-                "Remove this section? Its photos stay on your page.",
-            )
-        ) {
+    const remove = async () => {
+        const isConfirmed = await confirm({
+            title: "Remove this section?",
+            description: "Its photos stay on your page.",
+            confirmLabel: "Remove section",
+            destructive: true,
+        });
+
+        if (!isConfirmed) {
             return;
         }
 
@@ -846,6 +851,8 @@ function SectionToolbar({
             >
                 <Trash2 className="size-3.5" /> Remove
             </button>
+
+            {confirmDialog}
         </div>
     );
 }

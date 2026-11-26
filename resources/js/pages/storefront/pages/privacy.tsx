@@ -241,12 +241,10 @@ export default function Privacy() {
                             We use encrypted (HTTPS) connections, store
                             passwords encrypted, keep your uploaded photos and
                             receipts in private storage, and limit access to the
-                            team members who need it to fulfil your order. You
-                            can also turn on two-factor authentication in your
-                            account settings. No system is perfectly secure, but
-                            if a breach affects your information, we will notify
-                            you and the National Privacy Commission as the law
-                            requires.
+                            team members who need it to fulfil your order. No
+                            system is perfectly secure, but if a breach affects
+                            your information, we will notify you and the
+                            National Privacy Commission as the law requires.
                         </p>
                     ),
                 },

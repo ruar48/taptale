@@ -41,6 +41,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useConfirm } from "@/hooks/use-confirm";
 import { MAX_RAIN_PHOTOS } from "@/lib/page-draft";
 import { cn } from "@/lib/utils";
 import { demo } from "@/routes/experiences";
@@ -158,6 +159,7 @@ export function ExperienceEditor({
     replies,
     embedded = false,
 }: ExperienceEditorProps & { embedded?: boolean }) {
+    const { confirm, confirmDialog } = useConfirm();
     const form = useForm<ExperienceForm>({
         _method: "put",
         template: experience.template,
@@ -1240,10 +1242,21 @@ export function ExperienceEditor({
                                                 type="button"
                                                 variant="ghost"
                                                 className="rounded-full text-destructive"
-                                                onClick={() =>
-                                                    window.confirm(
-                                                        "Remove the video from your page?",
-                                                    ) &&
+                                                onClick={async () => {
+                                                    const isConfirmed =
+                                                        await confirm({
+                                                            title: "Remove the video?",
+                                                            description:
+                                                                "It will no longer show on your page.",
+                                                            confirmLabel:
+                                                                "Remove video",
+                                                            destructive: true,
+                                                        });
+
+                                                    if (!isConfirmed) {
+                                                        return;
+                                                    }
+
                                                     router.delete(
                                                         ExperienceVideoController.destroy.url(
                                                             experience.code,
@@ -1252,8 +1265,8 @@ export function ExperienceEditor({
                                                             preserveScroll: true,
                                                             preserveState: true,
                                                         },
-                                                    )
-                                                }
+                                                    );
+                                                }}
                                             >
                                                 Remove video
                                             </Button>
@@ -1552,6 +1565,8 @@ export function ExperienceEditor({
                     </div>
                 </div>
             </form>
+
+            {confirmDialog}
         </>
     );
 }

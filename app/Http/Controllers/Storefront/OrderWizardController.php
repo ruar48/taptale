@@ -49,7 +49,7 @@ class OrderWizardController extends Controller
         if ($user === null && $product !== null) {
             /*
              * Once a guest is crafting a gift, logging in or signing up from
-             * anywhere (the checkout panel, the header, two-factor) brings
+             * anywhere (the checkout panel, the header) brings
              * them back here, where the browser draft restores their gift.
              * Guests who only looked around keep the normal dashboard redirect.
              */

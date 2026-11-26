@@ -165,18 +165,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Admin security
-    |--------------------------------------------------------------------------
-    |
-    | When on, administrators must turn on two-factor authentication before
-    | they can open the admin dashboard.
-    |
-    */
-
-    'admin_requires_two_factor' => (bool) env('TAPTALE_ADMIN_REQUIRES_TWO_FACTOR', true),
-
-    /*
-    |--------------------------------------------------------------------------
     | Search engines & link previews
     |--------------------------------------------------------------------------
     |

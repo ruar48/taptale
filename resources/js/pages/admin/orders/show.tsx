@@ -53,6 +53,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useClipboard } from "@/hooks/use-clipboard";
+import { useConfirm } from "@/hooks/use-confirm";
 import { useMoney } from "@/hooks/use-money";
 import { formatDate, formatFileSize, toPesoInput } from "@/lib/money";
 import { edit as experienceEdit } from "@/routes/account/experiences";
@@ -385,6 +386,7 @@ function ApprovalLinkPanel({
 }) {
     const [copiedText, copy] = useClipboard();
     const [processing, setProcessing] = useState(false);
+    const { confirm, confirmDialog } = useConfirm();
     const visitOptions = {
         preserveScroll: true,
         onStart: () => setProcessing(true),
@@ -447,12 +449,15 @@ function ApprovalLinkPanel({
                             variant="ghost"
                             size="sm"
                             disabled={processing}
-                            onClick={() => {
-                                if (
-                                    window.confirm(
-                                        "Create a new link? The link you already sent will stop working.",
-                                    )
-                                ) {
+                            onClick={async () => {
+                                const isConfirmed = await confirm({
+                                    title: "Create a new link?",
+                                    description:
+                                        "The link you already sent will stop working.",
+                                    confirmLabel: "Create new link",
+                                });
+
+                                if (isConfirmed) {
                                     issueLink();
                                 }
                             }}
@@ -489,6 +494,8 @@ function ApprovalLinkPanel({
                     <Link2 className="size-4" /> Create approval link
                 </Button>
             )}
+
+            {confirmDialog}
         </Panel>
     );
 }

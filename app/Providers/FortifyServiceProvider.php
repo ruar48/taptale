@@ -96,8 +96,6 @@ class FortifyServiceProvider extends ServiceProvider
             'passwordRules' => Password::defaults()->toPasswordRulesString(),
         ]));
 
-        Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/two-factor-challenge'));
-
         Fortify::confirmPasswordView(fn () => Inertia::render('auth/confirm-password'));
     }
 
@@ -106,10 +104,6 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureRateLimiting(): void
     {
-        RateLimiter::for('two-factor', function (Request $request) {
-            return Limit::perMinute(5)->by($request->session()->get('login.id'));
-        });
-
         /*
          * Five tries per account from one network, and at most thirty tries a
          * minute from one network across all accounts, which stops one

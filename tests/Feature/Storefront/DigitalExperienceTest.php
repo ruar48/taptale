@@ -381,15 +381,6 @@ test('the owner editing their memory page is not shown as an admin edit or audit
     $this->assertDatabaseCount('audit_logs', 0);
 });
 
-test('an admin without two-factor authentication cannot design a customer\'s memory page', function () {
-    $admin = User::factory()->create(['is_admin' => true]);
-    $experience = DigitalExperience::factory()->create();
-
-    $this->actingAs($admin)
-        ->get(route('account.experiences.edit', $experience))
-        ->assertForbidden();
-});
-
 test('an admin links an NFC tag to an experience', function () {
     $admin = User::factory()->admin()->create();
     $experience = DigitalExperience::factory()->create();

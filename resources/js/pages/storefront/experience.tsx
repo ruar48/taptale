@@ -49,6 +49,7 @@ import {
 import type { PhotoSlot } from "@/components/taptale/experience/shared";
 import { DesignSwitcher } from "@/components/taptale/experience/design-switcher";
 import type { DesignOptions } from "@/components/taptale/experience/design-switcher";
+import { useConfirm } from "@/hooks/use-confirm";
 import { useMoney } from "@/hooks/use-money";
 import { usePageDraft } from "@/hooks/use-page-draft";
 import { home } from "@/routes";
@@ -144,6 +145,7 @@ export default function Experience({
     const [isEmbedded, setIsEmbedded] = useState(false);
     useEffect(() => setIsEmbedded(window.self !== window.top), []);
     const [uploading, setUploading] = useState(false);
+    const { confirm, confirmDialog } = useConfirm();
 
     const photos = experience.photos.map((photo) => photo.url);
 
@@ -401,8 +403,15 @@ export default function Experience({
         );
     };
 
-    const removeVideo = () => {
-        if (!window.confirm("Remove the video from your page?")) {
+    const removeVideo = async () => {
+        const isConfirmed = await confirm({
+            title: "Remove the video?",
+            description: "It will no longer show on your page.",
+            confirmLabel: "Remove video",
+            destructive: true,
+        });
+
+        if (!isConfirmed) {
             return;
         }
 
@@ -503,12 +512,18 @@ export default function Experience({
                                     {draft.hasChanges && (
                                         <button
                                             type="button"
-                                            onClick={() => {
-                                                if (
-                                                    window.confirm(
-                                                        "Start over with the sample page? Your words and photos on this design will be removed from this device.",
-                                                    )
-                                                ) {
+                                            onClick={async () => {
+                                                const isConfirmed =
+                                                    await confirm({
+                                                        title: "Start over with the sample page?",
+                                                        description:
+                                                            "Your words and photos on this design will be removed from this device.",
+                                                        confirmLabel:
+                                                            "Start over",
+                                                        destructive: true,
+                                                    });
+
+                                                if (isConfirmed) {
                                                     draft.reset();
                                                 }
                                             }}
@@ -679,6 +694,8 @@ export default function Experience({
                             />
                         </div>
                     )}
+
+                    {confirmDialog}
                 </div>
             </AudioProvider>
         </ExperienceContext.Provider>

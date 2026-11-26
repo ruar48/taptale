@@ -376,7 +376,7 @@ export default function CreateGift({
     const [wasRestored, setWasRestored] = useState(false);
 
     // Pick up a gift this visitor was crafting in this browser — after
-    // logging in (even through two-factor), a refresh or a later visit.
+    // logging in, a refresh or a later visit.
     useEffect(() => {
         const draft = loadDraft<DraftData>();
 

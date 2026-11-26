@@ -5,26 +5,6 @@ use App\Models\Category;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
-test('an admin without two-factor authentication is sent to turn it on', function () {
-    $admin = User::factory()->admin()->create([
-        'two_factor_secret' => null,
-        'two_factor_recovery_codes' => null,
-        'two_factor_confirmed_at' => null,
-    ]);
-
-    $this->actingAs($admin)->get(route('admin.dashboard'))->assertRedirect(route('security.edit'));
-    $this->actingAs($admin)->delete(route('admin.categories.destroy', Category::factory()->create()))->assertRedirect(route('security.edit'));
-
-    expect(Category::count())->toBe(1);
-});
-
-test('the two-factor requirement for admins can be switched off', function () {
-    config(['taptale.admin_requires_two_factor' => false]);
-    $admin = User::factory()->admin()->create(['two_factor_secret' => null, 'two_factor_confirmed_at' => null]);
-
-    $this->actingAs($admin)->get(route('admin.dashboard'))->assertOk();
-});
-
 test('pages are served with browser security headers', function () {
     $this->get(route('home'))
         ->assertHeader('X-Content-Type-Options', 'nosniff')
