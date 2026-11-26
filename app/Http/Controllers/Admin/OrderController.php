@@ -13,6 +13,7 @@ use App\Http\Requests\Admin\StoreManualOrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Http\Resources\PaymentMethodResource;
 use App\Http\Resources\ProductResource;
+use App\Models\DigitalExperience;
 use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Models\Product;
@@ -74,6 +75,7 @@ class OrderController extends Controller
             'order' => new OrderResource($order),
             'statuses' => OrderStatus::options(),
             'websiteEditUrl' => $order->websiteEditUrl(),
+            'templates' => ExperienceTemplate::options(),
         ]);
     }
 
@@ -133,6 +135,43 @@ class OrderController extends Controller
         $order->revokeApprovalToken();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Website edit link turned off.')]);
+
+        return back();
+    }
+
+    /**
+     * Give an order that has no website one, in the template the studio
+     * picks. Every keychain opens a website.
+     */
+    public function createWebsite(Request $request, Order $order): RedirectResponse
+    {
+        $validated = $request->validate(
+            ['experience_template' => ['required', Rule::enum(ExperienceTemplate::class)]],
+            ['experience_template.required' => 'Please choose a website template.'],
+        );
+
+        if ($order->experience()->exists()) {
+            return back();
+        }
+
+        $template = ExperienceTemplate::from($validated['experience_template']);
+
+        $experience = new DigitalExperience([
+            'template' => $template,
+            'theme' => $template->defaultTheme(),
+            'title' => $order->personalization['names'] ?? $order->product_name,
+            'message' => $order->personalization['message'] ?? null,
+            'event_date' => $order->personalization['date'] ?? null,
+            'photos' => [],
+        ]);
+        $experience->user_id = $order->user_id;
+        $order->experience()->save($experience);
+
+        if ($order->approval_token === null) {
+            $order->issueApprovalToken();
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Website created. Send the customer the edit link, then program the tag.')]);
 
         return back();
     }

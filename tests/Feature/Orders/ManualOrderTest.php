@@ -206,3 +206,19 @@ test('an admin replaces or turns off the approval link', function () {
 
     expect($order->fresh()->approval_token)->toBeNull();
 });
+
+test('an admin creates a website for an order that has none', function () {
+    $order = Order::factory()->create(['personalization' => ['names' => 'Zen & Megi']]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.orders.website.store', $order), ['experience_template' => 'classic'])
+        ->assertSessionHasNoErrors();
+
+    $order->refresh();
+
+    expect($order->experience)->not->toBeNull()
+        ->and($order->experience->template)->toBe(ExperienceTemplate::Classic)
+        ->and($order->experience->user_id)->toBe($order->user_id)
+        ->and($order->experience->title)->toBe('Zen & Megi')
+        ->and($order->websiteEditUrl())->not->toBeNull();
+});

@@ -265,6 +265,7 @@ Route::middleware(['auth', 'verified', 'can:admin', RecordAdminAudit::class])->p
         ->name('orders.notes.store');
     Route::post('orders/{order}/approval-link', [Admin\OrderController::class, 'issueApprovalLink'])->name('orders.approval-link.store');
     Route::delete('orders/{order}/approval-link', [Admin\OrderController::class, 'revokeApprovalLink'])->name('orders.approval-link.destroy');
+    Route::post('orders/{order}/website', [Admin\OrderController::class, 'createWebsite'])->name('orders.website.store');
     Route::post('orders/{order}/proofs', [Admin\DesignProofController::class, 'store'])
         ->middleware(PreventDuplicateSubmissions::class)
         ->name('orders.proofs.store');

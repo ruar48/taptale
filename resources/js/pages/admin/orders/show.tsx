@@ -13,7 +13,6 @@ import {
     Nfc,
     Phone,
     Printer,
-    ShieldAlert,
 } from "lucide-react";
 import { useState } from "react";
 import ExperienceController from "@/actions/App/Http/Controllers/Admin/ExperienceController";
@@ -61,10 +60,12 @@ export default function AdminOrderShow({
     order,
     statuses,
     websiteEditUrl,
+    templates,
 }: {
     order: Order;
     statuses: StatusOption[];
     websiteEditUrl: string | null;
+    templates: { value: string; label: string }[];
 }) {
     setLayoutProps({
         breadcrumbs: [
@@ -114,26 +115,6 @@ export default function AdminOrderShow({
                                 <Printer className="size-4" /> Packing slip
                             </a>
                         </Button>
-                        <div className="flex items-center gap-2 rounded-xl border bg-card px-3 py-2 text-sm">
-                            {order.is_design_approved ? (
-                                <>
-                                    <BadgeCheck className="size-4 text-emerald-600" />{" "}
-                                    Design approved — ready for production
-                                </>
-                            ) : order.design_submitted_at &&
-                              (order.proofs?.length ?? 0) === 0 ? (
-                                <>
-                                    <ShieldAlert className="size-4 text-sky-600" />{" "}
-                                    Customer sent photos & details — ready to
-                                    design
-                                </>
-                            ) : (
-                                <>
-                                    <ShieldAlert className="size-4 text-amber-600" />{" "}
-                                    Awaiting design approval
-                                </>
-                            )}
-                        </div>
                     </div>
                 </header>
 
@@ -258,7 +239,14 @@ export default function AdminOrderShow({
                     </div>
 
                     <div className="space-y-6">
-                        {order.experience && <ExperiencePanel order={order} />}
+                        {order.experience ? (
+                            <ExperiencePanel order={order} />
+                        ) : (
+                            <CreateWebsitePanel
+                                order={order}
+                                templates={templates}
+                            />
+                        )}
                         <StatusPanel order={order} statuses={statuses} />
                         {order.experience && (
                             <WebsiteEditLinkPanel
@@ -1050,6 +1038,66 @@ function NoteForm({ order }: { order: Order }) {
                 </Button>
             </div>
         </form>
+    );
+}
+
+function CreateWebsitePanel({
+    order,
+    templates,
+}: {
+    order: Order;
+    templates: { value: string; label: string }[];
+}) {
+    const form = useForm({ experience_template: templates[0]?.value ?? "" });
+
+    return (
+        <Panel
+            title="NFC & QR"
+            description="This order has no website yet. Pick a template to create one, then send the customer the edit link and program the tag."
+        >
+            <form
+                className="space-y-3"
+                onSubmit={(event) => {
+                    event.preventDefault();
+                    form.post(
+                        OrderController.createWebsite.url(order.reference),
+                        { preserveScroll: true },
+                    );
+                }}
+            >
+                <Select
+                    value={form.data.experience_template}
+                    onValueChange={(value) =>
+                        form.setData("experience_template", value)
+                    }
+                >
+                    <SelectTrigger aria-label="Website template">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {templates.map((template) => (
+                            <SelectItem
+                                key={template.value}
+                                value={template.value}
+                            >
+                                {template.label}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <InputError message={form.errors.experience_template} />
+                <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={form.processing}
+                >
+                    {form.processing && (
+                        <Loader2 className="size-4 animate-spin" />
+                    )}{" "}
+                    Create website
+                </Button>
+            </form>
+        </Panel>
     );
 }
 
