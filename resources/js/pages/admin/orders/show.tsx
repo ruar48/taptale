@@ -258,6 +258,7 @@ export default function AdminOrderShow({
                     </div>
 
                     <div className="space-y-6">
+                        {order.experience && <ExperiencePanel order={order} />}
                         <StatusPanel order={order} statuses={statuses} />
                         {order.experience && (
                             <WebsiteEditLinkPanel
@@ -266,7 +267,6 @@ export default function AdminOrderShow({
                             />
                         )}
                         <PaymentsPanel order={order} />
-                        {order.experience && <ExperiencePanel order={order} />}
 
                         <Panel title="Order summary">
                             <OrderSpecs order={order} />
@@ -1056,6 +1056,7 @@ function NoteForm({ order }: { order: Order }) {
 function ExperiencePanel({ order }: { order: Order }) {
     const experience = order.experience!;
     const form = useForm({ nfc_tag_uid: experience.nfc_tag_uid ?? "" });
+    const [copiedText, copy] = useClipboard();
 
     return (
         <Panel title="NFC & QR">
@@ -1072,12 +1073,32 @@ function ExperiencePanel({ order }: { order: Order }) {
                             ? "Published"
                             : "Not published yet"}
                     </p>
-                    <p className="text-xs break-all text-muted-foreground">
-                        Program the tag with:{" "}
-                        <span className="font-mono text-foreground">
-                            {experience.tag_url}
-                        </span>
+                    <p className="text-xs text-muted-foreground">
+                        Link to write on the tag:
                     </p>
+                    <div className="flex gap-2">
+                        <Input
+                            readOnly
+                            value={experience.tag_url ?? ""}
+                            onFocus={(event) => event.target.select()}
+                            className="h-8 font-mono text-xs"
+                            aria-label="Tag link"
+                        />
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="shrink-0"
+                            onClick={() => void copy(experience.tag_url ?? "")}
+                        >
+                            {copiedText === experience.tag_url ? (
+                                <Check className="size-4 text-emerald-600" />
+                            ) : (
+                                <Copy className="size-4" />
+                            )}
+                            Copy
+                        </Button>
+                    </div>
                     <p className="text-xs text-muted-foreground">
                         In NXP TagWriter, turn on the UID mirror and counter
                         mirror over the{" "}
